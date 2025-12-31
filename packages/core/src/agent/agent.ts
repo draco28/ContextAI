@@ -55,6 +55,8 @@ export class Agent {
   /**
    * Run the agent with a user message (non-streaming)
    *
+   * Uses arrow function syntax to preserve `this` binding when passed as callback.
+   *
    * @param input - The user's message or question
    * @param options - Optional runtime configuration
    * @returns AgentResponse with output, trace, and success status
@@ -65,12 +67,16 @@ export class Agent {
    *   maxIterations: 5,
    *   context: [{ role: 'user', content: 'Previous question' }],
    * });
+   *
+   * // Safe to pass as callback
+   * const runFn = agent.run;
+   * await runFn('Hello'); // Works correctly
    * ```
    */
-  async run(
+  run = async (
     input: string,
     options: AgentRunOptions = {}
-  ): Promise<AgentResponse> {
+  ): Promise<AgentResponse> => {
     const messages = this.buildMessages(input, options.context);
 
     try {
@@ -95,7 +101,7 @@ export class Agent {
         error: errorMessage,
       };
     }
-  }
+  };
 
   /**
    * Run the agent with streaming output
@@ -107,11 +113,15 @@ export class Agent {
    * - `text`: Final output text
    * - `done`: Completion with full response
    *
+   * **Note**: Async generators cannot use arrow function syntax.
+   * Do NOT pass this method as a callback - call it directly on the agent instance.
+   *
    * @param input - The user's message or question
    * @param options - Optional runtime configuration
    *
    * @example
    * ```typescript
+   * // ✅ CORRECT - Call directly on agent
    * for await (const event of agent.stream('Analyze this data')) {
    *   switch (event.type) {
    *     case 'thought':
@@ -131,6 +141,10 @@ export class Agent {
    *       break;
    *   }
    * }
+   *
+   * // ❌ WRONG - Do not pass as callback
+   * const streamFn = agent.stream;
+   * streamFn('input'); // 'this' will be undefined!
    * ```
    */
   async *stream(
@@ -166,11 +180,13 @@ export class Agent {
 
   /**
    * Build conversation messages with system prompt
+   *
+   * Uses arrow function syntax to preserve `this` binding.
    */
-  private buildMessages(
+  private buildMessages = (
     input: string,
     context?: ChatMessage[]
-  ): ChatMessage[] {
+  ): ChatMessage[] => {
     const messages: ChatMessage[] = [
       { role: 'system', content: this.systemPrompt },
     ];
@@ -182,5 +198,5 @@ export class Agent {
     messages.push({ role: 'user', content: input });
 
     return messages;
-  }
+  };
 }

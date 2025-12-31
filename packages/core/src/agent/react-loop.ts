@@ -45,11 +45,13 @@ export class ReActLoop {
 
   /**
    * Execute the ReAct loop
+   *
+   * Uses arrow function syntax to preserve `this` binding when passed as callback.
    */
-  async execute(
+  execute = async (
     messages: ChatMessage[],
     options: AgentRunOptions = {}
-  ): Promise<{ output: string; trace: ReActTrace }> {
+  ): Promise<{ output: string; trace: ReActTrace }> => {
     const maxIter = options.maxIterations ?? this.maxIterations;
     const steps: ReActStep[] = [];
     const startTime = Date.now();
@@ -127,15 +129,17 @@ export class ReActLoop {
     throw new AgentError(
       `ReAct loop exceeded maximum iterations (${maxIter}). Consider increasing maxIterations or simplifying the task.`
     );
-  }
+  };
 
   /**
    * Execute a single tool call
+   *
+   * Uses arrow function syntax to preserve `this` binding.
    */
-  private async executeTool(
+  private executeTool = async (
     toolCall: ToolCall,
     signal?: AbortSignal
-  ): Promise<Observation> {
+  ): Promise<Observation> => {
     const tool = this.tools.get(toolCall.name);
 
     if (!tool) {
@@ -165,5 +169,5 @@ export class ReActLoop {
         timestamp: Date.now(),
       };
     }
-  }
+  };
 }
