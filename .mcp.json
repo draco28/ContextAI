@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "projectpulse": {
+      "type": "http",
+      "url": "https://projectpulsemcp.dracodev.dev/mcp",
+      "headers": {
+        "Authorization": "Bearer 2a7ecfe632edf5a6f4365e85fa42a278d5873e5875bf2e09eae1ffa6684ef9d4"
+      }
+    }
+  }
+}
