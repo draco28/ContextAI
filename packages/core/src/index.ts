@@ -1,5 +1,11 @@
 // Agent exports
 export { Agent, ReActLoop } from './agent';
+
+// Trace formatting utilities
+export { formatTrace, formatTraceJSON, getTraceStats } from './agent';
+export type { TraceFormatOptions, TraceStats } from './agent';
+
+// Core types
 export type {
   AgentConfig,
   AgentOptions,
@@ -13,6 +19,25 @@ export type {
   Action,
   Observation,
 } from './agent';
+
+// Event callback types
+export type {
+  ThoughtEvent,
+  ActionEvent,
+  ObservationEvent,
+  ToolCallEvent,
+  ReActEvent,
+  OnThoughtCallback,
+  OnActionCallback,
+  OnObservationCallback,
+  OnToolCallCallback,
+  ReActEventCallbacks,
+  StreamEvent,
+} from './agent';
+
+// Logger types and utilities
+export type { Logger, LogLevel } from './agent';
+export { noopLogger, consoleLogger } from './agent';
 
 // Tool exports
 export { defineTool } from './tool';

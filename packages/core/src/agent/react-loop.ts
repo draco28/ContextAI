@@ -7,7 +7,11 @@ import type {
   Action,
   Observation,
   AgentRunOptions,
+  ReActEventCallbacks,
+  Logger,
+  StreamEvent,
 } from './types';
+import { noopLogger } from './types';
 import { AgentError } from '../errors/errors';
 
 const DEFAULT_MAX_ITERATIONS = 10;
@@ -32,27 +36,36 @@ export class ReActLoop {
   private readonly llm: LLMProvider;
   private readonly tools: Map<string, Tool>;
   private readonly maxIterations: number;
+  private readonly logger: Logger;
 
   constructor(
     llm: LLMProvider,
     tools: Tool[] = [],
-    maxIterations: number = DEFAULT_MAX_ITERATIONS
+    maxIterations: number = DEFAULT_MAX_ITERATIONS,
+    logger: Logger = noopLogger
   ) {
     this.llm = llm;
     this.tools = new Map(tools.map((t) => [t.name, t]));
     this.maxIterations = maxIterations;
+    this.logger = logger;
   }
 
   /**
    * Execute the ReAct loop
    *
    * Uses arrow function syntax to preserve `this` binding when passed as callback.
+   *
+   * @param messages - Initial conversation messages
+   * @param options - Runtime options (maxIterations, signal, callbacks)
+   * @param callbacks - Event callbacks for real-time debugging (can also be in options)
    */
   execute = async (
     messages: ChatMessage[],
-    options: AgentRunOptions = {}
+    options: AgentRunOptions = {},
+    callbacks: ReActEventCallbacks = {}
   ): Promise<{ output: string; trace: ReActTrace }> => {
     const maxIter = options.maxIterations ?? this.maxIterations;
+    const mergedCallbacks = { ...callbacks, ...options.callbacks };
     const steps: ReActStep[] = [];
     const startTime = Date.now();
     let totalTokens = 0;
@@ -60,6 +73,8 @@ export class ReActLoop {
 
     const conversationMessages = [...messages];
     const toolDefs = Array.from(this.tools.values()).map((t) => t.toJSON());
+
+    this.logger.debug('ReAct loop starting', { maxIterations: maxIter });
 
     while (iterations < maxIter) {
       iterations++;
@@ -84,10 +99,27 @@ export class ReActLoop {
           timestamp: Date.now(),
         };
         steps.push(thought);
+
+        // Emit thought event
+        this.logger.debug('Thought generated', {
+          content: response.content,
+          iteration: iterations,
+        });
+        await this.safeCallback(mergedCallbacks.onThought, {
+          type: 'thought',
+          content: response.content,
+          iteration: iterations,
+          timestamp: thought.timestamp,
+        });
       }
 
       // If no tool calls, we have the final answer
       if (!response.toolCalls || response.toolCalls.length === 0) {
+        this.logger.info('ReAct loop completed', {
+          iterations,
+          totalTokens,
+          durationMs: Date.now() - startTime,
+        });
         return {
           output: response.content,
           trace: {
@@ -109,8 +141,50 @@ export class ReActLoop {
         };
         steps.push(action);
 
+        // Emit action event
+        this.logger.info('Tool action decided', {
+          tool: toolCall.name,
+          input: toolCall.arguments,
+        });
+        await this.safeCallback(mergedCallbacks.onAction, {
+          type: 'action',
+          tool: toolCall.name,
+          input: toolCall.arguments,
+          iteration: iterations,
+          timestamp: action.timestamp,
+        });
+
+        // Emit toolCall event (before execution)
+        this.logger.debug('Tool call starting', { tool: toolCall.name });
+        await this.safeCallback(mergedCallbacks.onToolCall, {
+          type: 'toolCall',
+          tool: toolCall.name,
+          input: toolCall.arguments,
+          iteration: iterations,
+          timestamp: Date.now(),
+        });
+
+        // Execute tool and measure duration
+        const toolStartTime = Date.now();
         const observation = await this.executeTool(toolCall, options.signal);
+        const toolDurationMs = Date.now() - toolStartTime;
         steps.push(observation);
+
+        // Emit observation event
+        this.logger.info('Tool observation received', {
+          tool: toolCall.name,
+          success: observation.success,
+          durationMs: toolDurationMs,
+        });
+        await this.safeCallback(mergedCallbacks.onObservation, {
+          type: 'observation',
+          tool: toolCall.name,
+          result: observation.result,
+          success: observation.success,
+          durationMs: toolDurationMs,
+          iteration: iterations,
+          timestamp: observation.timestamp,
+        });
 
         // Add tool result to conversation
         conversationMessages.push({
@@ -129,6 +203,167 @@ export class ReActLoop {
     throw new AgentError(
       `ReAct loop exceeded maximum iterations (${maxIter}). Consider increasing maxIterations or simplifying the task.`
     );
+  };
+
+  /**
+   * Execute the ReAct loop with streaming events
+   *
+   * Yields events as they occur during execution, enabling true streaming.
+   * Use this instead of execute() when you need real-time event updates.
+   *
+   * NOTE: This is a generator function that cannot use arrow function syntax.
+   * Do not pass this method as a callback directly - use .bind(this) if needed.
+   *
+   * @example
+   * ```typescript
+   * for await (const event of loop.executeStream(messages)) {
+   *   console.log(event.type, event);
+   * }
+   * ```
+   */
+  async *executeStream(
+    messages: ChatMessage[],
+    options: AgentRunOptions = {}
+  ): AsyncGenerator<StreamEvent, void, unknown> {
+    const maxIter = options.maxIterations ?? this.maxIterations;
+    const steps: ReActStep[] = [];
+    const startTime = Date.now();
+    let totalTokens = 0;
+    let iterations = 0;
+
+    const conversationMessages = [...messages];
+    const toolDefs = Array.from(this.tools.values()).map((t) => t.toJSON());
+
+    this.logger.debug('ReAct stream starting', { maxIterations: maxIter });
+
+    while (iterations < maxIter) {
+      iterations++;
+
+      // Check for abort
+      if (options.signal?.aborted) {
+        throw new AgentError('Agent execution aborted');
+      }
+
+      // Generate response from LLM
+      const response = await this.llm.chat(conversationMessages, {
+        tools: toolDefs.length > 0 ? toolDefs : undefined,
+      });
+
+      totalTokens += response.usage?.totalTokens ?? 0;
+
+      // Yield thought event
+      if (response.content) {
+        const thought: Thought = {
+          type: 'thought',
+          content: response.content,
+          timestamp: Date.now(),
+        };
+        steps.push(thought);
+
+        yield {
+          type: 'thought',
+          content: response.content,
+          iteration: iterations,
+          timestamp: thought.timestamp,
+        };
+      }
+
+      // Final answer - no tool calls
+      if (!response.toolCalls || response.toolCalls.length === 0) {
+        yield {
+          type: 'done',
+          output: response.content,
+          trace: {
+            steps,
+            iterations,
+            totalTokens,
+            durationMs: Date.now() - startTime,
+          },
+        };
+        return;
+      }
+
+      // Process tool calls
+      for (const toolCall of response.toolCalls) {
+        const action: Action = {
+          type: 'action',
+          tool: toolCall.name,
+          input: toolCall.arguments,
+          timestamp: Date.now(),
+        };
+        steps.push(action);
+
+        // Yield action event
+        yield {
+          type: 'action',
+          tool: toolCall.name,
+          input: toolCall.arguments,
+          iteration: iterations,
+          timestamp: action.timestamp,
+        };
+
+        // Yield toolCall event before execution
+        yield {
+          type: 'toolCall',
+          tool: toolCall.name,
+          input: toolCall.arguments,
+          iteration: iterations,
+          timestamp: Date.now(),
+        };
+
+        // Execute tool and measure duration
+        const toolStartTime = Date.now();
+        const observation = await this.executeTool(toolCall, options.signal);
+        const toolDurationMs = Date.now() - toolStartTime;
+        steps.push(observation);
+
+        // Yield observation event
+        yield {
+          type: 'observation',
+          tool: toolCall.name,
+          result: observation.result,
+          success: observation.success,
+          durationMs: toolDurationMs,
+          iteration: iterations,
+          timestamp: observation.timestamp,
+        };
+
+        // Add tool result to conversation
+        conversationMessages.push({
+          role: 'assistant',
+          content: response.content || '',
+        });
+        conversationMessages.push({
+          role: 'tool',
+          content: JSON.stringify(observation.result),
+          toolCallId: toolCall.id,
+          name: toolCall.name,
+        });
+      }
+    }
+
+    throw new AgentError(
+      `ReAct loop exceeded maximum iterations (${maxIter}). Consider increasing maxIterations or simplifying the task.`
+    );
+  }
+
+  /**
+   * Safely invoke a callback, catching and logging any errors
+   *
+   * Uses arrow function syntax to preserve `this` binding.
+   */
+  private safeCallback = async <T>(
+    callback: ((event: T) => void | Promise<void>) | undefined,
+    event: T
+  ): Promise<void> => {
+    if (!callback) return;
+    try {
+      await callback(event);
+    } catch (error) {
+      this.logger.error('Callback error', {
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
   };
 
   /**
