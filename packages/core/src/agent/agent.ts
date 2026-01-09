@@ -3,7 +3,10 @@ import type {
   AgentResponse,
   AgentRunOptions,
   StreamingAgentResponse,
+  ReActEventCallbacks,
+  Logger,
 } from './types';
+import { noopLogger } from './types';
 import type { ChatMessage } from '../provider/types';
 import { ReActLoop } from './react-loop';
 
@@ -41,14 +44,19 @@ export class Agent {
   readonly name: string;
   private readonly systemPrompt: string;
   private readonly reactLoop: ReActLoop;
+  private readonly callbacks: ReActEventCallbacks;
+  private readonly logger: Logger;
 
   constructor(config: AgentConfig) {
     this.name = config.name;
     this.systemPrompt = config.systemPrompt;
+    this.callbacks = config.callbacks ?? {};
+    this.logger = config.logger ?? noopLogger;
     this.reactLoop = new ReActLoop(
       config.llm,
       config.tools,
-      config.maxIterations
+      config.maxIterations,
+      this.logger
     );
   }
 
@@ -78,9 +86,15 @@ export class Agent {
     options: AgentRunOptions = {}
   ): Promise<AgentResponse> => {
     const messages = this.buildMessages(input, options.context);
+    // Merge constructor callbacks with runtime callbacks (runtime overrides)
+    const mergedCallbacks = { ...this.callbacks, ...options.callbacks };
 
     try {
-      const { output, trace } = await this.reactLoop.execute(messages, options);
+      const { output, trace } = await this.reactLoop.execute(
+        messages,
+        options,
+        mergedCallbacks
+      );
       return {
         output,
         trace,
@@ -104,12 +118,15 @@ export class Agent {
   };
 
   /**
-   * Run the agent with streaming output
+   * Run the agent with streaming output (TRUE STREAMING)
    *
-   * Yields events as they occur:
-   * - `thought`: Agent's reasoning
-   * - `action`: Tool being called
-   * - `observation`: Tool result
+   * Yields events AS THEY OCCUR during execution, not after completion.
+   * This enables real-time UI updates for each thought, action, and observation.
+   *
+   * Event types:
+   * - `thought`: Agent's reasoning (as soon as LLM responds)
+   * - `action`: Tool being selected
+   * - `observation`: Tool result (after execution)
    * - `text`: Final output text
    * - `done`: Completion with full response
    *
@@ -151,31 +168,56 @@ export class Agent {
     input: string,
     options: AgentRunOptions = {}
   ): StreamingAgentResponse {
-    // For MVP, stream wraps run() and emits events from the trace
-    // Full streaming (yielding as LLM generates) is a future enhancement
-    const response = await this.run(input, options);
+    const messages = this.buildMessages(input, options.context);
 
-    // Emit trace steps
-    for (const step of response.trace.steps) {
-      if (step.type === 'thought') {
-        yield { type: 'thought', content: step.content };
-      } else if (step.type === 'action') {
-        yield { type: 'action', tool: step.tool, input: step.input };
-      } else if (step.type === 'observation') {
-        yield {
-          type: 'observation',
-          result: step.result,
-          success: step.success,
-        };
+    try {
+      // Use executeStream for true streaming - events yielded as they happen
+      for await (const event of this.reactLoop.executeStream(messages, options)) {
+        if (event.type === 'thought') {
+          yield { type: 'thought', content: event.content };
+        } else if (event.type === 'action') {
+          yield { type: 'action', tool: event.tool, input: event.input };
+        } else if (event.type === 'observation') {
+          yield {
+            type: 'observation',
+            result: event.result,
+            success: event.success,
+          };
+        } else if (event.type === 'done') {
+          // Emit final output text
+          if (event.output) {
+            yield { type: 'text', content: event.output };
+          }
+          // Emit done with full response
+          yield {
+            type: 'done',
+            response: {
+              output: event.output,
+              trace: event.trace,
+              success: true,
+            },
+          };
+        }
+        // Note: toolCall events are internal, not exposed in StreamingAgentEvent
       }
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      yield {
+        type: 'done',
+        response: {
+          output: '',
+          trace: {
+            steps: [],
+            iterations: 0,
+            totalTokens: 0,
+            durationMs: 0,
+          },
+          success: false,
+          error: errorMessage,
+        },
+      };
     }
-
-    // Emit final output
-    if (response.output) {
-      yield { type: 'text', content: response.output };
-    }
-
-    yield { type: 'done', response };
   }
 
   /**
