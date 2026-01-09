@@ -290,18 +290,22 @@ backlog ──[user drag]──► todo ──[session_start]──► in-progre
 - ✅ `backlog → todo` - Preparing ticket for agent work
 - ✅ `in-review → done` - Verifying completed work
 
-**Complete Workflow (5 steps)**:
+**Complete Workflow (ONE SESSION PER TICKET)**:
 | Step | Action | How |
 |------|--------|-----|
 | 1 | Find work | `ticket_search({ status: ["todo"], sprintNumber: X })` |
-| 2 | Start session | `agent_session_start({ activeTicketNumbers: [1, 2] })` → **AUTO-CLAIMS** |
-| 3 | Implement | Code, test, commit |
-| 4 | Document | `ticket_addComment({ content: "Implemented X, Y" })` |
-| 5 | End session | `agent_session_end()` → **AUTO-MOVES TO IN-REVIEW** |
+| 2 | Start session | `agent_session_start({ activeTicketNumbers: [1] })` → **AUTO-CLAIMS** |
+| 3 | Implement | Code, test |
+| 4 | Commit | `git commit` with descriptive message |
+| 5 | Document | `ticket_addComment({ content: "Implemented X, Y" })` |
+| 6 | End session | `agent_session_end()` → **AUTO-MOVES TO IN-REVIEW** |
+| 7 | Next ticket | **START NEW SESSION** - repeat from step 2 |
 
 **Then User**:
-6. Verifies work in Kanban
-7. Drags `in-review → done`
+- Verifies work in Kanban
+- Drags `in-review → done`
+
+**CRITICAL**: Do NOT work on multiple tickets in one session. Each ticket gets its own session→commit→end cycle.
 
 **Note**: Valid status values are `backlog`, `todo`, `in-progress`, `in-review`, `done`
 
@@ -387,6 +391,53 @@ projectpulse_wiki_get(path: "/guides/api-reference")
 - [ ] Checked roadmap position (if using roadmap)
 - [ ] Found tickets for current sprint/week
 - [ ] Working on feature branch (not main/master)
+
+---
+
+## Pair Programming Mode (`/pair`)
+
+Use `/pair <ticket-number>` to start a guided pair programming session.
+
+### How It Works
+
+1. **Claude mentors, you code**: Claude explains concepts, provides code, you type it
+2. **Educational insights**: Every step includes WHY, not just WHAT
+3. **Verification loop**: Claude reads your changes and suggests fixes if needed
+
+### Per-Ticket Workflow (CRITICAL)
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  ONE SESSION = ONE TICKET                                       │
+│                                                                 │
+│  1. session_start(ticket) ─► ticket goes to "in-progress"       │
+│  2. Implement with pair programming                             │
+│  3. Test & Build                                                │
+│  4. Commit changes                                              │
+│  5. ticket_addComment() with summary                            │
+│  6. session_end() ─► ticket goes to "in-review"                 │
+│                                                                 │
+│  THEN for next ticket: START NEW SESSION                        │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Child Ticket Strategy
+
+When a feature ticket has 3+ distinct tasks:
+- Create child tickets with separation of concerns
+- Each child ticket should be self-contained (full context in description)
+- Work on one child at a time with proper session lifecycle
+
+### Insight Block Format
+
+```
+`★ Insight ─────────────────────────────────────`
+**Concept Name**
+- Why we're doing this
+- Key technical point
+- Best practice note
+`─────────────────────────────────────────────────`
+```
 
 ---
 

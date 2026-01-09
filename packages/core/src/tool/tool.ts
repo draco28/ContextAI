@@ -1,7 +1,17 @@
 import type { z } from 'zod';
 import { zodToJsonSchema } from './zod-to-json';
 import type { Tool, ToolConfig, ToolExecuteContext, ToolResult } from './types';
-import { ToolError, ValidationError } from '../errors/errors';
+import {
+  ToolError,
+  ValidationError,
+  ToolTimeoutError,
+  ToolOutputValidationError,
+} from '../errors/errors';
+import {
+  DEFAULT_TOOL_TIMEOUT_MS,
+  withTimeout,
+  createCombinedSignal,
+} from './timeout';
 
 /**
  * Define a type-safe tool with Zod validation
@@ -22,11 +32,17 @@ import { ToolError, ValidationError } from '../errors/errors';
  * });
  * ```
  */
-export function defineTool<
-  TInput extends z.ZodType,
-  TOutput = unknown,
->(config: ToolConfig<TInput, TOutput>): Tool<TInput, TOutput> {
-  const { name, description, parameters, execute } = config;
+export function defineTool<TInput extends z.ZodType, TOutput = unknown>(
+  config: ToolConfig<TInput, TOutput>
+): Tool<TInput, TOutput> {
+  const {
+    name,
+    description,
+    parameters,
+    execute,
+    timeout: configTimeout,
+    outputSchema,
+  } = config;
 
   return {
     name,
@@ -46,14 +62,53 @@ export function defineTool<
         );
       }
 
+      // Determine effective timeout: runtime > config > default
+      const effectiveTimeout =
+        context.timeout ?? configTimeout ?? DEFAULT_TOOL_TIMEOUT_MS;
+
+      // Create combined signal (timeout + external abort)
+      const { signal, cleanup } = createCombinedSignal(
+        effectiveTimeout,
+        context.signal
+      );
+
       try {
-        return await execute(validation.data, context);
+        // Execute with timeout enforcement
+        const result = await withTimeout(
+          execute(validation.data, { ...context, signal }),
+          effectiveTimeout,
+          name
+        );
+        // Validate output if schema provided
+        if (outputSchema && result.success && result.data !== undefined) {
+          const outputValidation = outputSchema.safeParse(result.data);
+          if (!outputValidation.success) {
+            throw new ToolOutputValidationError(
+              name,
+              outputValidation.error.issues.map((issue) => ({
+                path: issue.path.join('.') || 'root',
+                message: issue.message,
+              }))
+            );
+          }
+        }
+        return result;
       } catch (error) {
+        // Re-throw timeout and output validation errors as-is
+        if (
+          error instanceof ToolTimeoutError ||
+          error instanceof ToolOutputValidationError
+        ) {
+          throw error;
+        }
         throw new ToolError(
           `Tool "${name}" execution failed: ${error instanceof Error ? error.message : String(error)}`,
           name,
           error instanceof Error ? error : new Error(String(error))
         );
+      } finally {
+        // Always cleanup to prevent memory leaks
+        cleanup();
       }
     },
 
