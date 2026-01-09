@@ -8,7 +8,7 @@ import type {
   Observation,
   AgentRunOptions,
 } from './types';
-import { AgentError } from '../errors/errors';
+import { AgentError, ToolTimeoutError } from '../errors/errors';
 
 const DEFAULT_MAX_ITERATIONS = 10;
 
@@ -160,6 +160,18 @@ export class ReActLoop {
         timestamp: Date.now(),
       };
     } catch (error) {
+      // Special handling for timeout errors
+      if (error instanceof ToolTimeoutError) {
+        return {
+          type: 'observation',
+          result: {
+            error: `Tool "${toolCall.name}" timed out after ${error.timeoutMs}ms`,
+            timedOut: true,
+          },
+          success: false,
+          timestamp: Date.now(),
+        };
+      }
       return {
         type: 'observation',
         result: {
