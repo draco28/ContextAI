@@ -1,7 +1,12 @@
 import type { z } from 'zod';
 import { zodToJsonSchema } from './zod-to-json';
 import type { Tool, ToolConfig, ToolExecuteContext, ToolResult } from './types';
-import { ToolError, ValidationError, ToolTimeoutError } from '../errors/errors';
+import {
+  ToolError,
+  ValidationError,
+  ToolTimeoutError,
+  ToolOutputValidationError,
+} from '../errors/errors';
 import {
   DEFAULT_TOOL_TIMEOUT_MS,
   withTimeout,
@@ -36,6 +41,7 @@ export function defineTool<TInput extends z.ZodType, TOutput = unknown>(
     parameters,
     execute,
     timeout: configTimeout,
+    outputSchema,
   } = config;
 
   return {
@@ -73,10 +79,26 @@ export function defineTool<TInput extends z.ZodType, TOutput = unknown>(
           effectiveTimeout,
           name
         );
+        // Validate output if schema provided
+        if (outputSchema && result.success && result.data !== undefined) {
+          const outputValidation = outputSchema.safeParse(result.data);
+          if (!outputValidation.success) {
+            throw new ToolOutputValidationError(
+              name,
+              outputValidation.error.issues.map((issue) => ({
+                path: issue.path.join('.') || 'root',
+                message: issue.message,
+              }))
+            );
+          }
+        }
         return result;
       } catch (error) {
-        // Re-throw timeout errors as-is
-        if (error instanceof ToolTimeoutError) {
+        // Re-throw timeout and output validation errors as-is
+        if (
+          error instanceof ToolTimeoutError ||
+          error instanceof ToolOutputValidationError
+        ) {
           throw error;
         }
         throw new ToolError(

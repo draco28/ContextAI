@@ -1,5 +1,9 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { defineTool, ToolTimeoutError } from '../src';
+import {
+  defineTool,
+  ToolTimeoutError,
+  ToolOutputValidationError,
+} from '../src';
 import { z } from 'zod';
 
 describe('Tool Timeout', () => {
@@ -135,5 +139,113 @@ describe('Tool Timeout', () => {
 
     expect(clearTimeoutSpy).toHaveBeenCalled();
     clearTimeoutSpy.mockRestore();
+  });
+});
+
+describe('Output Validation', () => {
+  it('should validate output against schema when provided', async () => {
+    const tool = defineTool({
+      name: 'typedTool',
+      description: 'Returns typed data',
+      parameters: z.object({}),
+      outputSchema: z.object({
+        id: z.number(),
+        name: z.string(),
+      }),
+      execute: async () => {
+        return { success: true, data: { id: 1, name: 'test' } };
+      },
+    });
+
+    const result = await tool.execute({});
+    expect(result.success).toBe(true);
+    expect(result.data).toEqual({ id: 1, name: 'test' });
+  });
+
+  it('should throw ToolOutputValidationError on invalid output', async () => {
+    const tool = defineTool({
+      name: 'badOutputTool',
+      description: 'Returns invalid data',
+      parameters: z.object({}),
+      outputSchema: z.object({
+        id: z.number(),
+        name: z.string(),
+      }),
+      execute: async () => {
+        // Return wrong type - id should be number, not string
+        return {
+          success: true,
+          data: { id: 'not-a-number', name: 123 } as any,
+        };
+      },
+    });
+
+    await expect(tool.execute({})).rejects.toThrow(ToolOutputValidationError);
+    await expect(tool.execute({})).rejects.toMatchObject({
+      toolName: 'badOutputTool',
+      code: 'TOOL_OUTPUT_VALIDATION_ERROR',
+    });
+  });
+
+  it('should skip output validation when no schema provided', async () => {
+    const tool = defineTool({
+      name: 'noSchemaTool',
+      description: 'No output schema',
+      parameters: z.object({}),
+      // No outputSchema - any output is valid
+      execute: async () => {
+        return { success: true, data: { anything: 'goes' } };
+      },
+    });
+
+    const result = await tool.execute({});
+    expect(result.success).toBe(true);
+  });
+
+  it('should skip output validation on failed execution', async () => {
+    const tool = defineTool({
+      name: 'failingTool',
+      description: 'Always fails',
+      parameters: z.object({}),
+      outputSchema: z.object({
+        id: z.number(),
+      }),
+      execute: async () => {
+        return { success: false, error: 'Something went wrong' };
+      },
+    });
+
+    const result = await tool.execute({});
+    expect(result.success).toBe(false);
+    expect(result.error).toBe('Something went wrong');
+  });
+
+  it('should include validation issues in error', async () => {
+    const tool = defineTool({
+      name: 'issuesTool',
+      description: 'Check issues',
+      parameters: z.object({}),
+      outputSchema: z.object({
+        count: z.number().min(0),
+        items: z.array(z.string()),
+      }),
+      execute: async () => {
+        return {
+          success: true,
+          data: { count: -5, items: 'not-an-array' } as any,
+        };
+      },
+    });
+
+    try {
+      await tool.execute({});
+      expect.fail('Should have thrown');
+    } catch (error) {
+      expect(error).toBeInstanceOf(ToolOutputValidationError);
+      const validationError = error as ToolOutputValidationError;
+      expect(validationError.issues.length).toBeGreaterThan(0);
+      expect(validationError.issues.some((i) => i.path === 'count')).toBe(true);
+      expect(validationError.issues.some((i) => i.path === 'items')).toBe(true);
+    }
   });
 });

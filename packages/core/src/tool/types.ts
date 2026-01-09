@@ -41,6 +41,12 @@ export interface ToolConfig<
   ) => Promise<ToolResult<TOutput>>;
   /** Tool execution timeout in milliseconds (default: 30000) */
   timeout?: number;
+  /**
+   * Optional Zod schema for validating tool output.
+   * If provided, ToolResult.data will be validated against this schema.
+   * Validation failures throw ToolOutputValidationError.
+   */
+  outputSchema?: z.ZodType<TOutput>;
 }
 
 /**

@@ -82,6 +82,30 @@ export class ToolTimeoutError extends ToolError {
 }
 
 /**
+ * Error thrown when tool output fails validation
+ */
+export class ToolOutputValidationError extends ToolError {
+  readonly issues: Array<{ path: string; message: string }>;
+
+  constructor(
+    toolName: string,
+    issues: Array<{ path: string; message: string }>
+  ) {
+    const issueMessages = issues
+      .map((i) => `${i.path}: ${i.message}`)
+      .join(', ');
+    super(
+      `Tool "${toolName}" output validation failed: ${issueMessages}`,
+      toolName,
+      undefined,
+      'TOOL_OUTPUT_VALIDATION_ERROR'
+    );
+    this.name = 'ToolOutputValidationError';
+    this.issues = issues;
+  }
+}
+
+/**
  * Provider-related errors
  *
  * Thrown when:
