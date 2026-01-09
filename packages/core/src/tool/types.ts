@@ -8,6 +8,8 @@ export interface ToolExecuteContext {
   signal?: AbortSignal;
   /** Additional metadata */
   metadata?: Record<string, unknown>;
+  /** Timeout override in milliseconds (overrides tool's default) */
+  timeout?: number;
 }
 
 /**
@@ -37,15 +39,14 @@ export interface ToolConfig<
     input: z.infer<TInput>,
     context: ToolExecuteContext
   ) => Promise<ToolResult<TOutput>>;
+  /** Tool execution timeout in milliseconds (default: 30000) */
+  timeout?: number;
 }
 
 /**
  * Tool interface - validated and typed
  */
-export interface Tool<
-  TInput extends z.ZodType = z.ZodType,
-  TOutput = unknown,
-> {
+export interface Tool<TInput extends z.ZodType = z.ZodType, TOutput = unknown> {
   readonly name: string;
   readonly description: string;
   readonly parameters: TInput;

@@ -46,11 +46,38 @@ export class ToolError extends ContextAIError {
   readonly toolName: string;
   readonly cause?: Error;
 
-  constructor(message: string, toolName: string, cause?: Error) {
-    super(message, 'TOOL_ERROR');
+  constructor(
+    message: string,
+    toolName: string,
+    cause?: Error,
+    code: string = 'TOOL_ERROR'
+  ) {
+    super(message, code);
     this.name = 'ToolError';
     this.toolName = toolName;
     this.cause = cause;
+  }
+}
+
+/**
+ * Tool timeout error
+ *
+ * Thrown when:
+ * - Tool execution exceeds configured timeout
+ */
+
+export class ToolTimeoutError extends ToolError {
+  readonly timeoutMs: number;
+
+  constructor(toolName: string, timeoutMs: number) {
+    super(
+      `Tool "${toolName}" timed out after ${timeoutMs}ms`,
+      toolName,
+      undefined,
+      'TOOL_TIMEOUT_ERROR'
+    );
+    this.name = 'ToolTimeoutError';
+    this.timeoutMs = timeoutMs;
   }
 }
 
