@@ -1,5 +1,6 @@
 // Agent exports
 export { Agent, ReActLoop } from './agent';
+export { ToolCallAggregator } from './agent/tool-call-aggregator';
 
 // Trace formatting utilities
 export { formatTrace, formatTraceJSON, getTraceStats } from './agent';

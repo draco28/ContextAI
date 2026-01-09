@@ -1,5 +1,6 @@
 export { Agent } from './agent';
 export { ReActLoop } from './react-loop';
+export { ToolCallAggregator } from './tool-call-aggregator';
 
 // Trace formatting utilities
 export { formatTrace, formatTraceJSON, getTraceStats } from './trace-formatter';

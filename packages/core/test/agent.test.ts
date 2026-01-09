@@ -30,7 +30,36 @@ function createMockProvider(responses: ChatResponse[]): LLMProvider {
       return response;
     },
     async *streamChat() {
-      yield { type: 'text' as const, content: 'streamed' };
+      const response = responses[callIndex];
+      if (!response) {
+        throw new Error('No more mock responses');
+      }
+      callIndex++;
+
+      // Yield text content as chunks
+      if (response.content) {
+        yield { type: 'text' as const, content: response.content };
+      }
+
+      // Yield tool calls as chunks
+      if (response.toolCalls) {
+        for (const toolCall of response.toolCalls) {
+          yield {
+            type: 'tool_call' as const,
+            toolCall: {
+              id: toolCall.id,
+              name: toolCall.name,
+              arguments: JSON.stringify(toolCall.arguments),
+            },
+          };
+        }
+      }
+
+      // Yield usage if present
+      if (response.usage) {
+        yield { type: 'usage' as const, usage: response.usage };
+      }
+
       yield { type: 'done' as const };
     },
     async isAvailable() {
@@ -122,7 +151,11 @@ describe('Agent', () => {
       {
         content: 'Let me calculate that.',
         toolCalls: [
-          { id: 'call-1', name: 'calculator', arguments: { expression: '2+2' } },
+          {
+            id: 'call-1',
+            name: 'calculator',
+            arguments: { expression: '2+2' },
+          },
         ],
         finishReason: 'tool_calls',
       },
@@ -202,7 +235,11 @@ describe('Event Callbacks', () => {
       {
         content: 'Let me calculate.',
         toolCalls: [
-          { id: 'call-1', name: 'calculator', arguments: { expression: '2+2' } },
+          {
+            id: 'call-1',
+            name: 'calculator',
+            arguments: { expression: '2+2' },
+          },
         ],
         finishReason: 'tool_calls',
       },
@@ -251,7 +288,11 @@ describe('Event Callbacks', () => {
       {
         content: 'Calculating...',
         toolCalls: [
-          { id: 'call-1', name: 'calculator', arguments: { expression: '2+2' } },
+          {
+            id: 'call-1',
+            name: 'calculator',
+            arguments: { expression: '2+2' },
+          },
         ],
         finishReason: 'tool_calls',
       },
@@ -371,7 +412,11 @@ describe('True Streaming', () => {
       {
         content: 'Let me calculate.',
         toolCalls: [
-          { id: 'call-1', name: 'calculator', arguments: { expression: '2+2' } },
+          {
+            id: 'call-1',
+            name: 'calculator',
+            arguments: { expression: '2+2' },
+          },
         ],
         finishReason: 'tool_calls',
       },
@@ -488,7 +533,11 @@ describe('Logger Integration', () => {
 describe('Trace Formatter', () => {
   const sampleTrace: ReActTrace = {
     steps: [
-      { type: 'thought', content: 'Thinking about the problem', timestamp: Date.now() },
+      {
+        type: 'thought',
+        content: 'Thinking about the problem',
+        timestamp: Date.now(),
+      },
       {
         type: 'action',
         tool: 'calculator',
@@ -569,8 +618,18 @@ describe('Trace Formatter', () => {
   it('should count failed tools correctly', () => {
     const traceWithFailure: ReActTrace = {
       steps: [
-        { type: 'observation', result: 'error', success: false, timestamp: Date.now() },
-        { type: 'observation', result: 'ok', success: true, timestamp: Date.now() },
+        {
+          type: 'observation',
+          result: 'error',
+          success: false,
+          timestamp: Date.now(),
+        },
+        {
+          type: 'observation',
+          result: 'ok',
+          success: true,
+          timestamp: Date.now(),
+        },
       ],
       iterations: 1,
       totalTokens: 50,

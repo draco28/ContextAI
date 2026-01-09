@@ -274,4 +274,12 @@ export type StreamEvent =
   | ActionEvent
   | ObservationEvent
   | ToolCallEvent
+  | {
+      type: 'thought_delta';
+      content: string;
+      iteration: number;
+      timestamp: number;
+    }
+  | { type: 'output_delta'; content: string; timestamp: number }
+  | { type: 'error'; error: string; code?: string; timestamp: number }
   | { type: 'done'; output: string; trace: ReActTrace };

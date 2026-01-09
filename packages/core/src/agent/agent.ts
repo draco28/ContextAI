@@ -172,7 +172,10 @@ export class Agent {
 
     try {
       // Use executeStream for true streaming - events yielded as they happen
-      for await (const event of this.reactLoop.executeStream(messages, options)) {
+      for await (const event of this.reactLoop.executeStream(
+        messages,
+        options
+      )) {
         if (event.type === 'thought') {
           yield { type: 'thought', content: event.content };
         } else if (event.type === 'action') {
@@ -183,6 +186,23 @@ export class Agent {
             result: event.result,
             success: event.success,
           };
+        } else if (event.type === 'error') {
+          // Handle error event from streaming
+          yield {
+            type: 'done',
+            response: {
+              output: '',
+              trace: {
+                steps: [],
+                iterations: 0,
+                totalTokens: 0,
+                durationMs: 0,
+              },
+              success: false,
+              error: event.error,
+            },
+          };
+          return; // Stop iteration after error
         } else if (event.type === 'done') {
           // Emit final output text
           if (event.output) {
@@ -198,7 +218,7 @@ export class Agent {
             },
           };
         }
-        // Note: toolCall events are internal, not exposed in StreamingAgentEvent
+        // Note: toolCall and delta events are internal, not exposed in StreamingAgentEvent
       }
     } catch (error) {
       const errorMessage =

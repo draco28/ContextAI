@@ -42,7 +42,12 @@ export interface ChatResponse {
 export interface StreamChunk {
   type: 'text' | 'tool_call' | 'usage' | 'done';
   content?: string;
-  toolCall?: Partial<ToolCall>;
+  toolCall?: {
+    id?: string;
+    name?: string;
+    /** Arguments as JSON string fragment (streaming) or parsed object */
+    arguments?: string | Record<string, unknown>;
+  };
   usage?: ChatResponse['usage'];
 }
 
@@ -54,6 +59,7 @@ export interface GenerateOptions {
   maxTokens?: number;
   stopSequences?: string[];
   tools?: ToolDefinition[];
+  signal?: AbortSignal;
 }
 
 /**

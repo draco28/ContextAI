@@ -13,6 +13,7 @@ import type {
 } from './types';
 import { noopLogger } from './types';
 import { AgentError, ToolTimeoutError } from '../errors/errors';
+import { ToolCallAggregator } from './tool-call-aggregator';
 
 const DEFAULT_MAX_ITERATIONS = 10;
 
@@ -206,10 +207,17 @@ export class ReActLoop {
   };
 
   /**
-   * Execute the ReAct loop with streaming events
+   * Execute the ReAct loop with true token-by-token streaming
    *
-   * Yields events as they occur during execution, enabling true streaming.
-   * Use this instead of execute() when you need real-time event updates.
+   * Yields events as they occur during execution:
+   * - `thought_delta`: Individual tokens as LLM generates reasoning
+   * - `thought`: Complete thought after streaming finishes
+   * - `action`: Tool being called
+   * - `toolCall`: Tool call about to execute
+   * - `observation`: Tool execution result
+   * - `output_delta`: Individual tokens of final output
+   * - `error`: Error occurred during streaming
+   * - `done`: Completion with full trace
    *
    * NOTE: This is a generator function that cannot use arrow function syntax.
    * Do not pass this method as a callback directly - use .bind(this) if needed.
@@ -217,10 +225,13 @@ export class ReActLoop {
    * @example
    * ```typescript
    * for await (const event of loop.executeStream(messages)) {
-   *   console.log(event.type, event);
+   *   if (event.type === 'thought_delta') {
+   *     process.stdout.write(event.content); // Real-time display
+   *   }
    * }
    * ```
    */
+
   async *executeStream(
     messages: ChatMessage[],
     options: AgentRunOptions = {}
@@ -233,46 +244,111 @@ export class ReActLoop {
 
     const conversationMessages = [...messages];
     const toolDefs = Array.from(this.tools.values()).map((t) => t.toJSON());
+    const aggregator = new ToolCallAggregator();
 
     this.logger.debug('ReAct stream starting', { maxIterations: maxIter });
 
     while (iterations < maxIter) {
       iterations++;
 
-      // Check for abort
+      // Check for abort before each iteration
       if (options.signal?.aborted) {
-        throw new AgentError('Agent execution aborted');
+        yield {
+          type: 'error',
+          error: 'Agent execution aborted',
+          code: 'ABORTED',
+          timestamp: Date.now(),
+        };
+        return;
       }
 
-      // Generate response from LLM
-      const response = await this.llm.chat(conversationMessages, {
-        tools: toolDefs.length > 0 ? toolDefs : undefined,
-      });
+      // Stream response from LLM
+      let contentBuffer = '';
 
-      totalTokens += response.usage?.totalTokens ?? 0;
+      try {
+        for await (const chunk of this.llm.streamChat(conversationMessages, {
+          tools: toolDefs.length > 0 ? toolDefs : undefined,
+          signal: options.signal,
+        })) {
+          // Check abort during streaming
+          if (options.signal?.aborted) {
+            yield {
+              type: 'error',
+              error: 'Agent execution aborted',
+              code: 'ABORTED',
+              timestamp: Date.now(),
+            };
+            return;
+          }
 
-      // Yield thought event
-      if (response.content) {
+          switch (chunk.type) {
+            case 'text':
+              if (chunk.content) {
+                contentBuffer += chunk.content;
+                // Yield token-by-token for real-time display
+                yield {
+                  type: 'thought_delta',
+                  content: chunk.content,
+                  iteration: iterations,
+                  timestamp: Date.now(),
+                };
+              }
+              break;
+
+            case 'tool_call':
+              aggregator.process(chunk);
+              break;
+
+            case 'usage':
+              if (chunk.usage?.totalTokens) {
+                totalTokens += chunk.usage.totalTokens;
+              }
+              break;
+
+            case 'done':
+              // Stream complete, finalize tool calls below
+              break;
+          }
+        }
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error ? error.message : String(error);
+        this.logger.error('Stream error', { error: errorMessage });
+        yield {
+          type: 'error',
+          error: errorMessage,
+          code: 'STREAM_ERROR',
+          timestamp: Date.now(),
+        };
+        return;
+      }
+
+      // Record complete thought
+      if (contentBuffer) {
         const thought: Thought = {
           type: 'thought',
-          content: response.content,
+          content: contentBuffer,
           timestamp: Date.now(),
         };
         steps.push(thought);
 
+        // Yield complete thought event
         yield {
           type: 'thought',
-          content: response.content,
+          content: contentBuffer,
           iteration: iterations,
           timestamp: thought.timestamp,
         };
       }
 
-      // Final answer - no tool calls
-      if (!response.toolCalls || response.toolCalls.length === 0) {
+      // Get completed tool calls from aggregator
+      const toolCalls = aggregator.finalize();
+
+      // If no tool calls, we have the final answer
+      if (toolCalls.length === 0) {
         yield {
           type: 'done',
-          output: response.content,
+          output: contentBuffer,
           trace: {
             steps,
             iterations,
@@ -284,7 +360,7 @@ export class ReActLoop {
       }
 
       // Process tool calls
-      for (const toolCall of response.toolCalls) {
+      for (const toolCall of toolCalls) {
         const action: Action = {
           type: 'action',
           tool: toolCall.name,
@@ -331,7 +407,7 @@ export class ReActLoop {
         // Add tool result to conversation
         conversationMessages.push({
           role: 'assistant',
-          content: response.content || '',
+          content: contentBuffer || '',
         });
         conversationMessages.push({
           role: 'tool',
@@ -340,11 +416,17 @@ export class ReActLoop {
           name: toolCall.name,
         });
       }
+      // Reset aggregator for next iteration
+      aggregator.reset();
     }
 
-    throw new AgentError(
-      `ReAct loop exceeded maximum iterations (${maxIter}). Consider increasing maxIterations or simplifying the task.`
-    );
+    // Max iterations exceeded
+    yield {
+      type: 'error',
+      error: `ReAct loop exceeded maximum iterations (${maxIter})`,
+      code: 'MAX_ITERATIONS',
+      timestamp: Date.now(),
+    };
   }
 
   /**
