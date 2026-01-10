@@ -19,6 +19,8 @@ export type {
   CacheInfo,
   ResponseMetadata,
   TokenUsage,
+  // Structured output types
+  ResponseFormat,
 } from './types';
 
 // Runtime exports from content.ts

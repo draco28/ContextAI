@@ -151,14 +151,48 @@ export interface StreamChunk {
 }
 
 /**
+ * Response format configuration for structured output
+ */
+export type ResponseFormat =
+  | { type: 'text' }
+  | { type: 'json_object'; schema?: Record<string, unknown> }
+  | {
+      type: 'json_schema';
+      jsonSchema: {
+        name: string;
+        schema: Record<string, unknown>;
+        strict?: boolean;
+      };
+    };
+
+/**
  * Options for generate/chat calls
  */
 export interface GenerateOptions {
+  /** Sampling temperature (0-2, lower = more deterministic) */
   temperature?: number;
+  /** Maximum tokens to generate */
   maxTokens?: number;
+  /** Stop generation at these sequences */
   stopSequences?: string[];
+  /** Tools available for the model to call */
   tools?: ToolDefinition[];
+  /** Abort signal for cancellation */
   signal?: AbortSignal;
+  /** Response format (text, json_object, json_schema) */
+  responseFormat?: ResponseFormat;
+  /** Nucleus sampling: consider tokens with top_p probability mass */
+  topP?: number;
+  /** Top-K sampling: only consider top K tokens (Claude) */
+  topK?: number;
+  /** Penalize tokens based on frequency in response (-2 to 2) */
+  frequencyPenalty?: number;
+  /** Penalize tokens that already appeared (-2 to 2) */
+  presencePenalty?: number;
+  /** Random seed for reproducible outputs */
+  seed?: number;
+  /** End-user identifier for abuse detection */
+  user?: string;
 }
 
 /**

@@ -64,6 +64,8 @@ export type {
   CacheInfo,
   ResponseMetadata,
   TokenUsage,
+  // Structured output types
+  ResponseFormat,
 } from './provider';
 
 // Content utilities
