@@ -4,11 +4,60 @@
 export type MessageRole = 'system' | 'user' | 'assistant' | 'tool';
 
 /**
+ * Text content part for multimodal messages
+ */
+export interface TextContentPart {
+  type: 'text';
+  text: string;
+}
+
+/**
+ * Image content part for vision models
+ */
+export interface ImageContentPart {
+  type: 'image';
+  /** URL of the image (for remote images) */
+  url?: string;
+  /** Base64-encoded image data (for inline images) */
+  base64?: string;
+  /** MIME type (e.g., 'image/png', 'image/jpeg') */
+  mediaType?: string;
+  /** Detail level for vision models */
+  detail?: 'auto' | 'low' | 'high';
+}
+
+/**
+ * Document content part for file inputs (e.g., PDFs)
+ */
+export interface DocumentContentPart {
+  type: 'document';
+  /** URL of the document */
+  url?: string;
+  /** Base64-encoded document data */
+  base64?: string;
+  /** MIME type (e.g., 'application/pdf') */
+  mediaType?: string;
+}
+
+/**
+ * Union of all content part types
+ */
+export type ContentPart =
+  | TextContentPart
+  | ImageContentPart
+  | DocumentContentPart;
+
+/**
+ * Message content - can be simple string or array of content parts
+ */
+export type MessageContent = string | ContentPart[];
+
+/**
  * Chat message structure
  */
 export interface ChatMessage {
   role: MessageRole;
-  content: string;
+  content: MessageContent;
   name?: string;
   toolCallId?: string;
 }

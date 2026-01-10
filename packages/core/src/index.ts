@@ -1,6 +1,5 @@
 // Agent exports
 export { Agent, ReActLoop } from './agent';
-export { ToolCallAggregator } from './agent/tool-call-aggregator';
 
 // Trace formatting utilities
 export { formatTrace, formatTraceJSON, getTraceStats } from './agent';
@@ -55,6 +54,22 @@ export type {
   MessageRole,
   ToolCall,
   ToolDefinition,
+  // Multimodal content types
+  TextContentPart,
+  ImageContentPart,
+  DocumentContentPart,
+  ContentPart,
+  MessageContent,
+} from './provider';
+
+// Content utilities
+export {
+  isMultimodalContent,
+  isTextContent,
+  isImageContent,
+  isDocumentContent,
+  normalizeContent,
+  extractTextContent,
 } from './provider';
 
 // Error exports
