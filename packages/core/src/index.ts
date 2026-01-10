@@ -60,6 +60,10 @@ export type {
   DocumentContentPart,
   ContentPart,
   MessageContent,
+  // Response metadata types
+  CacheInfo,
+  ResponseMetadata,
+  TokenUsage,
 } from './provider';
 
 // Content utilities

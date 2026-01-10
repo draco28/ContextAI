@@ -9,12 +9,16 @@ export type {
   MessageRole,
   ToolCall,
   ToolDefinition,
-  // New multimodal types
+  // Multimodal types
   TextContentPart,
   ImageContentPart,
   DocumentContentPart,
   ContentPart,
   MessageContent,
+  // Response metadata types
+  CacheInfo,
+  ResponseMetadata,
+  TokenUsage,
 } from './types';
 
 // Runtime exports from content.ts

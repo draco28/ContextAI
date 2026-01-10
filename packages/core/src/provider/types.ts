@@ -72,17 +72,64 @@ export interface ToolCall {
 }
 
 /**
+ * Cache information from provider response
+ */
+export interface CacheInfo {
+  /** Whether the response was served from cache */
+  hit: boolean;
+  /** Number of tokens saved by cache hit */
+  tokensSaved?: number;
+  /** Cache TTL in seconds */
+  ttlSeconds?: number;
+}
+
+/**
+ * Response metadata for debugging and observability
+ */
+export interface ResponseMetadata {
+  /** Provider-assigned request identifier */
+  requestId?: string;
+  /** Model version that generated the response */
+  modelVersion?: string;
+  /** Model identifier used */
+  modelId?: string;
+  /** Cache information (Claude prompt caching, etc.) */
+  cache?: CacheInfo;
+  /** Response latency in milliseconds */
+  latencyMs?: number;
+  /** OpenAI system fingerprint for reproducibility */
+  systemFingerprint?: string;
+}
+
+/**
+ * Token usage information
+ */
+export interface TokenUsage {
+  /** Tokens in the prompt/input */
+  promptTokens: number;
+  /** Tokens in the completion/output */
+  completionTokens: number;
+  /** Total tokens used */
+  totalTokens: number;
+  /** Tokens used for reasoning (Claude thinking, o1 reasoning) */
+  reasoningTokens?: number;
+  /** Tokens read from prompt cache */
+  cacheReadTokens?: number;
+  /** Tokens written to prompt cache */
+  cacheWriteTokens?: number;
+}
+
+/**
  * LLM response structure
  */
 export interface ChatResponse {
   content: string;
   toolCalls?: ToolCall[];
   finishReason: 'stop' | 'tool_calls' | 'length' | 'error';
-  usage?: {
-    promptTokens: number;
-    completionTokens: number;
-    totalTokens: number;
-  };
+  /** Token usage statistics */
+  usage?: TokenUsage;
+  /** Response metadata for debugging/observability */
+  metadata?: ResponseMetadata;
 }
 
 /**
@@ -97,7 +144,10 @@ export interface StreamChunk {
     /** Arguments as JSON string fragment (streaming) or parsed object */
     arguments?: string | Record<string, unknown>;
   };
-  usage?: ChatResponse['usage'];
+  /** Token usage (typically sent with 'usage' or 'done' chunk) */
+  usage?: TokenUsage;
+  /** Response metadata (typically sent with 'done' chunk) */
+  metadata?: ResponseMetadata;
 }
 
 /**
