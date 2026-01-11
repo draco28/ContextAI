@@ -66,6 +66,8 @@ export type {
   TokenUsage,
   // Structured output types
   ResponseFormat,
+  // Extended thinking types
+  ThinkingConfig,
 } from './provider';
 
 // Content utilities

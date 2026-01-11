@@ -21,6 +21,8 @@ export type {
   TokenUsage,
   // Structured output types
   ResponseFormat,
+  // Extended thinking types
+  ThinkingConfig,
 } from './types';
 
 // Runtime exports from content.ts

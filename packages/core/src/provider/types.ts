@@ -125,18 +125,20 @@ export interface TokenUsage {
 export interface ChatResponse {
   content: string;
   toolCalls?: ToolCall[];
-  finishReason: 'stop' | 'tool_calls' | 'length' | 'error';
+  finishReason: 'stop' | 'tool_calls' | 'length' | 'error' | 'content_filter';
   /** Token usage statistics */
   usage?: TokenUsage;
   /** Response metadata for debugging/observability */
   metadata?: ResponseMetadata;
+  /** Model's reasoning/thinking content (Claude extended thinking) */
+  thinking?: string;
 }
 
 /**
  * Streaming chunk from LLM
  */
 export interface StreamChunk {
-  type: 'text' | 'tool_call' | 'usage' | 'done';
+  type: 'text' | 'tool_call' | 'usage' | 'done' | 'thinking';
   content?: string;
   toolCall?: {
     id?: string;
@@ -148,6 +150,8 @@ export interface StreamChunk {
   usage?: TokenUsage;
   /** Response metadata (typically sent with 'done' chunk) */
   metadata?: ResponseMetadata;
+  /** Thinking/reasoning content (streamed in 'thinking' chunks) */
+  thinking?: string;
 }
 
 /**
@@ -164,6 +168,16 @@ export type ResponseFormat =
         strict?: boolean;
       };
     };
+
+/**
+ * Configuration for extended thinking/reasoning mode
+ */
+export interface ThinkingConfig {
+  /** Enable extended thinking mode */
+  enabled: boolean;
+  /** Maximum tokens to use for thinking (Claude budgetTokens) */
+  budgetTokens?: number;
+}
 
 /**
  * Options for generate/chat calls
@@ -193,6 +207,8 @@ export interface GenerateOptions {
   seed?: number;
   /** End-user identifier for abuse detection */
   user?: string;
+  /** Extended thinking configuration (Claude 3.5+, o1) */
+  thinking?: ThinkingConfig;
 }
 
 /**
