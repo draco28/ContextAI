@@ -9,6 +9,12 @@ import type {
 import { noopLogger } from './types';
 import type { ChatMessage } from '../provider/types';
 import { ReActLoop } from './react-loop';
+import {
+  AgentConfigSchema,
+  AgentRunOptionsSchema,
+  InputStringSchema,
+} from './schemas';
+import { ValidationError } from '../errors';
 
 /**
  * ContextAI Agent - ReAct-based reasoning agent
@@ -48,6 +54,15 @@ export class Agent {
   private readonly logger: Logger;
 
   constructor(config: AgentConfig) {
+    // Validate configuration
+    const configResult = AgentConfigSchema.safeParse(config);
+    if (!configResult.success) {
+      throw new ValidationError(
+        'Invalid Agent configuration',
+        configResult.error.issues
+      );
+    }
+
     this.name = config.name;
     this.systemPrompt = config.systemPrompt;
     this.callbacks = config.callbacks ?? {};
@@ -85,6 +100,23 @@ export class Agent {
     input: string,
     options: AgentRunOptions = {}
   ): Promise<AgentResponse> => {
+    // Validate input
+    const inputResult = InputStringSchema.safeParse(input);
+    if (!inputResult.success) {
+      throw new ValidationError('Invalid input', inputResult.error.issues);
+    }
+
+    // Validate options if provided
+    if (Object.keys(options).length > 0) {
+      const optionsResult = AgentRunOptionsSchema.safeParse(options);
+      if (!optionsResult.success) {
+        throw new ValidationError(
+          'Invalid run options',
+          optionsResult.error.issues
+        );
+      }
+    }
+
     const messages = this.buildMessages(input, options.context);
     // Merge constructor callbacks with runtime callbacks (runtime overrides)
     const mergedCallbacks = { ...this.callbacks, ...options.callbacks };
@@ -168,6 +200,23 @@ export class Agent {
     input: string,
     options: AgentRunOptions = {}
   ): StreamingAgentResponse {
+    // Validate input
+    const inputResult = InputStringSchema.safeParse(input);
+    if (!inputResult.success) {
+      throw new ValidationError('Invalid input', inputResult.error.issues);
+    }
+
+    // Validate options if provided
+    if (Object.keys(options).length > 0) {
+      const optionsResult = AgentRunOptionsSchema.safeParse(options);
+      if (!optionsResult.success) {
+        throw new ValidationError(
+          'Invalid run options',
+          optionsResult.error.issues
+        );
+      }
+    }
+
     const messages = this.buildMessages(input, options.context);
 
     try {

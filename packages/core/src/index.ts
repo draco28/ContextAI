@@ -39,6 +39,16 @@ export type {
 export type { Logger, LogLevel } from './agent';
 export { noopLogger, consoleLogger } from './agent';
 
+// Validation schemas
+export {
+  AgentConfigSchema,
+  AgentRunOptionsSchema,
+  ChatMessageSchema,
+  InputStringSchema,
+  LLMProviderSchema,
+} from './agent';
+export type { ValidatedAgentConfig, ValidatedAgentRunOptions } from './agent';
+
 // Tool exports
 export { defineTool } from './tool';
 export type { Tool, ToolConfig, ToolExecuteContext, ToolResult } from './tool';

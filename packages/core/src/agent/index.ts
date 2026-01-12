@@ -39,3 +39,13 @@ export type {
 // Logger types and utilities
 export type { Logger, LogLevel } from './types';
 export { noopLogger, consoleLogger } from './types';
+
+// Validation schemas
+export {
+  AgentConfigSchema,
+  AgentRunOptionsSchema,
+  ChatMessageSchema,
+  InputStringSchema,
+  LLMProviderSchema,
+} from './schemas';
+export type { ValidatedAgentConfig, ValidatedAgentRunOptions } from './schemas';
