@@ -23,6 +23,9 @@ export type {
   ResponseFormat,
   // Extended thinking types
   ThinkingConfig,
+  // Rate limit and model info types
+  RateLimitInfo,
+  ModelInfo,
 } from './types';
 
 // Runtime exports from content.ts

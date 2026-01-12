@@ -152,6 +152,11 @@ export interface StreamChunk {
   metadata?: ResponseMetadata;
   /** Thinking/reasoning content (streamed in 'thinking' chunks) */
   thinking?: string;
+  /** Error information (for error chunks or partial failures) */
+  error?: {
+    message: string;
+    code?: string;
+  };
 }
 
 /**
@@ -168,6 +173,32 @@ export type ResponseFormat =
         strict?: boolean;
       };
     };
+
+/**
+ * Rate limit information from provider
+ */
+export interface RateLimitInfo {
+  /** Remaining requests in current window */
+  requestsRemaining?: number;
+  /** Remaining tokens in current window */
+  tokensRemaining?: number;
+  /** Unix timestamp when limits reset */
+  resetAt?: number;
+  /** Window duration in seconds */
+  windowSeconds?: number;
+}
+
+/**
+ * Model information from provider
+ */
+export interface ModelInfo {
+  /** Model identifier */
+  id: string;
+  /** Human-readable model name */
+  name?: string;
+  /** Maximum context length in tokens */
+  contextLength?: number;
+}
 
 /**
  * Configuration for extended thinking/reasoning mode
@@ -228,6 +259,14 @@ export interface LLMProviderConfig {
   baseURL?: string;
   model: string;
   defaultOptions?: Partial<GenerateOptions>;
+  /** Request timeout in milliseconds */
+  timeout?: number;
+  /** Maximum retry attempts for failed requests */
+  maxRetries?: number;
+  /** Custom headers to include in requests */
+  headers?: Record<string, string>;
+  /** Organization ID (OpenAI) */
+  organization?: string;
 }
 
 /**
@@ -281,4 +320,19 @@ export interface LLMProvider {
    * Check if provider is configured and available
    */
   isAvailable(): Promise<boolean>;
+
+  /**
+   * Get current rate limit status (optional)
+   */
+  getRateLimits?(): Promise<RateLimitInfo | null>;
+
+  /**
+   * List available models (optional)
+   */
+  listModels?(): Promise<ModelInfo[]>;
+
+  /**
+   * Count tokens in messages (optional)
+   */
+  countTokens?(messages: ChatMessage[]): Promise<number>;
 }

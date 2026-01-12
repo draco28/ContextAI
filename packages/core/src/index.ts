@@ -68,6 +68,9 @@ export type {
   ResponseFormat,
   // Extended thinking types
   ThinkingConfig,
+  // Rate limit and model info types
+  RateLimitInfo,
+  ModelInfo,
 } from './provider';
 
 // Content utilities
