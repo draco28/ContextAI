@@ -103,3 +103,18 @@ export {
   ProviderError,
   ValidationError,
 } from './errors';
+
+// Security exports
+export {
+  // SQL Safety utilities
+  isValidIdentifier,
+  escapeIdentifier,
+  SafeQueryBuilder,
+  SQLSafetyError,
+} from './security';
+export type {
+  WhereCondition,
+  WhereOperator,
+  OrderDirection,
+  QueryResult,
+} from './security';
