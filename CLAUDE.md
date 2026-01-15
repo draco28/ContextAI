@@ -163,50 +163,43 @@ projectpulse_agent_session_end({
 
 ---
 
-## Loading Project Resources (via MCP)
+## Native Resources (Auto-Loaded from .claude/)
 
-### Personas (Expert Roles)
+Claude Code automatically loads resources from `.claude/` folder. No MCP calls needed!
 
-```
-# List available personas
-projectpulse_persona_list(projectId: 7)
+### Available Agents (@mention to use)
 
-# Load a specific persona
-projectpulse_persona_get(projectId: 7, slug: "backend-developer")
-```
+| Agent | @Mention | Expertise |
+|-------|----------|-----------|
+| Agent Runtime Developer | `@agent-runtime` | ReAct Loop, Tool Execution, Agent Orchestration, Streaming |
+| Provider Integration Specialist | `@provider-specialist` | Anthropic, OpenAI, Ollama, HuggingFace, API Integration |
+| RAG Pipeline Engineer | `@rag-engineer` | RAG, Embeddings, Vector Search, Chunking, Re-ranking |
+| React Components Developer | `@react-developer` | React Hooks, Headless UI, Accessibility, TypeScript React |
+| SDK Architect | `@sdk-architect` | TypeScript, SDK Design, API Ergonomics, Monorepo |
+| Test Engineer | `@test-engineer` | Vitest, Unit Testing, Integration Testing, Mocking |
 
-### Skills (Coding Patterns)
+### Available Skills (/command to invoke)
 
-```
-# List available skills
-projectpulse_skill_list(projectId: 7, category: "framework")
+| Skill | Command | Purpose |
+|-------|---------|---------|
+| Pair Programming | `/pair <ticket>` | Hands-on learning with Claude as mentor |
+| RAG Chunking Strategies | `/rag-chunking-strategies` | Best practices for document chunking |
+| React Hooks & Async State | `/react-hooks-async-state` | React patterns and best practices |
+| TypeScript SDK Patterns | `/typescript-sdk-patterns` | Interface-first SDK design patterns |
+| Error Handling Patterns | `/error-handling-patterns` | Typed errors and error boundaries |
+| Vitest Mocking Patterns | `/vitest-mocking-patterns` | Unit testing with Vitest |
+| Adding New Package | `/adding-new-package` | Monorepo package creation guide |
+| Code Review Guidelines | `/code-review-guidelines` | PR review standards and checklist |
+| Security Review Checklist | `/security-review-checklist` | Security considerations for PRs |
+| Debugging Agent Issues | `/debugging-agent-issues` | Troubleshooting agent behavior |
+| RAG Pipeline Tuning | `/rag-pipeline-tuning` | Optimizing retrieval quality |
 
-# Load a skill
-projectpulse_skill_get(projectId: 7, slug: "react-hooks-patterns")
-```
+### Why Native Resources?
 
-### SOPs (Procedures)
-
-```
-# List available SOPs
-projectpulse_sop_list(projectId: 7, category: "Development")
-
-# Load an SOP
-projectpulse_sop_get(projectId: 7, slug: "git-workflow")
-```
-
----
-
-## Available Personas
-
-| Persona | Slug | Expertise |
-|---------|------|-----------|
-| Agent Runtime Developer | `agent-runtime` | ReAct Loop, Tool Execution, Agent Orchestration, Streaming, Debugging |
-| Provider Integration Specialist | `provider-specialist` | Anthropic, OpenAI, Ollama, HuggingFace, API Integration |
-| RAG Pipeline Engineer | `rag-engineer` | RAG, Embeddings, Vector Search, Chunking, Re-ranking |
-| React Components Developer | `react-developer` | React Hooks, Headless UI, Accessibility, TypeScript React, Streaming UI |
-| SDK Architect | `sdk-architect` | TypeScript, SDK Design, API Ergonomics, Monorepo, Package Architecture |
-| Test Engineer | `test-engineer` | Vitest, Unit Testing, Integration Testing, Mocking, Coverage |
+- **Auto-loaded**: No MCP calls needed, available in every session
+- **Version controlled**: Skills/agents evolve with codebase
+- **Faster**: No network latency for resource loading
+- **Offline**: Works without ProjectPulse connection
 
 ---
 
@@ -379,8 +372,9 @@ projectpulse_wiki_get(path: "/guides/api-reference")
 | **Kanban** | `kanban_moveTicket`, `kanban_getBoard` |
 | **Knowledge** | `knowledge_create`, `knowledge_search`, `knowledge_get` |
 | **Wiki** | `wiki_search`, `wiki_get`, `wiki_create`, `wiki_update` |
-| **Resources** | `persona_list`, `persona_get`, `skill_list`, `skill_get`, `sop_list`, `sop_get` |
 | **Workflows** | `workflow_list`, `workflow_start`, `workflow_executeStep`, `workflow_getStatus` |
+
+**Note**: Personas, Skills, and SOPs are now auto-loaded from `.claude/` folder. See "Native Resources" section above.
 
 ---
 
@@ -402,7 +396,28 @@ Use `/pair <ticket-number>` to start a guided pair programming session.
 
 1. **Claude mentors, you code**: Claude explains concepts, provides code, you type it
 2. **Educational insights**: Every step includes WHY, not just WHAT
-3. **Verification loop**: Claude reads your changes and suggests fixes if needed
+3. **Verification loop**: Claude reads your changes and provides feedback
+4. **Session tracked**: Full ProjectPulse integration with auto-claiming
+
+### Learning Modes (Choose at Session Start)
+
+| Mode | Description | Best For |
+|------|-------------|----------|
+| 🎓 **Guided** | Claude explains first, you implement | New concepts |
+| 🤝 **Collaborative** | Discuss approach together, then implement | Moderate familiarity |
+| 🔍 **Exploratory** | You try first, Claude reviews and teaches | Building confidence |
+
+### Educational Blocks Used
+
+| Block | Purpose |
+|-------|---------|
+| `★ Insight` | Core concept explanation |
+| `💡 Why This Way` | Reasoning behind decisions |
+| `⚠️ Pitfall` | Common mistakes to avoid |
+| `🔄 Alternative` | Other approaches considered |
+| `🧪 Quick Check` | Comprehension questions |
+| `✅ Review` | Verification feedback |
+| `📚 Deep Dive` | Links to related skills/docs |
 
 ### Per-Ticket Workflow (CRITICAL)
 
@@ -411,11 +426,12 @@ Use `/pair <ticket-number>` to start a guided pair programming session.
 │  ONE SESSION = ONE TICKET                                       │
 │                                                                 │
 │  1. session_start(ticket) ─► ticket goes to "in-progress"       │
-│  2. Implement with pair programming                             │
-│  3. Test & Build                                                │
-│  4. Commit changes                                              │
-│  5. ticket_addComment() with summary                            │
-│  6. session_end() ─► ticket goes to "in-review"                 │
+│  2. Choose learning mode (Guided/Collaborative/Exploratory)     │
+│  3. Implement with pair programming                             │
+│  4. Test & Build                                                │
+│  5. Commit changes                                              │
+│  6. ticket_addComment() with learning summary                   │
+│  7. session_end() ─► ticket goes to "in-review"                 │
 │                                                                 │
 │  THEN for next ticket: START NEW SESSION                        │
 └─────────────────────────────────────────────────────────────────┘
@@ -427,17 +443,6 @@ When a feature ticket has 3+ distinct tasks:
 - Create child tickets with separation of concerns
 - Each child ticket should be self-contained (full context in description)
 - Work on one child at a time with proper session lifecycle
-
-### Insight Block Format
-
-```
-`★ Insight ─────────────────────────────────────`
-**Concept Name**
-- Why we're doing this
-- Key technical point
-- Best practice note
-`─────────────────────────────────────────────────`
-```
 
 ---
 
