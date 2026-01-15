@@ -1,5 +1,5 @@
 // Security module exports
-export { SQLSafetyError } from './errors';
+export { SQLSafetyError, PathTraversalError } from './errors';
 export {
   // Identifier safety
   isValidIdentifier,
@@ -12,3 +12,13 @@ export {
   type OrderDirection,
   type QueryResult,
 } from './sql-safety';
+
+// Path validation
+export {
+  PathValidator,
+  validatePath,
+  validatePathSync,
+  type PathValidatorOptions,
+  type ValidationResult,
+  type BlockedReason,
+} from './path-validator';

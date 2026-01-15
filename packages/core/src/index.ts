@@ -111,10 +111,19 @@ export {
   escapeIdentifier,
   SafeQueryBuilder,
   SQLSafetyError,
+  // Path validation utilities
+  PathValidator,
+  validatePath,
+  validatePathSync,
+  PathTraversalError,
 } from './security';
 export type {
   WhereCondition,
   WhereOperator,
   OrderDirection,
   QueryResult,
+  // Path validation types
+  PathValidatorOptions,
+  ValidationResult as PathValidationResult,
+  BlockedReason,
 } from './security';
