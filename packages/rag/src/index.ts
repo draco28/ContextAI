@@ -24,3 +24,24 @@ export {
   type LoaderErrorDetails,
   type RegisterOptions,
 } from './loaders/index.js';
+
+// Embedding Providers
+export {
+  // Classes
+  BaseEmbeddingProvider,
+  EmbeddingError,
+  // Utilities
+  dotProduct,
+  l2Norm,
+  normalizeL2,
+  cosineSimilarity,
+  euclideanDistance,
+  isNormalized,
+  meanEmbedding,
+  // Types
+  type EmbeddingResult,
+  type EmbeddingProvider,
+  type EmbeddingProviderConfig,
+  type EmbeddingErrorCode,
+  type EmbeddingErrorDetails,
+} from './embeddings/index.js';
