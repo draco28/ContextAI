@@ -1,5 +1,7 @@
 import type { LLMProvider, ChatMessage } from '../provider/types';
 import type { Tool } from '../tool/types';
+import type { MemoryProvider } from './memory';
+import type { TokenCounter } from './context';
 
 /**
  * ReAct step: Thought
@@ -70,6 +72,16 @@ export interface AgentConfig {
   callbacks?: ReActEventCallbacks;
   /** Optional logger for tracing */
   logger?: Logger;
+  /** Memory provider for conversation persistence */
+  memory?: MemoryProvider;
+  /** Session ID for memory persistence (required if memory is provided) */
+  sessionId?: string;
+  /** Initial conversation context (messages to pre-populate) */
+  context?: ChatMessage[];
+  /** Maximum tokens to retain in conversation context */
+  maxContextTokens?: number;
+  /** Custom token counter for context management */
+  tokenCounter?: TokenCounter;
 }
 
 /**

@@ -39,6 +39,14 @@ export type {
 export type { Logger, LogLevel } from './agent';
 export { noopLogger, consoleLogger } from './agent';
 
+// Context management
+export { ConversationContext, InMemoryProvider } from './agent';
+export type {
+  ConversationContextConfig,
+  TokenCounter,
+  MemoryProvider,
+} from './agent';
+
 // Validation schemas
 export {
   AgentConfigSchema,

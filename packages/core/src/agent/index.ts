@@ -49,3 +49,11 @@ export {
   LLMProviderSchema,
 } from './schemas';
 export type { ValidatedAgentConfig, ValidatedAgentRunOptions } from './schemas';
+
+// Context management
+export { ConversationContext } from './context';
+export type { ConversationContextConfig, TokenCounter } from './context';
+
+// Memory providers
+export { InMemoryProvider } from './memory';
+export type { MemoryProvider } from './memory';
