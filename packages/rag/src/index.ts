@@ -45,3 +45,24 @@ export {
   type EmbeddingErrorCode,
   type EmbeddingErrorDetails,
 } from './embeddings/index.js';
+
+// Vector Stores
+export {
+  // Classes
+  BaseVectorStore,
+  InMemoryVectorStore,
+  VectorStoreError,
+  // Types
+  type Chunk,
+  type ChunkMetadata,
+  type ChunkWithEmbedding,
+  type SearchOptions,
+  type SearchResult,
+  type MetadataFilter,
+  type FilterOperator,
+  type DistanceMetric,
+  type VectorStore,
+  type VectorStoreConfig,
+  type VectorStoreErrorCode,
+  type VectorStoreErrorDetails,
+} from './vector-store/index.js';
