@@ -50,11 +50,15 @@
     "clean": "rm -rf dist .turbo"
   },
   "dependencies": {
-    "@contextai/core": "workspace:*"
+    "@contextai/core": "workspace:*",
+    "gray-matter": "^4.0.3",
+    "mammoth": "^1.8.0",
+    "pdf-parse": "^1.1.1"
   },
   "devDependencies": {
     "@contextai/tsconfig": "workspace:*",
     "@types/node": "^20.11.0",
+    "@types/pdf-parse": "^1.1.5",
     "@typescript-eslint/eslint-plugin": "^7.0.0",
     "@typescript-eslint/parser": "^7.0.0",
     "tsup": "^8.3.0",

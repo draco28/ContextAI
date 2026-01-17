@@ -45,6 +45,13 @@ export { LoaderError } from './errors.js';
 // Base class
 export { BaseDocumentLoader } from './base-loader.js';
 
+// Document loaders
+export { TextLoader } from './text-loader.js';
+export { MarkdownLoader } from './markdown-loader.js';
+export { CodeLoader } from './code-loader.js';
+export { PDFLoader } from './pdf-loader.js';
+export { DocxLoader } from './docx-loader.js';
+
 // Registry
 export { DocumentLoaderRegistry, defaultRegistry } from './registry.js';
 export type { RegisterOptions } from './registry.js';
