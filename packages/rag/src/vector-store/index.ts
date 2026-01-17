@@ -18,9 +18,14 @@ export type {
   VectorStoreConfig,
   VectorStoreErrorCode,
   VectorStoreErrorDetails,
+  // Store-specific config types
+  PgVectorStoreConfig,
+  ChromaVectorStoreConfig,
 } from './types.js';
 
 // Classes
 export { VectorStoreError } from './errors.js';
 export { BaseVectorStore } from './base-store.js';
 export { InMemoryVectorStore } from './memory-store.js';
+export { PgVectorStore } from './pg-store.js';
+export { ChromaVectorStore } from './chroma-store.js';

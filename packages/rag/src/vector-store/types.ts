@@ -262,3 +262,78 @@ export interface VectorStoreErrorDetails {
   /** Underlying cause, if any */
   cause?: Error;
 }
+
+// ============================================================================
+// Store-Specific Configuration
+// ============================================================================
+
+/**
+ * Configuration for PostgreSQL pgvector store.
+ *
+ * Requires either `connectionString` or `pool` to be provided.
+ *
+ * @example
+ * ```typescript
+ * const store = new PgVectorStore({
+ *   dimensions: 1536,
+ *   connectionString: 'postgresql://user:pass@localhost:5432/mydb',
+ *   tableName: 'embeddings',
+ * });
+ * ```
+ */
+export interface PgVectorStoreConfig extends VectorStoreConfig {
+  /** PostgreSQL connection string (e.g., 'postgresql://user:pass@localhost:5432/db') */
+  connectionString?: string;
+  /** Existing pg Pool instance (alternative to connectionString) */
+  pool?: unknown; // Type as unknown to avoid pg dependency in types
+  /** Table name for storing vectors (default: 'vector_chunks') */
+  tableName?: string;
+  /** Schema name (default: 'public') */
+  schemaName?: string;
+  /** Index type for similarity search (default: 'hnsw') */
+  indexType?: 'hnsw' | 'ivfflat' | 'none';
+  /** HNSW index: max connections per node (default: 16) */
+  hnswM?: number;
+  /** HNSW index: size of dynamic candidate list during construction (default: 64) */
+  hnswEfConstruction?: number;
+  /** Max pool connections when using connectionString (default: 10) */
+  maxConnections?: number;
+  /** Idle connection timeout in ms (default: 30000) */
+  idleTimeoutMs?: number;
+}
+
+/**
+ * Configuration for ChromaDB vector store.
+ *
+ * @example
+ * ```typescript
+ * // Embedded mode (local file storage)
+ * const store = new ChromaVectorStore({
+ *   dimensions: 1536,
+ *   mode: 'embedded',
+ *   persistPath: './chroma_data',
+ * });
+ *
+ * // Server mode (connect to Chroma server)
+ * const store = new ChromaVectorStore({
+ *   dimensions: 1536,
+ *   mode: 'server',
+ *   serverUrl: 'http://localhost:8000',
+ * });
+ * ```
+ */
+export interface ChromaVectorStoreConfig extends VectorStoreConfig {
+  /** Collection name (default: 'default_collection') */
+  collectionName?: string;
+  /** Client mode: 'embedded' for local file, 'server' for HTTP (default: 'embedded') */
+  mode?: 'embedded' | 'server';
+  /** Chroma server URL for server mode (default: 'http://localhost:8000') */
+  serverUrl?: string;
+  /** Local storage path for embedded mode (default: './chroma_data') */
+  persistPath?: string;
+  /** Optional authentication for server mode */
+  auth?: {
+    provider: 'token' | 'basic';
+    credentials: string;
+  };
+}

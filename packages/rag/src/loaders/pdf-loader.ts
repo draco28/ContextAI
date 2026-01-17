@@ -230,7 +230,7 @@ export class PDFLoader extends BaseDocumentLoader {
    */
   private parsePdfDate = (pdfDate: string): Date | undefined => {
     // Remove 'D:' prefix if present
-    let dateStr = pdfDate.replace(/^D:/, '');
+    const dateStr = pdfDate.replace(/^D:/, '');
 
     // Try to extract components: YYYYMMDDHHMMSS
     const match = dateStr.match(/^(\d{4})(\d{2})(\d{2})(\d{2})?(\d{2})?(\d{2})?/);
