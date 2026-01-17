@@ -66,3 +66,30 @@ export {
   type VectorStoreErrorCode,
   type VectorStoreErrorDetails,
 } from './vector-store/index.js';
+
+// Text Chunking
+export {
+  // Classes
+  BaseChunker,
+  ChunkerRegistry,
+  ChunkerError,
+  FixedSizeChunker,
+  RecursiveChunker,
+  SentenceChunker,
+  defaultChunkerRegistry,
+  // Utilities
+  CHARS_PER_TOKEN,
+  estimateTokens,
+  countCharacters,
+  measureSize,
+  convertSize,
+  findSizeIndex,
+  splitBySize,
+  DEFAULT_CHUNKING_OPTIONS,
+  // Types
+  type ChunkingOptions,
+  type ChunkingStrategy,
+  type ChunkerErrorCode,
+  type ChunkerErrorDetails,
+  type SizeUnit,
+} from './chunking/index.js';
