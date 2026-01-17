@@ -27,9 +27,16 @@ export {
 
 // Embedding Providers
 export {
-  // Classes
+  // Base Classes & Errors
   BaseEmbeddingProvider,
   EmbeddingError,
+  // Providers
+  HuggingFaceEmbeddingProvider,
+  OllamaEmbeddingProvider,
+  // Cache
+  LRUEmbeddingCache,
+  CachedEmbeddingProvider,
+  generateCacheKey,
   // Utilities
   dotProduct,
   l2Norm,
@@ -44,6 +51,11 @@ export {
   type EmbeddingProviderConfig,
   type EmbeddingErrorCode,
   type EmbeddingErrorDetails,
+  type HuggingFaceEmbeddingConfig,
+  type OllamaEmbeddingConfig,
+  type EmbeddingCache,
+  type LRUEmbeddingCacheConfig,
+  type CachedEmbeddingProviderConfig,
 } from './embeddings/index.js';
 
 // Vector Stores

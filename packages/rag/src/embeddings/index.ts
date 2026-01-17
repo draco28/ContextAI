@@ -13,9 +13,30 @@ export type {
   EmbeddingErrorDetails,
 } from './types.js';
 
-// Classes
+// Base Classes & Errors
 export { EmbeddingError } from './errors.js';
 export { BaseEmbeddingProvider } from './base-provider.js';
+
+// Providers
+export {
+  HuggingFaceEmbeddingProvider,
+  type HuggingFaceEmbeddingConfig,
+} from './huggingface-provider.js';
+
+export {
+  OllamaEmbeddingProvider,
+  type OllamaEmbeddingConfig,
+} from './ollama-provider.js';
+
+// Cache
+export {
+  LRUEmbeddingCache,
+  CachedEmbeddingProvider,
+  generateCacheKey,
+  type EmbeddingCache,
+  type LRUEmbeddingCacheConfig,
+  type CachedEmbeddingProviderConfig,
+} from './cache.js';
 
 // Utilities
 export {
