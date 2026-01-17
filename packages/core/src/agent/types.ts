@@ -2,6 +2,7 @@ import type { LLMProvider, ChatMessage } from '../provider/types';
 import type { Tool } from '../tool/types';
 import type { MemoryProvider } from './memory';
 import type { TokenCounter } from './context';
+import type { ErrorRecoveryConfig } from './retry-types';
 
 /**
  * ReAct step: Thought
@@ -82,6 +83,8 @@ export interface AgentConfig {
   maxContextTokens?: number;
   /** Custom token counter for context management */
   tokenCounter?: TokenCounter;
+  /** Error recovery configuration for tool execution */
+  errorRecovery?: ErrorRecoveryConfig;
 }
 
 /**

@@ -14,6 +14,8 @@ import type {
 import { noopLogger } from './types';
 import { AgentError, ToolTimeoutError } from '../errors/errors';
 import { ToolCallAggregator } from './tool-call-aggregator';
+import type { ErrorRecoveryConfig } from './retry-types';
+import { ErrorRecovery } from './error-recovery';
 
 const DEFAULT_MAX_ITERATIONS = 10;
 
@@ -38,17 +40,24 @@ export class ReActLoop {
   private readonly tools: Map<string, Tool>;
   private readonly maxIterations: number;
   private readonly logger: Logger;
+  private readonly errorRecovery?: ErrorRecovery;
 
   constructor(
     llm: LLMProvider,
     tools: Tool[] = [],
     maxIterations: number = DEFAULT_MAX_ITERATIONS,
-    logger: Logger = noopLogger
+    logger: Logger = noopLogger,
+    errorRecoveryConfig?: ErrorRecoveryConfig
   ) {
     this.llm = llm;
     this.tools = new Map(tools.map((t) => [t.name, t]));
     this.maxIterations = maxIterations;
     this.logger = logger;
+
+    // Create error recovery if configured
+    if (errorRecoveryConfig) {
+      this.errorRecovery = new ErrorRecovery(errorRecoveryConfig);
+    }
   }
 
   /**
@@ -469,6 +478,51 @@ export class ReActLoop {
     }
 
     try {
+      // Wrap execution with error recovery if configured
+      const executeToolFn = async () => {
+        const result = await tool.execute(toolCall.arguments, { signal });
+        if (!result.success) {
+          // Throw to trigger retry on tool-level failures
+          throw new Error(result.error || 'Tool execution failed');
+        }
+        return result;
+      };
+
+      if (this.errorRecovery) {
+        const recoveryResult = await this.errorRecovery.execute(
+          executeToolFn,
+          { toolName: toolCall.name, input: toolCall.arguments },
+          signal
+        );
+
+        if (recoveryResult.success) {
+          const result = recoveryResult.value as {
+            success: boolean;
+            data?: unknown;
+            error?: string;
+          };
+          return {
+            type: 'observation',
+            result: result.data,
+            success: true,
+            timestamp: Date.now(),
+          };
+        } else {
+          return {
+            type: 'observation',
+            result: {
+              error:
+                recoveryResult.error?.message ||
+                'Tool execution failed after retries',
+              attempts: recoveryResult.attempts,
+            },
+            success: false,
+            timestamp: Date.now(),
+          };
+        }
+      }
+
+      // No error recovery configured, execute directly
       const result = await tool.execute(toolCall.arguments, { signal });
       return {
         type: 'observation',

@@ -106,7 +106,8 @@ export class Agent {
       config.llm,
       config.tools,
       config.maxIterations,
-      this.logger
+      this.logger,
+      config.errorRecovery
     );
   }
 
