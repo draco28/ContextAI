@@ -3,10 +3,15 @@
  *
  * Caching layer for embedding providers to avoid redundant computations.
  * Includes LRU in-memory cache and interface for custom implementations.
+ *
+ * Note: For new code, consider using the generic CacheProvider<number[]> from
+ * the cache module instead. This file maintains backward compatibility with
+ * the original EmbeddingCache interface.
  */
 
 import type { EmbeddingProvider, EmbeddingResult } from './types.js';
 import { BaseEmbeddingProvider } from './base-provider.js';
+import { LRUCacheProvider, type CacheProvider } from '../cache/index.js';
 
 // ============================================================================
 // Cache Interface
@@ -15,22 +20,17 @@ import { BaseEmbeddingProvider } from './base-provider.js';
 /**
  * Interface for embedding caches.
  *
- * Implement this to create custom cache backends (Redis, Memcached, etc.)
+ * @deprecated For new code, prefer using `CacheProvider<number[]>` from the
+ * cache module. This interface is maintained for backward compatibility.
  *
  * @example
  * ```typescript
- * class RedisEmbeddingCache implements EmbeddingCache {
- *   async get(key: string) {
- *     const data = await redis.get(`embed:${key}`);
- *     return data ? JSON.parse(data) : null;
- *   }
- *   async set(key: string, embedding: number[]) {
- *     await redis.setex(`embed:${key}`, 3600, JSON.stringify(embedding));
- *   }
- *   async clear() {
- *     await redis.del(await redis.keys('embed:*'));
- *   }
- * }
+ * // New approach (recommended):
+ * import { LRUCacheProvider, type CacheProvider } from '@contextai/rag';
+ * const cache: CacheProvider<number[]> = new LRUCacheProvider({ maxSize: 1000 });
+ *
+ * // Legacy approach (still supported):
+ * const legacyCache: EmbeddingCache = new LRUEmbeddingCache({ maxSize: 1000 });
  * ```
  */
 export interface EmbeddingCache {
@@ -72,161 +72,77 @@ export interface LRUEmbeddingCacheConfig {
 }
 
 /**
- * Node in the doubly-linked list for LRU tracking.
- */
-interface LRUNode {
-  key: string;
-  value: number[];
-  prev: LRUNode | null;
-  next: LRUNode | null;
-}
-
-/**
  * In-memory LRU (Least Recently Used) cache for embeddings.
  *
- * Automatically evicts least recently accessed items when full.
- * O(1) get and set operations using a hash map + doubly-linked list.
+ * This class wraps the generic `LRUCacheProvider<number[]>` and adapts it to
+ * the legacy `EmbeddingCache` interface for backward compatibility.
+ *
+ * @deprecated For new code, use `LRUCacheProvider<number[]>` directly from
+ * the cache module. This class is maintained for backward compatibility.
  *
  * @example
  * ```typescript
+ * // Legacy usage (still works):
  * const cache = new LRUEmbeddingCache({ maxSize: 1000 });
+ * await cache.get('hello'); // returns null on miss
  *
- * // Cache miss
- * await cache.get('hello'); // null
- *
- * // Store embedding
- * await cache.set('hello', [0.1, 0.2, 0.3]);
- *
- * // Cache hit
- * await cache.get('hello'); // [0.1, 0.2, 0.3]
+ * // New approach (recommended):
+ * import { LRUCacheProvider } from '@contextai/rag';
+ * const cache = new LRUCacheProvider<number[]>({ maxSize: 1000 });
+ * await cache.get('hello'); // returns undefined on miss
  * ```
  */
 export class LRUEmbeddingCache implements EmbeddingCache {
-  private readonly maxSize: number;
-  private readonly cache: Map<string, LRUNode>;
-  private head: LRUNode | null = null;
-  private tail: LRUNode | null = null;
+  /** Internal generic cache provider */
+  private readonly provider: LRUCacheProvider<number[]>;
 
   constructor(config: LRUEmbeddingCacheConfig = {}) {
-    this.maxSize = config.maxSize ?? 10000;
-    this.cache = new Map();
+    this.provider = new LRUCacheProvider<number[]>({
+      maxSize: config.maxSize,
+    });
   }
 
   /**
    * Get cached embedding, moving it to front (most recently used).
+   *
+   * @returns Cached embedding or `null` if not found (legacy behavior)
    */
   get = async (key: string): Promise<number[] | null> => {
-    const node = this.cache.get(key);
-    if (!node) {
-      return null;
-    }
-
-    // Move to front (most recently used)
-    this.moveToFront(node);
-    return node.value;
+    const result = await this.provider.get(key);
+    // Convert undefined -> null for backward compatibility
+    return result ?? null;
   };
 
   /**
    * Store embedding, evicting least recently used if at capacity.
    */
   set = async (key: string, embedding: number[]): Promise<void> => {
-    // Update existing
-    const existing = this.cache.get(key);
-    if (existing) {
-      existing.value = embedding;
-      this.moveToFront(existing);
-      return;
-    }
-
-    // Evict if at capacity
-    if (this.cache.size >= this.maxSize) {
-      this.evictLRU();
-    }
-
-    // Add new node at front
-    const node: LRUNode = {
-      key,
-      value: embedding,
-      prev: null,
-      next: this.head,
-    };
-
-    if (this.head) {
-      this.head.prev = node;
-    }
-    this.head = node;
-
-    if (!this.tail) {
-      this.tail = node;
-    }
-
-    this.cache.set(key, node);
+    await this.provider.set(key, embedding);
   };
 
   /**
    * Clear all cached embeddings.
    */
   clear = async (): Promise<void> => {
-    this.cache.clear();
-    this.head = null;
-    this.tail = null;
+    await this.provider.clear();
   };
 
   /**
    * Get current cache size.
    */
   size = (): number => {
-    return this.cache.size;
+    return this.provider.size();
   };
 
   /**
-   * Move a node to the front of the list (most recently used).
+   * Access the underlying generic cache provider.
+   *
+   * Useful for accessing additional features like stats or TTL that aren't
+   * part of the legacy EmbeddingCache interface.
    */
-  private moveToFront(node: LRUNode): void {
-    if (node === this.head) {
-      return; // Already at front
-    }
-
-    // Remove from current position
-    if (node.prev) {
-      node.prev.next = node.next;
-    }
-    if (node.next) {
-      node.next.prev = node.prev;
-    }
-    if (node === this.tail) {
-      this.tail = node.prev;
-    }
-
-    // Move to front
-    node.prev = null;
-    node.next = this.head;
-    if (this.head) {
-      this.head.prev = node;
-    }
-    this.head = node;
-  }
-
-  /**
-   * Evict the least recently used item (tail of list).
-   */
-  private evictLRU(): void {
-    if (!this.tail) {
-      return;
-    }
-
-    const key = this.tail.key;
-    this.cache.delete(key);
-
-    if (this.tail.prev) {
-      this.tail.prev.next = null;
-      this.tail = this.tail.prev;
-    } else {
-      // Only one item
-      this.head = null;
-      this.tail = null;
-    }
-  }
+  getProvider = (): CacheProvider<number[]> => {
+    return this.provider;
+  };
 }
 
 // ============================================================================

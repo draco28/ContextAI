@@ -8,6 +8,17 @@
 
 export const VERSION = '0.0.1';
 
+// Cache
+export {
+  // Classes
+  LRUCacheProvider,
+  NoCacheProvider,
+  // Types
+  type CacheProvider,
+  type CacheStats,
+  type LRUCacheConfig,
+} from './cache/index.js';
+
 // Document Loaders
 export {
   // Classes
