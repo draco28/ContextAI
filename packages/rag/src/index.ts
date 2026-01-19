@@ -178,3 +178,61 @@ export {
   type RerankerErrorDetails,
   type InternalRerankerResult,
 } from './reranker/index.js';
+
+// Context Assembly (Chunk formatting for LLM consumption)
+export {
+  // Classes
+  BaseAssembler,
+  XMLAssembler,
+  MarkdownAssembler,
+  AssemblyError,
+  // Ordering Utilities
+  applyOrdering,
+  orderByRelevance,
+  orderBySandwich,
+  orderChronologically,
+  analyzeOrdering,
+  // Token Budget Utilities
+  estimateTokens as estimateAssemblyTokens,
+  estimateChunkTokens,
+  calculateTokenBudget,
+  applyTokenBudget,
+  truncateText,
+  analyzeBudget,
+  // Deduplication Utilities
+  jaccardSimilarity,
+  tokenize as tokenizeForDedup,
+  deduplicateResults,
+  findSimilarPairs,
+  analyzeSimilarity,
+  // XML Utilities
+  escapeXml,
+  escapeXmlAttribute,
+  // Defaults
+  DEFAULT_ASSEMBLER_CONFIG,
+  DEFAULT_XML_CONFIG,
+  DEFAULT_MARKDOWN_CONFIG,
+  DEFAULT_TOKEN_BUDGET,
+  DEFAULT_DEDUPLICATION_CONFIG,
+  // Types
+  type ContextAssembler,
+  type AssembledContext,
+  type AssemblerConfig,
+  type AssemblyOptions,
+  type SourceAttribution,
+  type OrderingStrategy,
+  type TokenBudgetConfig,
+  type DeduplicationConfig,
+  type XMLAssemblerConfig,
+  type MarkdownAssemblerConfig,
+  type AssemblyErrorCode,
+  type AssemblyErrorDetails,
+  type OrderingAnalysis,
+  type BudgetResult,
+  type BudgetAnalysis,
+  type ChunkTokenAnalysis,
+  type DeduplicationResult,
+  type DuplicateInfo,
+  type SimilarPair,
+  type SimilarityAnalysis,
+} from './assembly/index.js';

@@ -66,11 +66,18 @@ function createResultWithEmbedding(
 }
 
 // Helper to create similar embeddings (for testing diversity)
+// Uses deterministic offsets instead of random noise for reproducible tests
 function createSimilarEmbeddings(base: number[], variations: number): number[][] {
   const result: number[][] = [base];
   for (let i = 1; i < variations; i++) {
-    // Add small noise to create similar but not identical embeddings
-    const noisy = base.map((v) => v + (Math.random() - 0.5) * 0.1 * i);
+    // Create similar embeddings by adding small orthogonal noise
+    // Subtract from first component (query-aligned), add to others
+    // This keeps embeddings similar to each other but slightly less relevant to query
+    const offset = 0.03 * i;
+    const noisy = base.map((v, idx) => {
+      if (idx === 0) return v - offset; // Slightly less aligned with query [1,0,0]
+      return v + offset * 0.5; // Add small amount to other dimensions
+    });
     const norm = Math.sqrt(noisy.reduce((sum, v) => sum + v * v, 0));
     result.push(noisy.map((v) => v / norm));
   }
