@@ -116,3 +116,33 @@ export {
   type ChunkerErrorDetails,
   type SizeUnit,
 } from './chunking/index.js';
+
+// Retrieval (Dense, Sparse, Hybrid)
+export {
+  // Classes
+  BM25Retriever,
+  DenseRetriever,
+  HybridRetriever,
+  RetrieverError,
+  // RRF Utilities
+  reciprocalRankFusion,
+  rrfScore,
+  maxRRFScore,
+  normalizeRRFScores,
+  DEFAULT_RRF_K,
+  // Types
+  type Retriever,
+  type RetrievalResult,
+  type RetrievalOptions,
+  type HybridRetrievalOptions,
+  type HybridScore,
+  type BM25Config,
+  type BM25Document,
+  type DenseRetrieverConfig,
+  type HybridRetrieverConfig,
+  type RankedItem,
+  type RRFResult,
+  type RankingList,
+  type RetrieverErrorCode,
+  type RetrieverErrorDetails,
+} from './retrieval/index.js';
