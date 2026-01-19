@@ -146,3 +146,35 @@ export {
   type RetrieverErrorCode,
   type RetrieverErrorDetails,
 } from './retrieval/index.js';
+
+// Reranking (Post-retrieval relevance optimization)
+export {
+  // Classes
+  BaseReranker,
+  BGEReranker,
+  MMRReranker,
+  LLMReranker,
+  RerankerError,
+  // Position Bias Utilities
+  applyPositionBias,
+  applySandwichOrdering,
+  applyReverseSandwichOrdering,
+  applyInterleaveOrdering,
+  analyzePositionDistribution,
+  recommendPositionBiasConfig,
+  // Types
+  type Reranker,
+  type RerankerResult,
+  type RerankerScores,
+  type RerankerOptions,
+  type MMRRerankerOptions,
+  type LLMRerankerOptions,
+  type BGERerankerConfig,
+  type MMRRerankerConfig,
+  type LLMRerankerConfig,
+  type PositionBiasStrategy,
+  type PositionBiasConfig,
+  type RerankerErrorCode,
+  type RerankerErrorDetails,
+  type InternalRerankerResult,
+} from './reranker/index.js';
