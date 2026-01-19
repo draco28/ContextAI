@@ -236,3 +236,25 @@ export {
   type SimilarPair,
   type SimilarityAnalysis,
 } from './assembly/index.js';
+
+// Query Enhancement (Pre-retrieval query optimization)
+export {
+  // Classes
+  BaseQueryEnhancer,
+  QueryRewriter,
+  HyDEEnhancer,
+  MultiQueryExpander,
+  QueryEnhancementError,
+  // Types
+  type QueryEnhancer,
+  type EnhancementResult,
+  type EnhancementMetadata,
+  type EnhanceOptions,
+  type EnhancementStrategy,
+  type BaseEnhancerConfig,
+  type QueryRewriterConfig,
+  type HyDEConfig,
+  type MultiQueryConfig,
+  type QueryEnhancementErrorCode,
+  type QueryEnhancementErrorDetails,
+} from './query-enhancement/index.js';
