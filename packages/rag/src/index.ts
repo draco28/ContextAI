@@ -258,3 +258,20 @@ export {
   type QueryEnhancementErrorCode,
   type QueryEnhancementErrorDetails,
 } from './query-enhancement/index.js';
+
+// RAG Engine (High-level orchestrator)
+export {
+  // Classes
+  RAGEngineImpl,
+  RAGEngineError,
+  // Types
+  type RAGEngine,
+  type RAGEngineConfig,
+  type RAGSearchOptions,
+  type RAGSearchDefaults,
+  type RAGResult,
+  type RAGSearchMetadata,
+  type RAGTimings,
+  type RAGEngineErrorCode,
+  type RAGEngineErrorDetails,
+} from './engine/index.js';

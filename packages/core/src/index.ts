@@ -135,3 +135,15 @@ export type {
   ValidationResult as PathValidationResult,
   BlockedReason,
 } from './security';
+
+// Built-in Tools
+export {
+  createRetrieveKnowledgeTool,
+  retrieveKnowledgeInputSchema,
+} from './tools';
+export type {
+  RAGEngineInterface,
+  RetrieveKnowledgeToolOptions,
+  RetrieveKnowledgeInput,
+  RetrieveKnowledgeOutput,
+} from './tools';
