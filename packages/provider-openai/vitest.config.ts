@@ -5,6 +5,8 @@ export default defineConfig({
     globals: true,
     environment: 'node',
     include: ['test/**/*.test.ts'],
+    // Exclude integration tests from normal test runs (they require real API keys)
+    exclude: ['test/integration.test.ts', '**/node_modules/**'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],

@@ -96,6 +96,29 @@ const agent = new Agent({
 const result = await agent.run('What is the weather in Tokyo?');
 ```
 
+## Using with Z.AI GLM
+
+```typescript
+const provider = new OpenAIProvider({
+  apiKey: process.env.ZAI_API_KEY!,
+  baseURL: 'https://api.z.ai/api/coding/paas/v4/',
+  model: 'glm-4.7',
+});
+```
+
+### Note on Reasoning Models
+
+GLM-4.7 and similar reasoning models (like o1) use tokens for internal chain-of-thought reasoning BEFORE generating visible content. When using these models:
+
+```typescript
+// Use higher maxTokens to give the model enough budget for reasoning + content
+const response = await provider.chat(messages, {
+  maxTokens: 500, // Not 20-50!
+});
+```
+
+With low `maxTokens` values (e.g., 20), the model may exhaust its budget on reasoning and return empty content.
+
 ## Error Handling
 
 ```typescript
@@ -111,6 +134,23 @@ try {
   }
 }
 ```
+
+## Development
+
+### Running Tests
+
+```bash
+# Unit tests only
+pnpm test
+
+# Integration tests (requires real API key)
+OPENAI_API_KEY=sk-xxx pnpm vitest run test/integration.test.ts
+
+# Or with Z.AI
+ZAI_API_KEY=xxx pnpm vitest run test/integration.test.ts
+```
+
+Integration tests hit real APIs and cost money. They're excluded from normal `pnpm test` runs.
 
 ## License
 
