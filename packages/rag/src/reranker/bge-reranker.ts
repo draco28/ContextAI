@@ -131,8 +131,7 @@ export class BGEReranker extends BaseReranker {
    */
   private async doLoadPipeline(): Promise<Pipeline> {
     try {
-      // Dynamic import to avoid bundling transformers if not used
-      // @ts-expect-error - @xenova/transformers is an optional peer dependency
+      // Dynamic import of optional peer dependency
       const { pipeline } = await import('@xenova/transformers') as {
         pipeline: (task: string, model: string, options?: object) => Promise<unknown>;
       };

@@ -114,8 +114,7 @@ export class HuggingFaceEmbeddingProvider extends BaseEmbeddingProvider {
    */
   isAvailable = async (): Promise<boolean> => {
     try {
-      // Check if transformers.js is available
-      // @ts-expect-error - Optional dependency may not be installed
+      // Check if transformers.js is available (optional peer dependency)
       await import('@xenova/transformers');
       return true;
     } catch {
@@ -153,7 +152,7 @@ export class HuggingFaceEmbeddingProvider extends BaseEmbeddingProvider {
    */
   private doLoadPipeline = async (): Promise<TransformersPipeline> => {
     try {
-      // @ts-expect-error - Optional dependency may not be installed
+      // Dynamic import of optional peer dependency
       const transformers = await import('@xenova/transformers');
       const { pipeline, env } = transformers;
 
