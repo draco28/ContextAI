@@ -35,6 +35,4 @@ coverage/
 # Internal/sensitive files (not for public repo)
 .mcp.json
 .claude/
-ARCHITECTURE.md
-SDK_CAPABILITIES_SUMMARY.md
 RAG_Guide_Part1_Learning_Journey.docx

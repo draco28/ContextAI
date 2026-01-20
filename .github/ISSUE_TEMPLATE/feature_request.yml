@@ -1,0 +1,70 @@
+name: Feature Request
+description: Suggest a new feature for ContextAI
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for suggesting a feature! Please describe what you'd like to see.
+
+  - type: dropdown
+    id: package
+    attributes:
+      label: Related Package
+      description: Which package would this feature be part of?
+      options:
+        - "@contextai/core"
+        - "@contextai/rag"
+        - "@contextai/provider-openai"
+        - "@contextai/provider-anthropic"
+        - New package
+        - Not sure
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem Statement
+      description: What problem does this feature solve?
+      placeholder: |
+        I'm trying to...
+        Currently, I have to...
+        This is frustrating because...
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed Solution
+      description: How would you like it to work?
+      placeholder: |
+        It would be great if...
+        The API could look like...
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: What other approaches have you considered?
+      placeholder: |
+        I've tried using...
+        Other libraries solve this by...
+
+  - type: textarea
+    id: code
+    attributes:
+      label: Example Usage
+      description: Optional code example showing how the feature would be used
+      render: typescript
+
+  - type: checkboxes
+    id: contribution
+    attributes:
+      label: Contribution
+      options:
+        - label: I'm willing to help implement this feature
+          required: false

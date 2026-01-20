@@ -88,7 +88,7 @@ export class CircuitBreaker {
         // Normal operation, allow request
         return;
 
-      case 'OPEN':
+      case 'OPEN': {
         // Check if timeout has elapsed
         const elapsed = now - this.lastFailureTime;
         if (elapsed >= this.options.resetTimeoutMs) {
@@ -102,6 +102,7 @@ export class CircuitBreaker {
           'Circuit breaker is open',
           this.options.resetTimeoutMs - elapsed
         );
+      }
 
       case 'HALF_OPEN':
         // Allow limited requests to test recovery
