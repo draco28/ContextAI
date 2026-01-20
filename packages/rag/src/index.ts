@@ -275,3 +275,27 @@ export {
   type RAGEngineErrorCode,
   type RAGEngineErrorDetails,
 } from './engine/index.js';
+
+// Adaptive RAG (Query classification and adaptive retrieval)
+export {
+  // Classes
+  QueryClassifier,
+  AdaptiveRAG,
+  AdaptiveRAGError,
+  // Types
+  type QueryType,
+  type QueryFeatures,
+  type ClassificationResult,
+  type PipelineRecommendation,
+  type ClassificationThresholds,
+  type QueryClassifierConfig,
+  type AdaptiveRAGConfig,
+  type SkipRetrievalOptions,
+  type AdaptiveSearchOptions,
+  type ConversationMessage,
+  type AdaptiveRAGResult,
+  type IQueryClassifier,
+  type IAdaptiveRAG,
+  type AdaptiveRAGErrorCode,
+  type AdaptiveRAGErrorDetails,
+} from './adaptive/index.js';
