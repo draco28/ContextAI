@@ -65,12 +65,17 @@ describe('RetryStrategy', () => {
       const fn = vi.fn().mockRejectedValue(new Error('always fails'));
 
       const resultPromise = retry.execute(fn);
+
+      // Attach handler BEFORE advancing timers to prevent unhandled rejection
+      let caughtError: Error | undefined;
+      resultPromise.catch((e) => {
+        caughtError = e;
+      });
+
       await vi.runAllTimersAsync();
 
-      await expect(resultPromise).rejects.toThrow(RetryExhaustedError);
-      await expect(resultPromise).rejects.toMatchObject({
-        attempts: 3, // initial + 2 retries
-      });
+      expect(caughtError).toBeInstanceOf(RetryExhaustedError);
+      expect((caughtError as RetryExhaustedError).attempts).toBe(3); // initial + 2 retries
       expect(fn).toHaveBeenCalledTimes(3);
     });
 
@@ -87,16 +92,19 @@ describe('RetryStrategy', () => {
         .mockRejectedValue(lastError);
 
       const resultPromise = retry.execute(fn);
+
+      // Attach handler BEFORE advancing timers to prevent unhandled rejection
+      let caughtError: Error | undefined;
+      resultPromise.catch((e) => {
+        caughtError = e;
+      });
+
       await vi.runAllTimersAsync();
 
-      try {
-        await resultPromise;
-      } catch (error) {
-        expect(error).toBeInstanceOf(RetryExhaustedError);
-        expect((error as RetryExhaustedError).lastError.message).toBe(
-          'final error'
-        );
-      }
+      expect(caughtError).toBeInstanceOf(RetryExhaustedError);
+      expect((caughtError as RetryExhaustedError).lastError.message).toBe(
+        'final error'
+      );
     });
   });
 
@@ -177,10 +185,8 @@ describe('RetryStrategy', () => {
       );
       const fn = vi.fn().mockRejectedValue(nonRetryableError);
 
-      const resultPromise = retry.execute(fn);
-      await vi.runAllTimersAsync();
-
-      await expect(resultPromise).rejects.toThrow('Not retryable');
+      // Non-retryable errors reject immediately without delay
+      await expect(retry.execute(fn)).rejects.toThrow('Not retryable');
       expect(fn).toHaveBeenCalledTimes(1); // No retries
     });
 
@@ -233,12 +239,12 @@ describe('RetryStrategy', () => {
 
       const resultPromise = retry.execute(fn, controller.signal);
 
-      // First attempt fails
+      // First attempt fails, then enters delay
       await vi.advanceTimersByTimeAsync(1);
-      // Abort during delay
+      // Abort during delay - the promise should reject
       controller.abort();
-      await vi.advanceTimersByTimeAsync(1);
 
+      // Now await the rejection
       await expect(resultPromise).rejects.toThrow('Retry aborted');
       expect(fn).toHaveBeenCalledTimes(1);
     });

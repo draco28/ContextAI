@@ -1,3 +1,4 @@
+// Error classes
 export {
   ContextAIError,
   AgentError,
@@ -6,4 +7,17 @@ export {
   ToolOutputValidationError,
   ProviderError,
   ValidationError,
-} from './errors';
+} from './errors.js';
+
+// Error types
+export type { ErrorSeverity, ContextAIErrorOptions } from './errors.js';
+
+// Formatter utilities
+export {
+  formatActionableError,
+  formatErrorLine,
+  formatErrorBlock,
+  formatErrorJson,
+} from './formatter.js';
+
+export type { FormattedError } from './formatter.js';

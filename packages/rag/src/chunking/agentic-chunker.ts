@@ -16,6 +16,7 @@
 import type { Chunk, ChunkingOptions, ChunkingStrategy, Document } from './types.js';
 import type { LLMProvider, ChatMessage } from '@contextai/core';
 import { BaseChunker } from './base-chunker.js';
+import { ChunkerError } from './errors.js';
 import { RecursiveChunker } from './recursive-chunker.js';
 import { CHARS_PER_TOKEN, estimateTokens } from './token-counter.js';
 
@@ -185,7 +186,7 @@ export class AgenticChunker extends BaseChunker {
     super();
 
     if (!config.llmProvider) {
-      throw new Error('AgenticChunker requires an llmProvider');
+      throw ChunkerError.providerRequired('AgenticChunker', 'llmProvider');
     }
 
     this.llmProvider = config.llmProvider;
@@ -196,7 +197,10 @@ export class AgenticChunker extends BaseChunker {
 
     // Validate configuration
     if (this.maxInputTokens < 100) {
-      throw new Error('maxInputTokens must be at least 100');
+      throw ChunkerError.configError(
+        'AgenticChunker',
+        'maxInputTokens must be at least 100'
+      );
     }
   }
 
@@ -401,13 +405,20 @@ export class AgenticChunker extends BaseChunker {
     let parsed: unknown;
     try {
       parsed = JSON.parse(jsonStr);
-    } catch {
-      throw new Error(`Invalid JSON response from LLM: ${content.slice(0, 100)}...`);
+    } catch (parseError) {
+      throw ChunkerError.llmParseError(
+        'AgenticChunker',
+        `Invalid JSON: ${content.slice(0, 100)}...`,
+        parseError instanceof Error ? parseError : undefined
+      );
     }
 
     // Validate structure
     if (!this.isChunkResponse(parsed)) {
-      throw new Error('LLM response missing required "chunks" array');
+      throw ChunkerError.llmParseError(
+        'AgenticChunker',
+        'Response missing required "chunks" array'
+      );
     }
 
     // Validate and sanitize boundaries

@@ -4,6 +4,8 @@
  * Mathematical operations for working with embedding vectors.
  */
 
+import { VectorError } from './vector-errors.js';
+
 /**
  * Compute the dot product of two vectors.
  *
@@ -12,7 +14,7 @@
  * @param a - First vector
  * @param b - Second vector
  * @returns Dot product (sum of element-wise products)
- * @throws {Error} If vectors have different lengths
+ * @throws {VectorError} If vectors have different lengths
  *
  * @example
  * ```typescript
@@ -23,9 +25,7 @@
  */
 export const dotProduct = (a: number[], b: number[]): number => {
   if (a.length !== b.length) {
-    throw new Error(
-      `Vector dimensions must match: ${a.length} vs ${b.length}`
-    );
+    throw VectorError.dimensionMismatch(a.length, b.length);
   }
 
   let sum = 0;
@@ -92,7 +92,7 @@ export const normalizeL2 = (embedding: number[]): number[] => {
  * @param a - First vector
  * @param b - Second vector
  * @returns Similarity score between -1 and 1
- * @throws {Error} If vectors have different lengths
+ * @throws {VectorError} If vectors have different lengths
  *
  * @example
  * ```typescript
@@ -108,9 +108,7 @@ export const normalizeL2 = (embedding: number[]): number[] => {
  */
 export const cosineSimilarity = (a: number[], b: number[]): number => {
   if (a.length !== b.length) {
-    throw new Error(
-      `Vector dimensions must match: ${a.length} vs ${b.length}`
-    );
+    throw VectorError.dimensionMismatch(a.length, b.length);
   }
 
   const normA = l2Norm(a);
@@ -134,7 +132,7 @@ export const cosineSimilarity = (a: number[], b: number[]): number => {
  * @param a - First vector
  * @param b - Second vector
  * @returns Euclidean distance (always >= 0)
- * @throws {Error} If vectors have different lengths
+ * @throws {VectorError} If vectors have different lengths
  *
  * @example
  * ```typescript
@@ -143,9 +141,7 @@ export const cosineSimilarity = (a: number[], b: number[]): number => {
  */
 export const euclideanDistance = (a: number[], b: number[]): number => {
   if (a.length !== b.length) {
-    throw new Error(
-      `Vector dimensions must match: ${a.length} vs ${b.length}`
-    );
+    throw VectorError.dimensionMismatch(a.length, b.length);
   }
 
   let sumOfSquares = 0;
@@ -179,15 +175,15 @@ export const isNormalized = (
  * @param embeddings - Array of embedding vectors
  * @param normalize - Whether to normalize the result (default: true)
  * @returns Mean vector
- * @throws {Error} If embeddings array is empty
- * @throws {Error} If embeddings have different dimensions
+ * @throws {VectorError} If embeddings array is empty
+ * @throws {VectorError} If embeddings have different dimensions
  */
 export const meanEmbedding = (
   embeddings: number[][],
   normalize: boolean = true
 ): number[] => {
   if (embeddings.length === 0) {
-    throw new Error('Cannot compute mean of empty array');
+    throw VectorError.emptyArray('mean');
   }
 
   const firstEmbedding = embeddings[0] as number[];
@@ -196,9 +192,7 @@ export const meanEmbedding = (
 
   for (const embedding of embeddings) {
     if (embedding.length !== dimensions) {
-      throw new Error(
-        `All embeddings must have same dimensions: expected ${dimensions}, got ${embedding.length}`
-      );
+      throw VectorError.dimensionMismatch(dimensions, embedding.length);
     }
     for (let i = 0; i < dimensions; i++) {
       mean[i] += embedding[i];

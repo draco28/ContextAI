@@ -168,7 +168,7 @@ describe('AgenticChunker', () => {
       expect(() => {
         // @ts-expect-error Testing missing required field
         new AgenticChunker({});
-      }).toThrow('requires an llmProvider');
+      }).toThrow('AgenticChunker requires llmProvider');
     });
 
     it('should use default config values', () => {

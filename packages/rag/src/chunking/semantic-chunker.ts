@@ -17,6 +17,7 @@ import type { Chunk, ChunkingOptions, Document } from './types.js';
 import type { EmbeddingProvider, EmbeddingResult } from '../embeddings/types.js';
 import { BaseChunker } from './base-chunker.js';
 import { ChunkerError } from './errors.js';
+import { VectorError } from '../embeddings/vector-errors.js';
 import { CHARS_PER_TOKEN } from './token-counter.js';
 
 // ============================================================================
@@ -97,9 +98,7 @@ const DEFAULT_CONFIG = {
  */
 function cosineSimilarity(a: number[], b: number[]): number {
   if (a.length !== b.length) {
-    throw new Error(
-      `Vector dimension mismatch: ${a.length} vs ${b.length}`
-    );
+    throw VectorError.dimensionMismatch(a.length, b.length);
   }
 
   if (a.length === 0) {
@@ -195,7 +194,7 @@ export class SemanticChunker extends BaseChunker {
     super();
 
     if (!config.embeddingProvider) {
-      throw new Error('SemanticChunker requires an embeddingProvider');
+      throw ChunkerError.providerRequired('SemanticChunker', 'embeddingProvider');
     }
 
     this.embeddingProvider = config.embeddingProvider;
@@ -206,10 +205,16 @@ export class SemanticChunker extends BaseChunker {
 
     // Validate configuration
     if (this.similarityThreshold < 0 || this.similarityThreshold > 1) {
-      throw new Error('similarityThreshold must be between 0 and 1');
+      throw ChunkerError.configError(
+        'SemanticChunker',
+        'similarityThreshold must be between 0 and 1'
+      );
     }
     if (this.minChunkSize >= this.maxChunkSize) {
-      throw new Error('minChunkSize must be less than maxChunkSize');
+      throw ChunkerError.configError(
+        'SemanticChunker',
+        'minChunkSize must be less than maxChunkSize'
+      );
     }
   }
 

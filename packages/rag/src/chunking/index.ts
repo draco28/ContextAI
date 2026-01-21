@@ -22,6 +22,7 @@ export { DEFAULT_CHUNKING_OPTIONS } from './types.js';
 
 // Errors
 export { ChunkerError } from './errors.js';
+export { RegistryError, type RegistryErrorCode } from './registry-errors.js';
 
 // Token utilities
 export {

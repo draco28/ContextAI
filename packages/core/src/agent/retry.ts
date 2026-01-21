@@ -149,22 +149,27 @@ export class RetryStrategy {
         return;
       }
 
-      const timeoutId = setTimeout(resolve, ms);
+      let settled = false;
+      const timeoutId = setTimeout(() => {
+        settled = true;
+        if (signal) {
+          signal.removeEventListener('abort', abortHandler);
+        }
+        resolve();
+      }, ms);
 
       // Listen for abort during sleep
-      if (signal) {
-        const abortHandler = () => {
-          clearTimeout(timeoutId);
-          reject(
-            new ContextAIError('Retry aborted during delay', 'RETRY_ABORTED')
-          );
-        };
-        signal.addEventListener('abort', abortHandler, { once: true });
+      const abortHandler = () => {
+        if (settled) return; // Already resolved, don't reject
+        settled = true;
+        clearTimeout(timeoutId);
+        reject(
+          new ContextAIError('Retry aborted during delay', 'RETRY_ABORTED')
+        );
+      };
 
-        // Cleanup listener after timeout completes
-        setTimeout(() => {
-          signal.removeEventListener('abort', abortHandler);
-        }, ms + 1);
+      if (signal) {
+        signal.addEventListener('abort', abortHandler, { once: true });
       }
     });
   };
