@@ -34,6 +34,10 @@ export interface ChatWindowProps {
   children?: ReactNode;
   /** Custom data attributes */
   'data-testid'?: string;
+  /** Accessible label for the chat window (default: "Chat conversation") */
+  'aria-label'?: string;
+  /** Custom loading message for screen readers (default: "Assistant is thinking...") */
+  loadingMessage?: string;
 }
 
 /**
@@ -104,6 +108,8 @@ export function ChatWindow({
   className,
   children,
   'data-testid': dataTestId,
+  'aria-label': ariaLabel = 'Chat conversation',
+  loadingMessage = 'Assistant is thinking...',
 }: ChatWindowProps) {
   // Props for MessageList
   const messageListProps: MessageListProps = {
@@ -122,17 +128,31 @@ export function ChatWindow({
   // If children are provided, use them for fully custom layout
   if (children) {
     return (
-      <div className={className} data-testid={dataTestId}>
+      <section
+        className={className}
+        data-testid={dataTestId}
+        aria-label={ariaLabel}
+        aria-busy={isLoading}
+      >
         {children}
-      </div>
+      </section>
     );
   }
 
   return (
-    <div className={className} data-testid={dataTestId}>
-      {/* Error display */}
+    <section
+      className={className}
+      data-testid={dataTestId}
+      aria-label={ariaLabel}
+      aria-busy={isLoading}
+    >
+      {/* Error display - assertive live region for critical feedback */}
       {error && (
-        <div data-testid={dataTestId ? `${dataTestId}-error` : 'chat-error'} role="alert">
+        <div
+          data-testid={dataTestId ? `${dataTestId}-error` : 'chat-error'}
+          role="alert"
+          aria-live="assertive"
+        >
           {error.message}
         </div>
       )}
@@ -144,13 +164,15 @@ export function ChatWindow({
         <MessageList {...messageListProps} />
       )}
 
-      {/* Loading indicator */}
+      {/* Loading indicator - polite status for non-critical updates */}
       {isLoading && !streamingContent && (
         <div
           data-testid={dataTestId ? `${dataTestId}-loading` : 'chat-loading'}
-          aria-busy="true"
+          role="status"
+          aria-live="polite"
         >
-          Loading...
+          <span className="sr-only">{loadingMessage}</span>
+          <span aria-hidden="true">Loading...</span>
         </div>
       )}
 
@@ -160,6 +182,6 @@ export function ChatWindow({
       ) : (
         <MessageInput {...messageInputProps} />
       )}
-    </div>
+    </section>
   );
 }

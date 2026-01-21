@@ -22,6 +22,8 @@ export interface MessageListProps {
   className?: string;
   /** Custom data attributes */
   'data-testid'?: string;
+  /** Accessible label for the message list (default: "Chat messages") */
+  'aria-label'?: string;
 }
 
 /**
@@ -30,19 +32,24 @@ export interface MessageListProps {
  */
 function DefaultMessage({ message, index }: { message: Message; index: number }) {
   return (
-    <div
+    <li
       key={message.id ?? index}
+      aria-label={`${message.role} message`}
       data-role={message.role}
       data-testid={`message-${index}`}
     >
       <span data-testid={`message-${index}-role`}>{message.role}</span>
       <span data-testid={`message-${index}-content`}>{message.content}</span>
-    </div>
+    </li>
   );
 }
 
 /**
  * Headless message list component
+ *
+ * Uses a wrapper pattern for accessibility:
+ * - Outer div has role="log" for live region announcements
+ * - Inner ul provides list semantics for li children
  *
  * @example Basic usage
  * ```tsx
@@ -75,25 +82,46 @@ export function MessageList({
   renderMessage,
   className,
   'data-testid': dataTestId,
+  'aria-label': ariaLabel = 'Chat messages',
 }: MessageListProps) {
-  return (
-    <div className={className} data-testid={dataTestId}>
-      {messages.map((message, index) =>
-        renderMessage ? (
-          // Use fragment with key when using custom render
-          <div key={message.id ?? index}>{renderMessage(message, index)}</div>
-        ) : (
-          <DefaultMessage key={message.id ?? index} message={message} index={index} />
-        )
-      )}
+  const isStreaming = Boolean(streamingContent);
 
-      {/* Show streaming content as a partial assistant message */}
-      {streamingContent && (
-        <div data-role="assistant" data-streaming="true" data-testid="streaming-message">
-          <span data-testid="streaming-role">assistant</span>
-          <span data-testid="streaming-content">{streamingContent}</span>
-        </div>
-      )}
+  return (
+    // Wrapper div provides live region semantics without breaking list structure
+    <div
+      role="log"
+      aria-live="polite"
+      aria-label={ariaLabel}
+      aria-busy={isStreaming}
+      className={className}
+      data-testid={dataTestId}
+    >
+      {/* Inner ul provides proper list semantics for li children */}
+      <ul>
+        {messages.map((message, index) =>
+          renderMessage ? (
+            // Custom render - wrap in li for semantic list structure
+            <li key={message.id ?? index} aria-label={`${message.role} message`}>
+              {renderMessage(message, index)}
+            </li>
+          ) : (
+            <DefaultMessage key={message.id ?? index} message={message} index={index} />
+          )
+        )}
+
+        {/* Show streaming content as a partial assistant message */}
+        {streamingContent && (
+          <li
+            aria-label="assistant message, streaming"
+            data-role="assistant"
+            data-streaming="true"
+            data-testid="streaming-message"
+          >
+            <span data-testid="streaming-role">assistant</span>
+            <span data-testid="streaming-content">{streamingContent}</span>
+          </li>
+        )}
+      </ul>
     </div>
   );
 }

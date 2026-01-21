@@ -44,3 +44,27 @@ export type {
   UseChatReturn,
   UseAgentStreamReturn,
 } from './hooks/index.js';
+
+// Accessibility utilities
+export {
+  // Core utilities
+  srOnlyStyles,
+  generateA11yId,
+  getExpandableAriaProps,
+  isActivationKey,
+  A11Y_KEYS,
+  // Focus management
+  useFocusTrap,
+  useFocusReturn,
+  useAutoFocus,
+  getFocusableElements,
+  // Screen reader announcements
+  useAnnouncer,
+  announceToScreenReader,
+} from './utils/index.js';
+export type {
+  LiveRegionPoliteness,
+  ExpandableAriaProps,
+  UseAnnouncerOptions,
+  UseAnnouncerReturn,
+} from './utils/index.js';

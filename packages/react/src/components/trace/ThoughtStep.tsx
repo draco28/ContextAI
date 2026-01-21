@@ -5,7 +5,7 @@
  * the agent reasons about what to do next.
  */
 
-import React from 'react';
+import React, { useState, useId } from 'react';
 import type { ReasoningStep } from '../../hooks/types.js';
 
 /**
@@ -45,25 +45,38 @@ function formatTime(timestamp: number): string {
  */
 export const ThoughtStep = React.memo(function ThoughtStep({
   step,
-  index: _index,
+  index,
   defaultCollapsed = false,
   'data-testid': dataTestId,
 }: ThoughtStepProps) {
+  const [isOpen, setIsOpen] = useState(!defaultCollapsed);
+  const contentId = useId();
+
   return (
-    <details
-      open={!defaultCollapsed}
+    <div
+      role="listitem"
       data-type="thought"
       data-testid={dataTestId}
+      aria-label={`Step ${index + 1}: Thought at ${formatTime(step.timestamp)}`}
     >
-      <summary data-testid={dataTestId ? `${dataTestId}-summary` : undefined}>
-        <span data-step-type="thought">Thought</span>
-        <time dateTime={new Date(step.timestamp).toISOString()}>
-          {formatTime(step.timestamp)}
-        </time>
-      </summary>
-      <div data-testid={dataTestId ? `${dataTestId}-content` : undefined}>
-        {step.content}
-      </div>
-    </details>
+      <details open={isOpen} onToggle={(e) => setIsOpen(e.currentTarget.open)}>
+        <summary
+          data-testid={dataTestId ? `${dataTestId}-summary` : undefined}
+          aria-expanded={isOpen}
+          aria-controls={contentId}
+        >
+          <span data-step-type="thought">Thought</span>
+          <time dateTime={new Date(step.timestamp).toISOString()}>
+            {formatTime(step.timestamp)}
+          </time>
+        </summary>
+        <div
+          id={contentId}
+          data-testid={dataTestId ? `${dataTestId}-content` : undefined}
+        >
+          {step.content}
+        </div>
+      </details>
+    </div>
   );
 });

@@ -25,6 +25,12 @@ export interface MessageInputProps {
   className?: string;
   /** Custom data attributes */
   'data-testid'?: string;
+  /** Accessible label for the textarea (default: "Type your message") */
+  'aria-label'?: string;
+  /** ID of element describing the input (for hints or errors) */
+  'aria-describedby'?: string;
+  /** Accessible label for the send button (default: "Send message") */
+  sendButtonLabel?: string;
 }
 
 /**
@@ -59,6 +65,9 @@ export function MessageInput({
   onChange: controlledOnChange,
   className,
   'data-testid': dataTestId,
+  'aria-label': ariaLabel = 'Type your message',
+  'aria-describedby': ariaDescribedBy,
+  sendButtonLabel = 'Send message',
 }: MessageInputProps) {
   // Internal state for uncontrolled mode
   const [internalValue, setInternalValue] = useState('');
@@ -102,21 +111,28 @@ export function MessageInput({
     [handleSubmit]
   );
 
+  const canSubmit = value.trim().length > 0;
+
   return (
-    <div className={className} data-testid={dataTestId}>
+    <div className={className} data-testid={dataTestId} role="group" aria-label="Message input">
       <textarea
         value={value}
         onChange={handleChange}
         onKeyDown={handleKeyDown}
         placeholder={placeholder}
         disabled={isDisabled}
+        aria-label={ariaLabel}
+        aria-describedby={ariaDescribedBy}
+        aria-disabled={isDisabled}
         rows={1}
         data-testid={dataTestId ? `${dataTestId}-textarea` : undefined}
       />
       <button
         type="button"
         onClick={handleSubmit}
-        disabled={isDisabled || !value.trim()}
+        disabled={isDisabled || !canSubmit}
+        aria-label={sendButtonLabel}
+        aria-disabled={isDisabled || !canSubmit}
         data-testid={dataTestId ? `${dataTestId}-button` : undefined}
       >
         Send

@@ -105,7 +105,9 @@ describe('ReasoningTrace', () => {
       render(<ReasoningTrace steps={steps} data-testid="trace" />);
 
       const firstStep = screen.getByTestId('trace-step-0');
-      expect(firstStep).toHaveAttribute('open');
+      // The 'open' attribute is on the nested <details> element
+      const details = firstStep.querySelector('details');
+      expect(details).toHaveAttribute('open');
     });
 
     it('respects defaultCollapsed prop', () => {
@@ -113,7 +115,9 @@ describe('ReasoningTrace', () => {
       render(<ReasoningTrace steps={steps} defaultCollapsed data-testid="trace" />);
 
       const firstStep = screen.getByTestId('trace-step-0');
-      expect(firstStep).not.toHaveAttribute('open');
+      // The 'open' attribute is on the nested <details> element
+      const details = firstStep.querySelector('details');
+      expect(details).not.toHaveAttribute('open');
     });
   });
 

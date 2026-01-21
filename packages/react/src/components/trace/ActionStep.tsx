@@ -5,7 +5,7 @@
  * the tool name and input parameters.
  */
 
-import React from 'react';
+import React, { useState, useId } from 'react';
 import type { ReasoningStep } from '../../hooks/types.js';
 
 /**
@@ -52,36 +52,49 @@ function formatTime(timestamp: number): string {
  */
 export const ActionStep = React.memo(function ActionStep({
   step,
-  index: _index,
+  index,
   defaultCollapsed = false,
   'data-testid': dataTestId,
 }: ActionStepProps) {
+  const [isOpen, setIsOpen] = useState(!defaultCollapsed);
+  const contentId = useId();
+
   // Format input as pretty JSON for readability
   const inputStr = step.input ? JSON.stringify(step.input, null, 2) : '';
 
   return (
-    <details
-      open={!defaultCollapsed}
+    <div
+      role="listitem"
       data-type="action"
       data-testid={dataTestId}
+      aria-label={`Step ${index + 1}: Action - ${step.tool} at ${formatTime(step.timestamp)}`}
     >
-      <summary data-testid={dataTestId ? `${dataTestId}-summary` : undefined}>
-        <span data-step-type="action">Action</span>
-        <span data-tool-name>{step.tool}</span>
-        <time dateTime={new Date(step.timestamp).toISOString()}>
-          {formatTime(step.timestamp)}
-        </time>
-      </summary>
-      <div data-testid={dataTestId ? `${dataTestId}-content` : undefined}>
-        <div data-testid={dataTestId ? `${dataTestId}-tool` : undefined}>
-          Tool: {step.tool}
+      <details open={isOpen} onToggle={(e) => setIsOpen(e.currentTarget.open)}>
+        <summary
+          data-testid={dataTestId ? `${dataTestId}-summary` : undefined}
+          aria-expanded={isOpen}
+          aria-controls={contentId}
+        >
+          <span data-step-type="action">Action</span>
+          <span data-tool-name>{step.tool}</span>
+          <time dateTime={new Date(step.timestamp).toISOString()}>
+            {formatTime(step.timestamp)}
+          </time>
+        </summary>
+        <div
+          id={contentId}
+          data-testid={dataTestId ? `${dataTestId}-content` : undefined}
+        >
+          <div data-testid={dataTestId ? `${dataTestId}-tool` : undefined}>
+            Tool: {step.tool}
+          </div>
+          {inputStr && (
+            <pre data-testid={dataTestId ? `${dataTestId}-input` : undefined}>
+              <code>{inputStr}</code>
+            </pre>
+          )}
         </div>
-        {inputStr && (
-          <pre data-testid={dataTestId ? `${dataTestId}-input` : undefined}>
-            <code>{inputStr}</code>
-          </pre>
-        )}
-      </div>
-    </details>
+      </details>
+    </div>
   );
 });

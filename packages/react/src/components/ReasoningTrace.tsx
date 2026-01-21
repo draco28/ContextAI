@@ -77,6 +77,7 @@ export interface ReasoningTraceProps {
 
   /** Custom data-testid for testing */
   'data-testid'?: string;
+
 }
 
 /**
@@ -219,10 +220,11 @@ export function ReasoningTrace({
     >
       {/* Copy buttons - only when trace is available */}
       {showCopyButtons && trace && (
-        <div data-testid={dataTestId ? `${dataTestId}-actions` : undefined}>
+        <div data-testid={dataTestId ? `${dataTestId}-actions` : undefined} role="group" aria-label="Copy options">
           <button
             type="button"
             onClick={handleCopyText}
+            aria-label="Copy reasoning trace as plain text"
             data-testid={dataTestId ? `${dataTestId}-copy-text` : undefined}
           >
             Copy as Text
@@ -230,6 +232,7 @@ export function ReasoningTrace({
           <button
             type="button"
             onClick={handleCopyJSON}
+            aria-label="Copy reasoning trace as JSON"
             data-testid={dataTestId ? `${dataTestId}-copy-json` : undefined}
           >
             Copy as JSON
@@ -293,7 +296,11 @@ export function ReasoningTrace({
           // Custom render provided
           if (customContent !== null) {
             return (
-              <div key={stepKey(step, index)} role="listitem">
+              <div
+                key={stepKey(step, index)}
+                role="listitem"
+                aria-label={`Step ${index + 1}: ${step.type}`}
+              >
                 {customContent}
               </div>
             );
@@ -317,10 +324,13 @@ export function ReasoningTrace({
       {/* Streaming indicator */}
       {isStreaming && (
         <div
+          role="status"
+          aria-live="polite"
           aria-busy="true"
           data-testid={dataTestId ? `${dataTestId}-streaming` : undefined}
         >
-          Processing...
+          <span className="sr-only">Agent is processing reasoning steps</span>
+          <span aria-hidden="true">Processing...</span>
         </div>
       )}
     </section>

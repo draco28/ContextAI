@@ -5,7 +5,7 @@
  * status and support for truncating long results.
  */
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useId } from 'react';
 import type { ReasoningStep } from '../../hooks/types.js';
 
 /**
@@ -58,7 +58,7 @@ function formatTime(timestamp: number): string {
  */
 export const ObservationStep = React.memo(function ObservationStep({
   step,
-  index: _index,
+  index,
   defaultCollapsed = false,
   maxResultLength = 200,
   showExpandable = true,
@@ -66,6 +66,8 @@ export const ObservationStep = React.memo(function ObservationStep({
 }: ObservationStepProps) {
   // Local state for expand/collapse of truncated content
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isDetailsOpen, setIsDetailsOpen] = useState(!defaultCollapsed);
+  const contentId = useId();
 
   // Format result - could be string or object
   const fullResult =
@@ -87,34 +89,48 @@ export const ObservationStep = React.memo(function ObservationStep({
     setIsExpanded((prev) => !prev);
   }, []);
 
+  const statusText = step.success ? 'Success' : 'Failed';
+
   return (
-    <details
-      open={!defaultCollapsed}
+    <div
+      role="listitem"
       data-type="observation"
       data-success={step.success}
       data-testid={dataTestId}
+      aria-label={`Step ${index + 1}: Observation - ${statusText} at ${formatTime(step.timestamp)}`}
     >
-      <summary data-testid={dataTestId ? `${dataTestId}-summary` : undefined}>
-        <span data-step-type="observation">Observation</span>
-        <span data-success={step.success}>{step.success ? 'Success' : 'Failed'}</span>
-        <time dateTime={new Date(step.timestamp).toISOString()}>
-          {formatTime(step.timestamp)}
-        </time>
-      </summary>
-      <div data-testid={dataTestId ? `${dataTestId}-content` : undefined}>
-        <pre data-testid={dataTestId ? `${dataTestId}-result` : undefined}>
-          <code>{displayResult}</code>
-        </pre>
-        {showExpandable && isTruncatable && (
-          <button
-            type="button"
-            onClick={handleToggleExpand}
-            data-testid={dataTestId ? `${dataTestId}-expand` : undefined}
-          >
-            {isExpanded ? 'Show less' : 'Show more'}
-          </button>
-        )}
-      </div>
-    </details>
+      <details open={isDetailsOpen} onToggle={(e) => setIsDetailsOpen(e.currentTarget.open)}>
+        <summary
+          data-testid={dataTestId ? `${dataTestId}-summary` : undefined}
+          aria-expanded={isDetailsOpen}
+          aria-controls={contentId}
+        >
+          <span data-step-type="observation">Observation</span>
+          <span data-success={step.success}>{statusText}</span>
+          <time dateTime={new Date(step.timestamp).toISOString()}>
+            {formatTime(step.timestamp)}
+          </time>
+        </summary>
+        <div
+          id={contentId}
+          data-testid={dataTestId ? `${dataTestId}-content` : undefined}
+        >
+          <pre data-testid={dataTestId ? `${dataTestId}-result` : undefined}>
+            <code>{displayResult}</code>
+          </pre>
+          {showExpandable && isTruncatable && (
+            <button
+              type="button"
+              onClick={handleToggleExpand}
+              aria-expanded={isExpanded}
+              aria-label={isExpanded ? 'Show less result content' : 'Show more result content'}
+              data-testid={dataTestId ? `${dataTestId}-expand` : undefined}
+            >
+              {isExpanded ? 'Show less' : 'Show more'}
+            </button>
+          )}
+        </div>
+      </details>
+    </div>
   );
 });
