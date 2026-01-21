@@ -6,6 +6,7 @@ import type {
   ResponseMetadata,
 } from '@contextai/core';
 import type OpenAI from 'openai';
+import { OpenAIProviderError } from './errors.js';
 
 type OpenAIChatCompletion = OpenAI.Chat.Completions.ChatCompletion;
 type OpenAIStreamChunk = OpenAI.Chat.Completions.ChatCompletionChunk;
@@ -82,7 +83,10 @@ export function mapResponse(completion: OpenAIChatCompletion): ChatResponse {
   const choice = completion.choices[0];
 
   if (!choice) {
-    throw new Error('No choices in OpenAI response');
+    throw new OpenAIProviderError(
+      'No choices in OpenAI response',
+      'OPENAI_INVALID_RESPONSE'
+    );
   }
 
   const metadata: ResponseMetadata = {

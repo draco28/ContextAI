@@ -8,6 +8,7 @@ import type { ChunkingStrategy } from './types.js';
 import { FixedSizeChunker } from './fixed-chunker.js';
 import { RecursiveChunker } from './recursive-chunker.js';
 import { SentenceChunker } from './sentence-chunker.js';
+import { RegistryError } from './registry-errors.js';
 
 /**
  * Registry for managing chunking strategies.
@@ -36,14 +37,11 @@ export class ChunkerRegistry {
    * Register a chunking strategy.
    *
    * @param chunker - The chunker to register
-   * @throws Error if a chunker with the same name is already registered
+   * @throws {RegistryError} If a chunker with the same name is already registered
    */
   register = (chunker: ChunkingStrategy): void => {
     if (this.chunkers.has(chunker.name)) {
-      throw new Error(
-        `Chunker "${chunker.name}" is already registered. ` +
-          'Use unregister() first to replace it.'
-      );
+      throw RegistryError.alreadyRegistered(chunker.name);
     }
     this.chunkers.set(chunker.name, chunker);
   };
@@ -73,15 +71,12 @@ export class ChunkerRegistry {
    *
    * @param name - Name of the chunker to retrieve
    * @returns The chunker
-   * @throws Error if chunker not found
+   * @throws {RegistryError} If chunker not found
    */
   getOrThrow = (name: string): ChunkingStrategy => {
     const chunker = this.chunkers.get(name);
     if (!chunker) {
-      const available = this.getNames().join(', ');
-      throw new Error(
-        `Chunker "${name}" not found. Available: ${available || 'none'}`
-      );
+      throw RegistryError.notFound(name, this.getNames());
     }
     return chunker;
   };

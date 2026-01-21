@@ -355,7 +355,7 @@ describe('Embedding Provider', () => {
 
       it('should throw for mismatched dimensions', () => {
         expect(() => meanEmbedding([[1, 2], [1, 2, 3]])).toThrow(
-          'All embeddings must have same dimensions'
+          'Vector dimensions must match: expected 2, got 3'
         );
       });
     });

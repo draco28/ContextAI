@@ -94,7 +94,10 @@ export type ChunkerErrorCode =
   | 'EMPTY_DOCUMENT'
   | 'INVALID_OPTIONS'
   | 'CHUNK_TOO_SMALL'
-  | 'CHUNKER_ERROR';
+  | 'CHUNKER_ERROR'
+  | 'CONFIG_ERROR'
+  | 'PROVIDER_REQUIRED'
+  | 'LLM_PARSE_ERROR';
 
 /**
  * Details about a chunker error.

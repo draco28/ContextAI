@@ -160,7 +160,7 @@ describe('SemanticChunker', () => {
       expect(() => {
         // @ts-expect-error Testing missing required field
         new SemanticChunker({});
-      }).toThrow('requires an embeddingProvider');
+      }).toThrow('SemanticChunker requires embeddingProvider');
     });
 
     it('should use default config values', () => {

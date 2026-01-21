@@ -150,7 +150,11 @@ export class OllamaEmbeddingProvider extends BaseEmbeddingProvider {
 
       if (!response.ok) {
         const errorText = await response.text();
-        throw new Error(`Ollama API error: ${response.status} - ${errorText}`);
+        throw EmbeddingError.providerUnavailable(
+          this.name,
+          this.model,
+          `API error: ${response.status} - ${errorText}`
+        );
       }
 
       const data = (await response.json()) as OllamaEmbeddingResponse;

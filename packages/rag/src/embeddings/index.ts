@@ -15,6 +15,7 @@ export type {
 
 // Base Classes & Errors
 export { EmbeddingError } from './errors.js';
+export { VectorError, type VectorErrorCode } from './vector-errors.js';
 export { BaseEmbeddingProvider } from './base-provider.js';
 
 // Providers
