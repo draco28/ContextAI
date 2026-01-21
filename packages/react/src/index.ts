@@ -13,6 +13,19 @@ export { ChatWindow, type ChatWindowProps } from './components/ChatWindow.js';
 export { MessageList, type MessageListProps } from './components/MessageList.js';
 export { MessageInput, type MessageInputProps } from './components/MessageInput.js';
 
+// ReasoningTrace - Agent reasoning visualization
+export { ReasoningTrace, type ReasoningTraceProps } from './components/ReasoningTrace.js';
+export {
+  TraceStep,
+  ThoughtStep,
+  ActionStep,
+  ObservationStep,
+  type TraceStepProps,
+  type ThoughtStepProps,
+  type ActionStepProps,
+  type ObservationStepProps,
+} from './components/trace/index.js';
+
 // Types
 export type { Message, MessageRole } from './types.js';
 export { generateMessageId } from './types.js';
