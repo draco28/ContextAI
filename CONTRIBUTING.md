@@ -45,10 +45,13 @@ pnpm format:check
 ```
 contextai/
 ├── packages/
+│   ├── cli/               # CLI tool for scaffolding new packages
 │   ├── core/              # Agent runtime, ReAct loop, tool framework
 │   ├── rag/               # RAG pipeline (chunking, retrieval, reranking)
-│   ├── provider-openai/   # OpenAI GPT provider adapter
+│   ├── react/             # React hooks and components
 │   ├── provider-anthropic/ # Anthropic Claude provider adapter
+│   ├── provider-ollama/   # Ollama local LLM provider
+│   ├── provider-openai/   # OpenAI GPT provider adapter
 │   └── tsconfig/          # Shared TypeScript configurations
 ├── tools/                 # Development tools and scripts
 ├── turbo.json            # Turborepo configuration
@@ -125,7 +128,7 @@ chore: update dependencies
 - `chore` - Build process, dependencies, etc.
 - `perf` - Performance improvement
 
-**Scopes:** `core`, `rag`, `provider-openai`, `provider-anthropic`, `docs`, etc.
+**Scopes:** `cli`, `core`, `rag`, `react`, `provider-openai`, `provider-anthropic`, `provider-ollama`, `docs`, etc.
 
 ## Testing
 

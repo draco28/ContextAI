@@ -68,7 +68,11 @@ graph TB
 |---------|-------------|-----|
 | [@contextai/core](./packages/core) | Agent runtime with ReAct loop and tool framework | [![npm](https://img.shields.io/npm/v/@contextai/core.svg?style=flat-square)](https://www.npmjs.com/package/@contextai/core) |
 | [@contextai/rag](./packages/rag) | 9-stage RAG pipeline with hybrid retrieval | [![npm](https://img.shields.io/npm/v/@contextai/rag.svg?style=flat-square)](https://www.npmjs.com/package/@contextai/rag) |
+| [@contextai/cli](./packages/cli) | CLI tool for scaffolding new packages | [![npm](https://img.shields.io/npm/v/@contextai/cli.svg?style=flat-square)](https://www.npmjs.com/package/@contextai/cli) |
 | [@contextai/provider-openai](./packages/provider-openai) | OpenAI GPT provider adapter | [![npm](https://img.shields.io/npm/v/@contextai/provider-openai.svg?style=flat-square)](https://www.npmjs.com/package/@contextai/provider-openai) |
+| [@contextai/provider-anthropic](./packages/provider-anthropic) | Anthropic Claude provider adapter | [![npm](https://img.shields.io/npm/v/@contextai/provider-anthropic.svg?style=flat-square)](https://www.npmjs.com/package/@contextai/provider-anthropic) |
+| [@contextai/provider-ollama](./packages/provider-ollama) | Ollama local LLM provider | [![npm](https://img.shields.io/npm/v/@contextai/provider-ollama.svg?style=flat-square)](https://www.npmjs.com/package/@contextai/provider-ollama) |
+| [@contextai/react](./packages/react) | React hooks and components | [![npm](https://img.shields.io/npm/v/@contextai/react.svg?style=flat-square)](https://www.npmjs.com/package/@contextai/react) |
 
 ## Quick Start
 
@@ -200,7 +204,11 @@ The `@contextai/rag` package implements a production-grade 9-stage pipeline:
 
 - [Core Package](./packages/core/README.md) - Agent runtime and tool framework
 - [RAG Package](./packages/rag/README.md) - Full RAG pipeline documentation
+- [CLI Package](./packages/cli/README.md) - Scaffolding tool for new packages
 - [OpenAI Provider](./packages/provider-openai/README.md) - OpenAI/GPT integration
+- [Anthropic Provider](./packages/provider-anthropic/README.md) - Anthropic Claude integration
+- [Ollama Provider](./packages/provider-ollama/README.md) - Local LLM integration
+- [React Package](./packages/react/README.md) - React hooks and components
 - [Architecture](./ARCHITECTURE.md) - System design and implementation details
 - [SDK Capabilities](./SDK_CAPABILITIES_SUMMARY.md) - Feature comparison matrix
 
