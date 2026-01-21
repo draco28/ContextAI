@@ -1,0 +1,33 @@
+{
+  "$schema": "https://typedoc.org/schema.json",
+  "entryPoints": [
+    "packages/core/src/index.ts",
+    "packages/rag/src/index.ts",
+    "packages/react/src/index.ts",
+    "packages/provider-openai/src/index.ts",
+    "packages/provider-anthropic/src/index.ts",
+    "packages/provider-ollama/src/index.ts"
+  ],
+  "entryPointStrategy": "expand",
+  "out": "docs/api",
+  "plugin": ["typedoc-plugin-markdown"],
+  "theme": "markdown",
+  "readme": "none",
+  "excludePrivate": true,
+  "excludeProtected": true,
+  "excludeInternal": true,
+  "excludeExternals": true,
+  "categorizeByGroup": true,
+  "sort": ["source-order"],
+  "cleanOutputDir": true,
+  "skipErrorChecking": true,
+  "name": "ContextAI SDK",
+  "includeVersion": false,
+  "disableSources": false,
+  "navigationLinks": {
+    "Docs": "../index.md",
+    "GitHub": "https://github.com/contextai/sdk"
+  },
+  "githubPages": false,
+  "hideGenerator": true
+}
