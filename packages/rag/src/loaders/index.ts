@@ -51,6 +51,8 @@ export { MarkdownLoader } from './markdown-loader.js';
 export { CodeLoader } from './code-loader.js';
 export { PDFLoader } from './pdf-loader.js';
 export { DocxLoader } from './docx-loader.js';
+export { DoclingLoader } from './docling-loader.js';
+export type { DoclingLoaderConfig } from './docling-loader.js';
 
 // Registry
 export { DocumentLoaderRegistry, defaultRegistry } from './registry.js';

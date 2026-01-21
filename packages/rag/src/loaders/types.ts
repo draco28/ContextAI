@@ -139,7 +139,8 @@ export type LoaderErrorCode =
   | 'PARSE_ERROR'
   | 'ENCODING_ERROR'
   | 'PERMISSION_DENIED'
-  | 'LOADER_ERROR';
+  | 'LOADER_ERROR'
+  | 'SERVICE_UNAVAILABLE';
 
 /**
  * Details about a loader error.
