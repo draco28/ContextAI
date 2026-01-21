@@ -15,3 +15,19 @@ export { MessageInput, type MessageInputProps } from './components/MessageInput.
 
 // Types
 export type { Message, MessageRole } from './types.js';
+export { generateMessageId } from './types.js';
+
+// Hooks
+export { useAgent, useChat, useAgentStream } from './hooks/index.js';
+export type {
+  // Reasoning
+  ReasoningStep,
+  // Options
+  UseAgentOptions,
+  UseChatOptions,
+  UseAgentStreamOptions,
+  // Return types
+  UseAgentReturn,
+  UseChatReturn,
+  UseAgentStreamReturn,
+} from './hooks/index.js';

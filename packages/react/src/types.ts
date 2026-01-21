@@ -20,3 +20,23 @@ export interface Message {
   /** Message content (text only for UI) */
   content: string;
 }
+
+/**
+ * Generate a unique message ID for React keys
+ *
+ * Uses timestamp + random suffix for uniqueness without external deps
+ *
+ * @returns A unique message ID string
+ *
+ * @example
+ * ```ts
+ * const message: Message = {
+ *   id: generateMessageId(),
+ *   role: 'user',
+ *   content: 'Hello!'
+ * };
+ * ```
+ */
+export function generateMessageId(): string {
+  return `msg-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+}
