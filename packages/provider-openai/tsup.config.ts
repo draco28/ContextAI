@@ -5,11 +5,11 @@ export default defineConfig({
   format: ['cjs', 'esm'],
   dts: true,
   clean: true,
-  sourcemap: true,
+  sourcemap: 'external',
   target: 'es2022',
   outDir: 'dist',
   splitting: false,
   treeshake: true,
-  minify: false,
+  minify: true,
   external: ['@contextai/core', 'openai'],
 });

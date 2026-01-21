@@ -46,6 +46,10 @@ jobs:
       - name: Build packages
         run: pnpm build
 
+      - name: Check bundle sizes
+        if: matrix.node-version == 20
+        run: pnpm size:check
+
       - name: Run tests
         run: pnpm test
 
