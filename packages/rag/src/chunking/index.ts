@@ -42,6 +42,7 @@ export { FixedSizeChunker } from './fixed-chunker.js';
 export { RecursiveChunker } from './recursive-chunker.js';
 export { SentenceChunker } from './sentence-chunker.js';
 export { SemanticChunker, type SemanticChunkerConfig } from './semantic-chunker.js';
+export { AgenticChunker, type AgenticChunkerConfig } from './agentic-chunker.js';
 
 // Registry
 export { ChunkerRegistry, defaultChunkerRegistry } from './registry.js';
