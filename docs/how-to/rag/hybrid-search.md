@@ -66,6 +66,7 @@ async function createHybridRAG() {
     model: 'BAAI/bge-small-en-v1.5',
   });
 
+  // For >10K chunks, use indexType: 'hnsw' for faster search
   const vectorStore = new InMemoryVectorStore({ dimensions: 384 });
   const chunker = new RecursiveChunker({ chunkSize: 512 });
 
@@ -379,6 +380,17 @@ const testSet = [
 const retriever = query.match(/[A-Z_]{3,}/)
   ? sparseRetriever  // Looks like a code
   : hybridRetriever; // General query
+```
+
+### 4. Scale with HNSW
+
+For collections with 10K+ chunks, enable HNSW indexing on your vector store:
+
+```typescript
+const vectorStore = new InMemoryVectorStore({
+  dimensions: 384,
+  indexType: 'hnsw', // O(log n) search instead of O(n)
+});
 ```
 
 ## Next Steps

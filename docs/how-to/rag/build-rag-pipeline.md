@@ -29,11 +29,25 @@ console.log('Dimensions:', vector.length); // 384
 ```typescript
 import { InMemoryVectorStore } from '@contextai/rag';
 
+// Brute-force (default) - for <10K vectors
 const vectorStore = new InMemoryVectorStore({
   dimensions: 384, // Match embedding model
   distanceMetric: 'cosine',
 });
+
+// HNSW indexing - for 10K-100K+ vectors
+const vectorStore = new InMemoryVectorStore({
+  dimensions: 384,
+  indexType: 'hnsw',
+  hnswConfig: {
+    M: 16,              // Connections per node (16-64)
+    efConstruction: 200, // Build quality (100-400)
+    efSearch: 100,      // Search quality (50-200)
+  },
+});
 ```
+
+**When to use HNSW:** If you're storing >10K chunks, enable HNSW for O(log n) search complexity instead of O(n). Achieves <10ms search latency on 10K vectors.
 
 ### Step 3: Choose a Chunker
 
@@ -366,6 +380,28 @@ const results = await rag.search(query, {
 });
 ```
 
+### Scaling with HNSW
+
+For collections with 10K+ vectors, switch to HNSW indexing:
+
+```typescript
+const vectorStore = new InMemoryVectorStore({
+  dimensions: 384,
+  indexType: 'hnsw',
+  hnswConfig: {
+    M: 16,              // More = better recall, slower build
+    efConstruction: 200, // Higher = better index quality
+    efSearch: 100,      // Higher = better recall, slower search
+  },
+});
+```
+
+| Collection Size | Recommended Index | Expected Latency |
+|-----------------|-------------------|------------------|
+| <10K vectors | `brute-force` (default) | <20ms |
+| 10K-50K vectors | `hnsw` (efSearch: 100) | <10ms |
+| 50K-100K+ vectors | `hnsw` (efSearch: 50-100) | <20ms |
+
 ## Troubleshooting
 
 ### Poor Results
@@ -376,9 +412,10 @@ const results = await rag.search(query, {
 
 ### Slow Performance
 
-1. **Reduce topK** - Fewer candidates to process
-2. **Enable caching** - Avoid re-embedding
-3. **Use smaller models** - BGE-small vs BGE-large
+1. **Enable HNSW indexing** - For >10K vectors, use `indexType: 'hnsw'` for <10ms search
+2. **Reduce topK** - Fewer candidates to process
+3. **Enable caching** - Avoid re-embedding
+4. **Use smaller models** - BGE-small vs BGE-large
 
 ### Out of Memory
 

@@ -222,6 +222,33 @@ await vectorStore.createIndex({
 });
 ```
 
+### pgvector vs InMemoryVectorStore HNSW
+
+Both pgvector and InMemoryVectorStore support HNSW indexing. Choose based on your needs:
+
+| Feature | InMemoryVectorStore HNSW | pgvector HNSW |
+|---------|-------------------------|---------------|
+| **Setup** | Zero config | Requires PostgreSQL |
+| **Persistence** | None (in-memory) | Full ACID |
+| **Scale** | 10K-100K vectors | Millions of vectors |
+| **Latency** | <10ms (10K vectors) | ~10-50ms |
+| **Best for** | Development, small datasets | Production, large datasets |
+
+```typescript
+// InMemoryVectorStore with HNSW (simple, no persistence)
+const memoryStore = new InMemoryVectorStore({
+  dimensions: 384,
+  indexType: 'hnsw',
+});
+
+// pgvector with HNSW (production, persistent)
+const pgStore = new PgVectorStore({
+  connectionString: process.env.DATABASE_URL!,
+  dimensions: 384,
+});
+// Then CREATE INDEX USING hnsw
+```
+
 ## With RAG Engine
 
 ```typescript

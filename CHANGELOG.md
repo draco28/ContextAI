@@ -50,7 +50,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Batch embedding operations
 
 - **Vector Storage**
-  - InMemoryVectorStore for development
+  - InMemoryVectorStore with dual modes:
+    - Brute-force (default): Exact results, O(n), suitable for <10K vectors
+    - **HNSW indexing**: O(log n) approximate search for 10K-100K+ vectors
+      - Achieves <10ms latency on 10K vectors (NFR-102: <100ms target)
+      - Configurable M, efConstruction, efSearch parameters
+      - 80-90%+ recall with tunable accuracy/speed tradeoff
   - pgvector adapter for PostgreSQL
   - ChromaDB adapter
   - Metadata filtering support

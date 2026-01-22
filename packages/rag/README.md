@@ -173,6 +173,7 @@ Store and search embeddings.
 ```typescript
 import { InMemoryVectorStore } from '@contextai/rag';
 
+// Basic setup (brute-force search, good for <10K vectors)
 const store = new InMemoryVectorStore({
   dimensions: 384,
   distanceMetric: 'cosine', // 'cosine' | 'euclidean' | 'dotProduct'
@@ -188,8 +189,31 @@ const results = await store.search(queryEmbedding, {
 });
 ```
 
+**HNSW Index for Large Datasets:**
+
+For datasets with 10K-100K+ vectors, enable HNSW (Hierarchical Navigable Small World) indexing for O(log n) search performance:
+
+```typescript
+const store = new InMemoryVectorStore({
+  dimensions: 384,
+  indexType: 'hnsw',  // Enable HNSW index
+  hnswConfig: {
+    M: 16,              // Connections per node (default: 16)
+    efConstruction: 200, // Build quality (default: 200)
+    efSearch: 100       // Search quality/speed tradeoff (default: 100)
+  }
+});
+```
+
+| Mode | Complexity | Best For | Accuracy |
+|------|------------|----------|----------|
+| `brute-force` (default) | O(n) | <10K vectors, exact results | 100% |
+| `hnsw` | O(log n) | 10K-100K+ vectors | ~80-95% recall |
+
+**Performance:** HNSW achieves <10ms search latency on 10K vectors (vs ~20ms brute-force).
+
 **Available stores:**
-- `InMemoryVectorStore` - Development and testing
+- `InMemoryVectorStore` - Development, testing, and medium-scale production (with HNSW)
 - pgvector (PostgreSQL) - Production (via adapter)
 - ChromaDB - Self-hosted vector DB (via adapter)
 

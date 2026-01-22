@@ -172,7 +172,7 @@ The `@contextai/rag` package implements a production-grade 9-stage pipeline:
 | 1 | **Ingest** | PDF, DOCX, TXT, Markdown, Code files |
 | 2 | **Chunk** | Fixed, Recursive, Sentence-based splitting |
 | 3 | **Embed** | HuggingFace BGE, Ollama embeddings |
-| 4 | **Store** | In-Memory, pgvector, ChromaDB |
+| 4 | **Store** | In-Memory (brute-force/HNSW), pgvector, ChromaDB |
 | 5 | **Enhance** | Query rewriting, HyDE, Multi-query expansion |
 | 6 | **Retrieve** | Dense, BM25 sparse, Hybrid with RRF fusion |
 | 7 | **Rerank** | BGE cross-encoder, MMR diversity, LLM reranking |
@@ -196,7 +196,7 @@ The `@contextai/rag` package implements a production-grade 9-stage pipeline:
 | Metric | Target |
 |--------|--------|
 | Core bundle size | <50KB |
-| Vector search (10K docs) | <100ms |
+| Vector search (10K docs) | <100ms (<10ms with HNSW) |
 | Embedding latency (local) | <200ms |
 | Memory baseline | <100MB |
 | Cold start | <500ms |

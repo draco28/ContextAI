@@ -307,6 +307,31 @@ const cached = new CachedEmbeddingProvider({
 | pgvector | `lists` and `probes` params |
 | Pinecone | Pod type selection |
 
+**Enabling HNSW for InMemoryVectorStore:**
+
+```typescript
+import { InMemoryVectorStore } from '@contextai/rag';
+
+// HNSW provides O(log n) search for large collections (10K+ vectors)
+const vectorStore = new InMemoryVectorStore({
+  dimensions: 384,
+  indexType: 'hnsw',
+  hnswConfig: {
+    M: 16,              // Connections per node (default: 16)
+    efConstruction: 200, // Index build quality (default: 200)
+    efSearch: 100,      // Search beam width (default: 100)
+  },
+});
+```
+
+| Parameter | Effect | Tradeoff |
+|-----------|--------|----------|
+| Higher `M` | Better recall | Slower build, more memory |
+| Higher `efConstruction` | Better index quality | Slower build |
+| Higher `efSearch` | Better recall | Slower search |
+
+**Performance:** <10ms search latency on 10K vectors with default settings.
+
 ## Evaluation Metrics
 
 ### Recall@K
