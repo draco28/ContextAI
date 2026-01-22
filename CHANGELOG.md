@@ -88,10 +88,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - retrieve_knowledge tool for agent integration
   - Adaptive retrieval (agent decides when to search)
 
+- **Memory Management** (NFR-103)
+  - Float32 storage format (50% memory savings vs Float64)
+  - MemoryBudget class for budget enforcement with LRU eviction
+  - Memory monitoring utilities (getMemoryStats, formatMemoryStats)
+  - Embedding size estimation helpers
+
+#### Startup Optimization (NFR-104)
+- **Sub-entry points** for selective imports:
+  - `@contextai/core/agent`, `/security`, `/tool`, `/errors`, `/provider`, `/tools`
+  - `@contextai/rag/engine`, `/retrieval`, `/embeddings`, `/vector-store`, `/reranker`, `/chunking`, `/assembly`, `/query-enhancement`, `/adaptive`, `/memory`, `/cache`, `/loaders`
+  - Up to 68% faster imports when using specific sub-paths vs full package
+- **warmUp() method** on RAGEngine for pre-loading ML models
+  - Avoids first-request latency during runtime
+  - Pre-loads BGE reranker and HuggingFace embedding models
+- **Startup benchmarks** in `packages/core/test/startup/` and `packages/rag/test/startup/`
+  - Agent initialization: 0.67ms (target <500ms) - 741x faster than requirement
+  - RAG engine initialization: 0.065ms (target <200ms)
+
 #### Security
 - SQL injection prevention utilities
 - Path traversal prevention
 - Input validation with Zod schemas
+- **Secret redaction** utilities for safe logging
 
 ### Fixed
 
