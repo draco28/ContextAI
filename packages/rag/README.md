@@ -212,6 +212,35 @@ const store = new InMemoryVectorStore({
 
 **Performance:** HNSW achieves <10ms search latency on 10K vectors (vs ~20ms brute-force).
 
+**Memory Management:**
+
+The vector store includes memory-efficient storage and budget enforcement:
+
+```typescript
+import { InMemoryVectorStore, formatBytes } from '@contextai/rag';
+
+// Float32 storage (50% memory savings, enabled by default)
+const store = new InMemoryVectorStore({
+  dimensions: 384,
+  useFloat32: true,  // Default: uses 4 bytes/float instead of 8
+});
+
+// With memory budget and eviction callback
+const store = new InMemoryVectorStore({
+  dimensions: 384,
+  maxMemoryBytes: 100 * 1024 * 1024,  // 100MB limit
+  onEviction: (ids, freedBytes) => {
+    console.log(`Evicted ${ids.length} chunks, freed ${formatBytes(freedBytes)}`);
+  },
+});
+
+// Check memory usage
+const stats = store.getMemoryStats();
+console.log(`${formatBytes(stats.usedBytes)} / ${formatBytes(stats.maxBytes)}`);
+```
+
+See the [Memory Management Guide](../../docs/how-to/rag/memory-management.md) for detailed documentation on Float32 storage, memory budgets, LRU eviction, and monitoring utilities.
+
 **Available stores:**
 - `InMemoryVectorStore` - Development, testing, and medium-scale production (with HNSW)
 - pgvector (PostgreSQL) - Production (via adapter)
