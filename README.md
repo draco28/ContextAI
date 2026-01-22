@@ -201,6 +201,22 @@ The `@contextai/rag` package implements a production-grade 9-stage pipeline:
 | Memory baseline | <100MB |
 | Cold start | <500ms |
 
+## Compatibility
+
+### Node.js Support
+
+| Version | Status | CI Tested |
+|---------|--------|-----------|
+| 18.x LTS | Supported | Yes |
+| 20.x LTS | Supported | Yes |
+| 22.x | Supported | Yes |
+| <18 | Not Supported | No |
+
+**Requirements:**
+- Node.js 18.0.0 or higher (all LTS versions supported)
+- ESM or CommonJS module format (dual exports)
+- TypeScript 5.0+ (for type definitions)
+
 ## Documentation
 
 - [Core Package](./packages/core/README.md) - Agent runtime and tool framework
