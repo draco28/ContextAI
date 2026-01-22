@@ -50,6 +50,7 @@ console.log(response.trace); // ReAct reasoning trace
 - **Provider Agnostic**: Works with any LLM via the `LLMProvider` interface
 - **Streaming Support**: Real-time responses via `agent.stream()`
 - **Full Tracing**: Debug agent reasoning with detailed traces
+- **Security Utilities**: Built-in secret redaction, path validation, SQL safety
 
 ## API Reference
 
@@ -97,6 +98,26 @@ interface LLMProvider {
   isAvailable(): Promise<boolean>;
 }
 ```
+
+### Security Utilities
+
+Prevent secrets from leaking into logs:
+
+```typescript
+import { createSafeLogger, redactObject, consoleLogger } from '@contextai/core';
+
+// Wrap any logger to auto-redact secrets
+const logger = createSafeLogger(consoleLogger);
+logger.info('Config', { apiKey: 'sk-secret' }); // apiKey becomes '[REDACTED]'
+
+// Or redact objects manually
+const { data } = redactObject({ password: 'secret123' });
+// data.password === '[REDACTED]'
+```
+
+Also includes:
+- `PathValidator` - Prevent path traversal attacks
+- `SafeQueryBuilder` - Build SQL queries safely
 
 ## License
 

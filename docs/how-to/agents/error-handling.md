@@ -461,6 +461,69 @@ describe('error handling', () => {
 });
 ```
 
+## Secure Error Logging
+
+When logging errors, ensure sensitive data is redacted:
+
+```typescript
+import { createSafeLogger, redactObject, consoleLogger } from '@contextai/core';
+
+// Create a safe logger that auto-redacts secrets
+const logger = createSafeLogger(consoleLogger);
+
+function logError(error: unknown, context: Record<string, unknown>) {
+  // Context is automatically redacted by safe logger
+  if (error instanceof ContextAIError) {
+    logger.error({
+      type: error.constructor.name,
+      code: error.code,
+      message: error.message,
+      severity: error.severity,
+      isRetryable: error.isRetryable,
+      hint: error.troubleshootingHint,
+      ...context,  // Any secrets here will be redacted
+    });
+  } else if (error instanceof Error) {
+    logger.error({
+      type: 'UnknownError',
+      message: error.message,
+      ...context,
+    });
+  }
+}
+
+// Usage
+try {
+  await agent.run(input);
+} catch (error) {
+  logError(error, {
+    input,
+    userId,
+    apiKey: config.apiKey,  // Will be '[REDACTED]'
+  });
+  throw error;
+}
+```
+
+### Manual Redaction
+
+For non-logger contexts:
+
+```typescript
+import { redactObject } from '@contextai/core';
+
+// Before sending to error tracking
+const { data: safeContext } = redactObject({
+  request: req.body,
+  headers: req.headers,  // Authorization headers redacted
+  config: appConfig,     // API keys redacted
+});
+
+errorTracker.captureException(error, { extra: safeContext });
+```
+
+See [Secure Logging Guide](./secure-logging.md) for complete documentation.
+
 ## Best Practices
 
 ### 1. Always Use Typed Errors
@@ -511,6 +574,7 @@ throw new Error('Not found');
 
 ## Next Steps
 
-- [Error Handling Patterns](../../../.claude/skills/error-handling-patterns.md)
+- [Secure Logging](./secure-logging.md) - Prevent secrets in logs
+- [Security Concepts](../../concepts/security.md) - SDK security overview
 - [Create Agent](./create-agent.md)
 - [Add Tools](./add-tools.md)

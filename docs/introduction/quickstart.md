@@ -243,7 +243,7 @@ Here's a full example combining everything:
 
 ```typescript
 // complete-agent.ts
-import { Agent, defineTool } from '@contextai/core';
+import { Agent, defineTool, createSafeLogger, consoleLogger } from '@contextai/core';
 import { OpenAIProvider } from '@contextai/provider-openai';
 import { z } from 'zod';
 
@@ -252,6 +252,9 @@ const llm = new OpenAIProvider({
   apiKey: process.env.OPENAI_API_KEY!,
   model: 'gpt-4o',
 });
+
+// Safe logger (auto-redacts secrets from logs)
+const logger = createSafeLogger(consoleLogger);
 
 // Tools
 const weatherTool = defineTool({
@@ -291,6 +294,7 @@ const agent = new Agent({
   llm,
   tools: [weatherTool, timeTool],
   memory: true,
+  logger, // Safe logging enabled
 });
 
 // Run
@@ -322,8 +326,9 @@ Now that you have a working agent:
 
 1. **Add RAG** - [Build a RAG Pipeline](../how-to/rag/build-rag-pipeline.md)
 2. **Build a UI** - [Chat Interface with React](../how-to/react/chat-interface.md)
-3. **Go Local** - [Use Ollama](../integrations/providers/ollama.md)
-4. **Learn More** - [Agent Architecture](../concepts/agents.md)
+3. **Secure Logs** - [Secure Logging Guide](../how-to/agents/secure-logging.md)
+4. **Go Local** - [Use Ollama](../integrations/providers/ollama.md)
+5. **Learn More** - [Agent Architecture](../concepts/agents.md)
 
 ## Troubleshooting
 

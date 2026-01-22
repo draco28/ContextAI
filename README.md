@@ -24,6 +24,7 @@
 - **Production RAG** - 9-stage pipeline: ingest, chunk, embed, store, enhance, retrieve, rerank, assemble, adapt
 - **Provider Agnostic** - Swap LLMs (Claude, GPT, Ollama) without code changes
 - **TypeScript-First** - Strict mode, full type safety, excellent DX
+- **Built-in Security** - Secret redaction, path validation, SQL safety utilities
 - **Minimal Bundle** - <50KB core package, tree-shakeable
 - **Local-First Option** - Run entirely on local hardware with Ollama + HuggingFace
 
