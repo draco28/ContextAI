@@ -22,3 +22,18 @@ export {
   type ValidationResult,
   type BlockedReason,
 } from './path-validator';
+
+// Secret redaction
+export {
+  // Core functions
+  redactSecrets,
+  redactObject,
+  createSafeLogger,
+  // Utility functions
+  isSecretKey,
+  isSecretValue,
+  // Types
+  type RedactionConfig,
+  type SecretPattern,
+  type RedactionResult,
+} from './secret-redaction';

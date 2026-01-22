@@ -124,6 +124,12 @@ export {
   validatePath,
   validatePathSync,
   PathTraversalError,
+  // Secret redaction utilities
+  redactSecrets,
+  redactObject,
+  createSafeLogger,
+  isSecretKey,
+  isSecretValue,
 } from './security';
 export type {
   WhereCondition,
@@ -134,6 +140,10 @@ export type {
   PathValidatorOptions,
   ValidationResult as PathValidationResult,
   BlockedReason,
+  // Secret redaction types
+  RedactionConfig,
+  SecretPattern,
+  RedactionResult,
 } from './security';
 
 // Built-in Tools
