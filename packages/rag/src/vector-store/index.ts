@@ -21,6 +21,10 @@ export type {
   // Store-specific config types
   PgVectorStoreConfig,
   ChromaVectorStoreConfig,
+  // HNSW types
+  HNSWConfig,
+  InMemoryIndexType,
+  InMemoryVectorStoreConfig,
 } from './types.js';
 
 // Classes
@@ -29,3 +33,7 @@ export { BaseVectorStore } from './base-store.js';
 export { InMemoryVectorStore } from './memory-store.js';
 export { PgVectorStore } from './pg-store.js';
 export { ChromaVectorStore } from './chroma-store.js';
+
+// HNSW Index (for advanced users who need direct access)
+export { HNSWIndex } from './hnsw-index.js';
+export type { HNSWSearchResult } from './hnsw-index.js';

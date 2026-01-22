@@ -527,5 +527,123 @@ describe('Vector Store', () => {
         expect(results[0].score).toBeGreaterThan(results[1].score);
       });
     });
+
+    describe('HNSW index mode', () => {
+      let hnswStore: InstanceType<typeof InMemoryVectorStore>;
+
+      beforeEach(() => {
+        hnswStore = new InMemoryVectorStore({
+          dimensions: 3,
+          indexType: 'hnsw',
+          hnswConfig: { M: 16, efConstruction: 100, efSearch: 50 },
+        });
+      });
+
+      it('should report hnsw index type', () => {
+        expect(hnswStore.getIndexType()).toBe('hnsw');
+      });
+
+      it('should insert and search with HNSW', async () => {
+        await hnswStore.insert([
+          createChunk('chunk-1', unitVector(1, 0, 0)),
+          createChunk('chunk-2', unitVector(0, 1, 0)),
+          createChunk('chunk-3', unitVector(0, 0, 1)),
+        ]);
+
+        const results = await hnswStore.search(unitVector(1, 0, 0), {
+          topK: 3,
+        });
+
+        expect(results).toHaveLength(3);
+        // Closest should be chunk-1 (identical direction)
+        expect(results[0].id).toBe('chunk-1');
+        expect(results[0].score).toBeCloseTo(1.0);
+      });
+
+      it('should support metadata filtering with HNSW', async () => {
+        await hnswStore.insert([
+          createChunk('chunk-1', unitVector(1, 0, 0), { category: 'A' }),
+          createChunk('chunk-2', unitVector(0.9, 0.1, 0), { category: 'B' }),
+          createChunk('chunk-3', unitVector(0.8, 0.2, 0), { category: 'A' }),
+        ]);
+
+        const results = await hnswStore.search(unitVector(1, 0, 0), {
+          topK: 2,
+          filter: { category: 'A' },
+        });
+
+        expect(results).toHaveLength(2);
+        expect(results.every((r) => r.chunk.metadata.category === 'A')).toBe(
+          true
+        );
+      });
+
+      it('should support minScore with HNSW', async () => {
+        await hnswStore.insert([
+          createChunk('similar', unitVector(1, 0, 0)),
+          createChunk('different', unitVector(0, 1, 0)),
+        ]);
+
+        const results = await hnswStore.search(unitVector(1, 0, 0), {
+          topK: 10,
+          minScore: 0.5,
+        });
+
+        // Only 'similar' should pass the threshold
+        expect(results).toHaveLength(1);
+        expect(results[0].id).toBe('similar');
+      });
+
+      it('should delete from HNSW index', async () => {
+        await hnswStore.insert([
+          createChunk('chunk-1', unitVector(1, 0, 0)),
+          createChunk('chunk-2', unitVector(0, 1, 0)),
+        ]);
+
+        await hnswStore.delete(['chunk-1']);
+
+        const results = await hnswStore.search(unitVector(1, 0, 0), {
+          topK: 5,
+        });
+
+        expect(results).toHaveLength(1);
+        expect(results[0].id).toBe('chunk-2');
+      });
+
+      it('should clear HNSW index', async () => {
+        await hnswStore.insert([
+          createChunk('chunk-1', unitVector(1, 0, 0)),
+          createChunk('chunk-2', unitVector(0, 1, 0)),
+        ]);
+
+        await hnswStore.clear();
+
+        expect(await hnswStore.count()).toBe(0);
+
+        const results = await hnswStore.search(unitVector(1, 0, 0), {
+          topK: 5,
+        });
+        expect(results).toHaveLength(0);
+      });
+
+      it('should work with larger dataset', async () => {
+        // Insert 100 vectors
+        const chunks: ReturnType<typeof createChunk>[] = [];
+        for (let i = 0; i < 100; i++) {
+          const angle = (i / 100) * Math.PI * 2;
+          chunks.push(
+            createChunk(`chunk-${i}`, [Math.cos(angle), Math.sin(angle), 0])
+          );
+        }
+        await hnswStore.insert(chunks);
+
+        // Search should return results quickly
+        const results = await hnswStore.search([1, 0, 0], { topK: 5 });
+
+        expect(results).toHaveLength(5);
+        // First result should be close to [1, 0, 0]
+        expect(results[0].score).toBeGreaterThan(0.9);
+      });
+    });
   });
 });
