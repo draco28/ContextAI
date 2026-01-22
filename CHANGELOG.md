@@ -112,6 +112,50 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Input validation with Zod schemas
 - **Secret redaction** utilities for safe logging
 
+#### React Package (@contextai/react)
+- **Components**
+  - ChatWindow headless chat container component
+  - MessageList for rendering conversation messages
+  - MessageInput with keyboard handling (Enter to send, Shift+Enter for newlines)
+  - **ReasoningTrace** compound component for agent visualization
+    - ThoughtStep, ActionStep, ObservationStep sub-components
+    - Custom rendering support via render props
+- **Hooks**
+  - useChat for chat-based interactions with streaming
+  - useAgent for direct agent run/stream operations
+  - useAgentStream for streaming with reasoning steps
+- **Accessibility (WCAG 2.1 AA)**
+  - Focus management: useFocusTrap, useFocusReturn, useAutoFocus
+  - Screen reader support: useAnnouncer, announceToScreenReader
+  - Semantic HTML with proper ARIA attributes
+  - Live regions for dynamic content updates
+  - Keyboard navigation helpers
+- **Browser Compatibility** (NFR-502)
+  - Chrome (last 2 versions)
+  - Firefox (last 2 versions)
+  - Safari (last 2 versions)
+  - Edge (last 2 versions)
+  - Browser API test suite and bundle leak detection
+
+#### CLI Tool (@contextai/cli)
+- Package scaffolding tool for creating new monorepo packages
+- Interactive prompts for package configuration
+- Automatic tsconfig, package.json, and test setup
+
+#### Developer Experience
+- **Actionable Error Messages**
+  - Typed error classes with error codes
+  - Recovery hints for common issues
+  - Contextual debugging information
+- **Bundle Optimization**
+  - Minification enabled across all packages
+  - Bundle size checks in CI
+  - Tree-shakeable exports
+- **Node.js Compatibility** (NFR-501)
+  - Verified on Node.js 18.x, 20.x, 22.x LTS versions
+  - ESM and CommonJS dual exports
+  - No native module dependencies
+
 ### Fixed
 
 - MMR reranker tests now deterministic
