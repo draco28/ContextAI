@@ -11,5 +11,10 @@ export default defineConfig({
       include: ['src/**/*.ts'],
       exclude: ['src/**/index.ts', 'src/**/*.d.ts'],
     },
+    // Benchmark configuration
+    benchmark: {
+      include: ['test/**/*.bench.ts'],
+      reporters: ['default'],
+    },
   },
 });

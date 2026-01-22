@@ -306,6 +306,25 @@ export interface RAGEngine {
    * Clear the result cache (if cache is configured).
    */
   clearCache(): Promise<void>;
+
+  /**
+   * Pre-load optional components (reranker, enhancer, etc.).
+   *
+   * Call this during application startup to avoid first-request latency.
+   * Components that use ML models (like BGE reranker or HuggingFace embeddings)
+   * need to download and initialize their models on first use, which can
+   * take several seconds.
+   *
+   * By calling warmUp() during startup, the first search() call will be fast.
+   *
+   * @example
+   * ```typescript
+   * const engine = new RAGEngineImpl({ ... });
+   * await engine.warmUp(); // Pre-load during startup
+   * // Now search() calls will be fast
+   * ```
+   */
+  warmUp(): Promise<void>;
 }
 
 // ============================================================================

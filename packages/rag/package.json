@@ -34,12 +34,148 @@
         "types": "./dist/index.d.cts",
         "default": "./dist/index.cjs"
       }
+    },
+    "./cache": {
+      "import": {
+        "types": "./dist/cache/index.d.ts",
+        "default": "./dist/cache/index.js"
+      },
+      "require": {
+        "types": "./dist/cache/index.d.cts",
+        "default": "./dist/cache/index.cjs"
+      }
+    },
+    "./loaders": {
+      "import": {
+        "types": "./dist/loaders/index.d.ts",
+        "default": "./dist/loaders/index.js"
+      },
+      "require": {
+        "types": "./dist/loaders/index.d.cts",
+        "default": "./dist/loaders/index.cjs"
+      }
+    },
+    "./embeddings": {
+      "import": {
+        "types": "./dist/embeddings/index.d.ts",
+        "default": "./dist/embeddings/index.js"
+      },
+      "require": {
+        "types": "./dist/embeddings/index.d.cts",
+        "default": "./dist/embeddings/index.cjs"
+      }
+    },
+    "./vector-store": {
+      "import": {
+        "types": "./dist/vector-store/index.d.ts",
+        "default": "./dist/vector-store/index.js"
+      },
+      "require": {
+        "types": "./dist/vector-store/index.d.cts",
+        "default": "./dist/vector-store/index.cjs"
+      }
+    },
+    "./chunking": {
+      "import": {
+        "types": "./dist/chunking/index.d.ts",
+        "default": "./dist/chunking/index.js"
+      },
+      "require": {
+        "types": "./dist/chunking/index.d.cts",
+        "default": "./dist/chunking/index.cjs"
+      }
+    },
+    "./retrieval": {
+      "import": {
+        "types": "./dist/retrieval/index.d.ts",
+        "default": "./dist/retrieval/index.js"
+      },
+      "require": {
+        "types": "./dist/retrieval/index.d.cts",
+        "default": "./dist/retrieval/index.cjs"
+      }
+    },
+    "./reranker": {
+      "import": {
+        "types": "./dist/reranker/index.d.ts",
+        "default": "./dist/reranker/index.js"
+      },
+      "require": {
+        "types": "./dist/reranker/index.d.cts",
+        "default": "./dist/reranker/index.cjs"
+      }
+    },
+    "./assembly": {
+      "import": {
+        "types": "./dist/assembly/index.d.ts",
+        "default": "./dist/assembly/index.js"
+      },
+      "require": {
+        "types": "./dist/assembly/index.d.cts",
+        "default": "./dist/assembly/index.cjs"
+      }
+    },
+    "./query-enhancement": {
+      "import": {
+        "types": "./dist/query-enhancement/index.d.ts",
+        "default": "./dist/query-enhancement/index.js"
+      },
+      "require": {
+        "types": "./dist/query-enhancement/index.d.cts",
+        "default": "./dist/query-enhancement/index.cjs"
+      }
+    },
+    "./engine": {
+      "import": {
+        "types": "./dist/engine/index.d.ts",
+        "default": "./dist/engine/index.js"
+      },
+      "require": {
+        "types": "./dist/engine/index.d.cts",
+        "default": "./dist/engine/index.cjs"
+      }
+    },
+    "./adaptive": {
+      "import": {
+        "types": "./dist/adaptive/index.d.ts",
+        "default": "./dist/adaptive/index.js"
+      },
+      "require": {
+        "types": "./dist/adaptive/index.d.cts",
+        "default": "./dist/adaptive/index.cjs"
+      }
+    },
+    "./memory": {
+      "import": {
+        "types": "./dist/memory/index.d.ts",
+        "default": "./dist/memory/index.js"
+      },
+      "require": {
+        "types": "./dist/memory/index.d.cts",
+        "default": "./dist/memory/index.cjs"
+      }
     }
   },
   "files": [
     "dist",
     "README.md"
   ],
+  "typesVersions": {
+    "*": {
+      "cache": ["./dist/cache/index.d.ts"],
+      "loaders": ["./dist/loaders/index.d.ts"],
+      "embeddings": ["./dist/embeddings/index.d.ts"],
+      "vector-store": ["./dist/vector-store/index.d.ts"],
+      "chunking": ["./dist/chunking/index.d.ts"],
+      "retrieval": ["./dist/retrieval/index.d.ts"],
+      "reranker": ["./dist/reranker/index.d.ts"],
+      "assembly": ["./dist/assembly/index.d.ts"],
+      "query-enhancement": ["./dist/query-enhancement/index.d.ts"],
+      "engine": ["./dist/engine/index.d.ts"],
+      "adaptive": ["./dist/adaptive/index.d.ts"],
+      "memory": ["./dist/memory/index.d.ts"]
+    }
+  },
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",

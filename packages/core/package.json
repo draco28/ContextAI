@@ -33,12 +33,82 @@
         "types": "./dist/index.d.cts",
         "default": "./dist/index.cjs"
       }
+    },
+    "./agent": {
+      "import": {
+        "types": "./dist/agent/index.d.ts",
+        "default": "./dist/agent/index.js"
+      },
+      "require": {
+        "types": "./dist/agent/index.d.cts",
+        "default": "./dist/agent/index.cjs"
+      }
+    },
+    "./tool": {
+      "import": {
+        "types": "./dist/tool/index.d.ts",
+        "default": "./dist/tool/index.js"
+      },
+      "require": {
+        "types": "./dist/tool/index.d.cts",
+        "default": "./dist/tool/index.cjs"
+      }
+    },
+    "./provider": {
+      "import": {
+        "types": "./dist/provider/index.d.ts",
+        "default": "./dist/provider/index.js"
+      },
+      "require": {
+        "types": "./dist/provider/index.d.cts",
+        "default": "./dist/provider/index.cjs"
+      }
+    },
+    "./errors": {
+      "import": {
+        "types": "./dist/errors/index.d.ts",
+        "default": "./dist/errors/index.js"
+      },
+      "require": {
+        "types": "./dist/errors/index.d.cts",
+        "default": "./dist/errors/index.cjs"
+      }
+    },
+    "./security": {
+      "import": {
+        "types": "./dist/security/index.d.ts",
+        "default": "./dist/security/index.js"
+      },
+      "require": {
+        "types": "./dist/security/index.d.cts",
+        "default": "./dist/security/index.cjs"
+      }
+    },
+    "./tools": {
+      "import": {
+        "types": "./dist/tools/index.d.ts",
+        "default": "./dist/tools/index.js"
+      },
+      "require": {
+        "types": "./dist/tools/index.d.cts",
+        "default": "./dist/tools/index.cjs"
+      }
     }
   },
   "files": [
     "dist",
     "README.md"
   ],
+  "typesVersions": {
+    "*": {
+      "agent": ["./dist/agent/index.d.ts"],
+      "tool": ["./dist/tool/index.d.ts"],
+      "provider": ["./dist/provider/index.d.ts"],
+      "errors": ["./dist/errors/index.d.ts"],
+      "security": ["./dist/security/index.d.ts"],
+      "tools": ["./dist/tools/index.d.ts"]
+    }
+  },
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",

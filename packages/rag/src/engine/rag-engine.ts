@@ -388,6 +388,43 @@ export class RAGEngineImpl implements RAGEngine {
   };
 
   /**
+   * Pre-load optional components (reranker, enhancer, etc.).
+   *
+   * Call this during application startup to avoid first-request latency.
+   * Components that use ML models need to download and initialize their
+   * models on first use, which can take several seconds.
+   *
+   * This method calls warmup() on any components that support it:
+   * - BGEReranker.warmup() - Loads the reranking model
+   * - HuggingFaceEmbeddingProvider.warmup() - Loads the embedding model
+   *
+   * @example
+   * ```typescript
+   * const engine = new RAGEngineImpl({ ... });
+   * await engine.warmUp(); // Pre-load during startup
+   * // Now search() calls will be fast
+   * ```
+   */
+  warmUp = async (): Promise<void> => {
+    const warmupPromises: Promise<void>[] = [];
+
+    // Warm up reranker if it has a warmup method
+    if (this.reranker && 'warmup' in this.reranker) {
+      const rerankerWarmup = (this.reranker as { warmup?: () => Promise<void> })
+        .warmup;
+      if (typeof rerankerWarmup === 'function') {
+        warmupPromises.push(rerankerWarmup());
+      }
+    }
+
+    // Note: enhancer and retriever typically don't need warmup
+    // since they don't load ML models. If they do in the future,
+    // similar warmup calls can be added here.
+
+    await Promise.all(warmupPromises);
+  };
+
+  /**
    * Check if operation has been aborted.
    */
   private checkAborted(
