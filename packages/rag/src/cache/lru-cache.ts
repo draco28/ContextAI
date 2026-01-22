@@ -3,9 +3,16 @@
  *
  * Generic in-memory cache with Least Recently Used eviction policy.
  * Uses a doubly-linked list + HashMap for O(1) operations.
+ *
+ * Supports both count-based (maxSize) and memory-based (maxMemoryBytes) limits.
  */
 
-import type { CacheProvider, CacheStats, LRUCacheConfig } from './types.js';
+import type {
+  CacheProvider,
+  CacheStats,
+  LRUCacheConfig,
+  SizeEstimator,
+} from './types.js';
 
 // ============================================================================
 // Internal Types
@@ -21,6 +28,8 @@ interface LRUNode<T> {
   expiresAt: number | null; // null = never expires
   prev: LRUNode<T> | null;
   next: LRUNode<T> | null;
+  /** Size in bytes (only tracked when maxMemoryBytes is set) */
+  size: number;
 }
 
 // ============================================================================
@@ -68,10 +77,38 @@ export class LRUCacheProvider<T = unknown> implements CacheProvider<T> {
   private hits = 0;
   private misses = 0;
 
-  constructor(config: LRUCacheConfig = {}) {
+  // ==========================================================================
+  // Memory-Based Limits (NFR-103)
+  // ==========================================================================
+
+  /** Maximum memory budget in bytes (0 = use count-based) */
+  private readonly maxMemoryBytes: number;
+
+  /** Function to estimate value sizes */
+  private readonly estimateSize: SizeEstimator<T> | null;
+
+  /** Current tracked memory usage in bytes */
+  private currentMemoryBytes = 0;
+
+  /** Whether to use memory-based eviction */
+  private readonly useMemoryLimit: boolean;
+
+  constructor(config: LRUCacheConfig<T> = {}) {
     this.maxSize = config.maxSize ?? 10000;
     this.defaultTtl = config.defaultTtl ?? null;
     this.cache = new Map();
+
+    // Memory-based configuration
+    this.maxMemoryBytes = config.maxMemoryBytes ?? 0;
+    this.estimateSize = config.estimateSize ?? null;
+    this.useMemoryLimit = this.maxMemoryBytes > 0 && this.estimateSize !== null;
+
+    // Validate: maxMemoryBytes requires estimateSize
+    if (this.maxMemoryBytes > 0 && !this.estimateSize) {
+      throw new Error(
+        'LRUCacheProvider: maxMemoryBytes requires estimateSize function'
+      );
+    }
   }
 
   /**
@@ -109,7 +146,7 @@ export class LRUCacheProvider<T = unknown> implements CacheProvider<T> {
    * Store a value in the cache.
    *
    * If the key already exists, updates the value and moves to front.
-   * If at capacity, evicts the least recently used entry first.
+   * If at capacity (count or memory), evicts least recently used entries.
    *
    * @param key - The cache key
    * @param value - The value to cache
@@ -119,18 +156,38 @@ export class LRUCacheProvider<T = unknown> implements CacheProvider<T> {
     const effectiveTtl = ttl ?? this.defaultTtl;
     const expiresAt = effectiveTtl !== null ? Date.now() + effectiveTtl : null;
 
+    // Calculate size for memory tracking
+    const newSize = this.useMemoryLimit ? this.estimateSize!(value) : 0;
+
     // Update existing entry
     const existing = this.cache.get(key);
     if (existing) {
+      // Adjust memory tracking for size change
+      if (this.useMemoryLimit) {
+        this.currentMemoryBytes -= existing.size;
+        this.currentMemoryBytes += newSize;
+        existing.size = newSize;
+      }
       existing.value = value;
       existing.expiresAt = expiresAt;
       this.moveToFront(existing);
       return;
     }
 
-    // Evict if at capacity
-    if (this.cache.size >= this.maxSize) {
-      this.evictLRU();
+    // Evict until we have capacity
+    if (this.useMemoryLimit) {
+      // Memory-based eviction
+      while (
+        this.currentMemoryBytes + newSize > this.maxMemoryBytes &&
+        this.tail
+      ) {
+        this.evictLRU();
+      }
+    } else {
+      // Count-based eviction
+      if (this.cache.size >= this.maxSize) {
+        this.evictLRU();
+      }
     }
 
     // Create new node at front
@@ -140,6 +197,7 @@ export class LRUCacheProvider<T = unknown> implements CacheProvider<T> {
       expiresAt,
       prev: null,
       next: this.head,
+      size: newSize,
     };
 
     if (this.head) {
@@ -152,6 +210,11 @@ export class LRUCacheProvider<T = unknown> implements CacheProvider<T> {
     }
 
     this.cache.set(key, node);
+
+    // Track memory
+    if (this.useMemoryLimit) {
+      this.currentMemoryBytes += newSize;
+    }
   };
 
   /**
@@ -164,6 +227,11 @@ export class LRUCacheProvider<T = unknown> implements CacheProvider<T> {
     const node = this.cache.get(key);
     if (!node) {
       return false;
+    }
+
+    // Release memory tracking
+    if (this.useMemoryLimit) {
+      this.currentMemoryBytes -= node.size;
     }
 
     // Remove from linked list
@@ -204,6 +272,7 @@ export class LRUCacheProvider<T = unknown> implements CacheProvider<T> {
     this.tail = null;
     this.hits = 0;
     this.misses = 0;
+    this.currentMemoryBytes = 0;
   };
 
   /**
@@ -216,16 +285,24 @@ export class LRUCacheProvider<T = unknown> implements CacheProvider<T> {
   /**
    * Get cache statistics for monitoring.
    *
-   * @returns Stats including hits, misses, size, and hit rate
+   * @returns Stats including hits, misses, size, hit rate, and memory usage
    */
   getStats = (): CacheStats => {
     const total = this.hits + this.misses;
-    return {
+    const stats: CacheStats = {
       hits: this.hits,
       misses: this.misses,
       size: this.cache.size,
       hitRate: total > 0 ? this.hits / total : 0,
     };
+
+    // Include memory stats if using memory-based limits
+    if (this.useMemoryLimit) {
+      stats.memoryUsage = this.currentMemoryBytes;
+      stats.maxMemoryBytes = this.maxMemoryBytes;
+    }
+
+    return stats;
   };
 
   /**
@@ -293,6 +370,7 @@ export class LRUCacheProvider<T = unknown> implements CacheProvider<T> {
     }
 
     const key = this.tail.key;
+    const evictedSize = this.tail.size;
 
     // Remove from linked list
     if (this.tail.prev) {
@@ -306,5 +384,30 @@ export class LRUCacheProvider<T = unknown> implements CacheProvider<T> {
 
     // Remove from hash map
     this.cache.delete(key);
+
+    // Release memory tracking
+    if (this.useMemoryLimit) {
+      this.currentMemoryBytes -= evictedSize;
+    }
   }
+
+  // ==========================================================================
+  // Memory Management API (NFR-103)
+  // ==========================================================================
+
+  /**
+   * Get current memory usage in bytes.
+   *
+   * Returns 0 if not using memory-based limits.
+   */
+  memoryUsage = (): number => {
+    return this.currentMemoryBytes;
+  };
+
+  /**
+   * Check if cache is using memory-based limits.
+   */
+  isUsingMemoryLimit = (): boolean => {
+    return this.useMemoryLimit;
+  };
 }

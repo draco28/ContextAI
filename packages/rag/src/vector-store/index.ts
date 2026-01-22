@@ -25,6 +25,8 @@ export type {
   HNSWConfig,
   InMemoryIndexType,
   InMemoryVectorStoreConfig,
+  // Memory management types (NFR-103)
+  EvictionCallback,
 } from './types.js';
 
 // Classes

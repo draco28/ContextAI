@@ -335,9 +335,17 @@ export interface HNSWConfig {
 export type InMemoryIndexType = 'brute-force' | 'hnsw';
 
 /**
+ * Callback fired when embeddings are evicted due to memory pressure.
+ *
+ * @param ids - IDs of evicted chunks
+ * @param freedBytes - Approximate bytes freed
+ */
+export type EvictionCallback = (ids: string[], freedBytes: number) => void;
+
+/**
  * Configuration for in-memory vector store.
  *
- * Extends base VectorStoreConfig with HNSW indexing options.
+ * Extends base VectorStoreConfig with HNSW indexing and memory management options.
  *
  * @example
  * ```typescript
@@ -349,6 +357,16 @@ export type InMemoryIndexType = 'brute-force' | 'hnsw';
  *   dimensions: 1536,
  *   indexType: 'hnsw',
  *   hnswConfig: { M: 16, efSearch: 100 }
+ * });
+ *
+ * // Memory-efficient storage with budget enforcement
+ * const store = new InMemoryVectorStore({
+ *   dimensions: 1536,
+ *   useFloat32: true,           // 50% memory savings
+ *   maxMemoryBytes: 50 * 1024 * 1024, // 50MB budget
+ *   onEviction: (ids, bytes) => {
+ *     console.log(`Evicted ${ids.length} chunks, freed ${bytes} bytes`);
+ *   }
  * });
  * ```
  */
@@ -369,6 +387,42 @@ export interface InMemoryVectorStoreConfig extends VectorStoreConfig {
    * Defaults are tuned for balanced recall/speed.
    */
   hnswConfig?: HNSWConfig;
+
+  // ==========================================================================
+  // Memory Management Options (NFR-103)
+  // ==========================================================================
+
+  /**
+   * Use Float32Array for embedding storage instead of number[].
+   *
+   * Float32Array uses 4 bytes per float vs 8 bytes for number[],
+   * providing 50% memory savings with negligible accuracy loss
+   * for typical embedding use cases.
+   *
+   * @default true
+   */
+  useFloat32?: boolean;
+
+  /**
+   * Maximum memory budget in bytes for embedding storage.
+   *
+   * When exceeded, oldest entries are evicted (LRU policy).
+   * Set to 0 or undefined for no limit.
+   *
+   * @example
+   * ```typescript
+   * // 100MB budget (NFR-103 requirement)
+   * maxMemoryBytes: 100 * 1024 * 1024
+   * ```
+   */
+  maxMemoryBytes?: number;
+
+  /**
+   * Callback fired when entries are evicted due to memory pressure.
+   *
+   * Useful for logging, metrics, or cascading cleanup.
+   */
+  onEviction?: EvictionCallback;
 }
 
 /**

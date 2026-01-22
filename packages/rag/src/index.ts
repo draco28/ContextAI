@@ -299,3 +299,28 @@ export {
   type AdaptiveRAGErrorCode,
   type AdaptiveRAGErrorDetails,
 } from './adaptive/index.js';
+
+// Memory Management (Budget enforcement and efficient storage)
+export {
+  // Classes
+  MemoryBudget,
+  // Functions
+  getMemoryStats,
+  formatMemoryStats,
+  estimateSize,
+  estimateEmbeddingMemory,
+  formatBytes,
+  toFloat32Array,
+  toNumberArray,
+  // Constants
+  BYTES_PER_FLOAT64,
+  BYTES_PER_FLOAT32,
+  COMMON_DIMENSIONS,
+  // Types
+  type MemoryStats,
+  type MemoryCallback,
+  type MemoryBudgetConfig,
+  type MemoryBudgetStatus,
+  type SizeEstimationOptions,
+  type EmbeddingStorageFormat,
+} from './memory/index.js';
