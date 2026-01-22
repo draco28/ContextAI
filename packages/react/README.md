@@ -372,6 +372,35 @@ const StyledChatWindow = styled(ChatWindow)`
 `;
 ```
 
+## Browser Support
+
+This package supports modern browsers as specified in NFR-502:
+
+| Browser | Minimum Version | Status |
+|---------|-----------------|--------|
+| Chrome  | 120+            | Supported |
+| Firefox | 121+            | Supported |
+| Safari  | 17+             | Supported |
+| Edge    | 120+            | Supported |
+
+**Note:** These versions correspond to "last 2 versions" as of 2024. The `browserslist` config in `package.json` automatically tracks this.
+
+### Browser API Requirements
+
+Components require the following browser APIs:
+- `window.requestAnimationFrame` - For focus management
+- `localStorage` / `sessionStorage` - Optional, for persistence
+- `AbortController` - For request cancellation
+- `CustomEvent` - For component communication
+
+### Node.js APIs
+
+This package is browser-only and does **not** use Node.js-specific APIs like:
+- `fs`, `path`, `crypto`, `child_process`
+- `process.env`, `Buffer`, `__dirname`
+
+Bundle analysis tests verify no Node.js APIs leak into the browser build.
+
 ## WCAG 2.1 AA Compliance
 
 This package follows WCAG 2.1 AA accessibility guidelines:
