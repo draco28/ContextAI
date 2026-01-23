@@ -300,28 +300,28 @@ const response = await breaker.execute(() => agent.run(input));
 
 ### In Tool Implementation
 
-Return errors instead of throwing:
+Return `ToolResult` with `success: false` instead of throwing:
 
 ```typescript
 const apiTool = defineTool({
   name: 'call_api',
-  execute: async ({ endpoint }) => {
+  description: 'Call an external API',
+  parameters: z.object({ endpoint: z.string() }),
+  execute: async ({ endpoint }, context) => {
     try {
       const response = await fetch(endpoint);
       if (!response.ok) {
+        // Return error - agent can see this and adapt
         return {
-          error: 'API_ERROR',
-          status: response.status,
-          message: `API returned ${response.status}`,
-          suggestion: 'Check if the endpoint is correct',
+          success: false,
+          error: `API_ERROR: ${response.status}. Check if the endpoint is correct.`,
         };
       }
-      return { data: await response.json() };
+      return { success: true, data: await response.json() };
     } catch (error) {
       return {
-        error: 'NETWORK_ERROR',
-        message: error.message,
-        suggestion: 'Check network connection',
+        success: false,
+        error: `NETWORK_ERROR: ${error.message}. Check network connection.`,
       };
     }
   },
@@ -333,10 +333,13 @@ const apiTool = defineTool({
 ```typescript
 const slowTool = defineTool({
   name: 'slow_operation',
+  description: 'A slow operation that may timeout',
+  parameters: z.object({ data: z.string() }),
   timeout: 30000, // 30 seconds
-  execute: async (input) => {
+  execute: async (input, context) => {
     // If this takes > 30s, ToolTimeoutError is thrown
-    return await slowOperation(input);
+    const result = await slowOperation(input);
+    return { success: true, data: result };
   },
 });
 ```
@@ -358,7 +361,7 @@ if (!response.success) {
 
   // Check trace for what went wrong
   const failedStep = response.trace.steps.find(
-    (s) => s.type === 'observation' && s.content?.error
+    (s) => s.type === 'observation' && !s.success
   );
   if (failedStep) {
     console.log('Failed at:', failedStep);
@@ -442,19 +445,23 @@ describe('error handling', () => {
   it('handles tool failures gracefully', async () => {
     const failingTool = defineTool({
       name: 'failing',
+      description: 'A tool that always fails',
+      parameters: z.object({}),
       execute: async () => {
+        // Throwing converts to { success: false, error: '...' }
         throw new Error('Tool failed');
       },
     });
 
     const agent = new Agent({ tools: [failingTool] });
 
-    // Tool errors returned, not thrown
+    // Tool errors returned in observation, not thrown
     const response = await agent.run('use failing tool');
     expect(response.trace.steps).toContainEqual(
       expect.objectContaining({
         type: 'observation',
-        content: expect.objectContaining({ error: expect.anything() }),
+        success: false,
+        result: expect.objectContaining({ error: expect.anything() }),
       })
     );
   });

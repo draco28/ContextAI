@@ -54,9 +54,9 @@ const searchTool = defineTool({
   parameters: z.object({
     query: z.string(),
   }),
-  execute: async ({ query }) => {
+  execute: async ({ query }, context) => {
     // Your search implementation
-    return { results: ['result1', 'result2'] };
+    return { success: true, data: { results: ['result1', 'result2'] } };
   },
 });
 
@@ -232,8 +232,8 @@ interface ReActTrace {
 
 type ReActStep =
   | { type: 'thought'; content: string }
-  | { type: 'action'; tool: string; input: unknown }
-  | { type: 'observation'; content: unknown };
+  | { type: 'action'; tool: string; input: Record<string, unknown> }
+  | { type: 'observation'; result: unknown; success: boolean };
 ```
 
 ### Inspecting Traces
@@ -248,7 +248,7 @@ for (const step of response.trace.steps) {
   } else if (step.type === 'action') {
     console.log(`Action: ${step.tool}(${JSON.stringify(step.input)})`);
   } else if (step.type === 'observation') {
-    console.log(`Observation: ${JSON.stringify(step.content)}`);
+    console.log(`Observation: ${JSON.stringify(step.result)}`);
   }
 }
 
@@ -342,8 +342,8 @@ if (!response.success) {
 
   // Check trace for what went wrong
   const lastStep = response.trace.steps.at(-1);
-  if (lastStep?.type === 'observation' && lastStep.content?.error) {
-    console.log('Last tool failed:', lastStep.content.error);
+  if (lastStep?.type === 'observation' && !lastStep.success) {
+    console.log('Last tool failed:', lastStep.result);
   }
 }
 ```

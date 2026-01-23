@@ -114,13 +114,15 @@ Not a Python port. Designed for TypeScript:
 // Full type safety with Zod
 const tool = defineTool({
   name: 'weather',
+  description: 'Get weather for a city',
   parameters: z.object({
     city: z.string().min(1),
     unit: z.enum(['celsius', 'fahrenheit']).default('celsius'),
   }),
-  execute: async ({ city, unit }) => {
+  execute: async ({ city, unit }, context) => {
     // TypeScript knows: city is string, unit is 'celsius' | 'fahrenheit'
-    return fetchWeather(city, unit);
+    const data = await fetchWeather(city, unit);
+    return { success: true, data };
   },
 });
 

@@ -123,8 +123,8 @@ const calculatorTool = defineTool({
   parameters: z.object({
     expression: z.string().describe('Math expression to evaluate'),
   }),
-  execute: async ({ expression }) => {
-    return { result: eval(expression) };
+  execute: async ({ expression }, context) => {
+    return { success: true, data: { result: eval(expression) } };
   },
 });
 

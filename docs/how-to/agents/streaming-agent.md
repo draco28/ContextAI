@@ -53,7 +53,7 @@ for await (const event of agent.stream(input)) {
 
     // Tool result
     case 'observation':
-      console.log('[Result]', event.content);
+      console.log('[Result]', event.result);
       break;
 
     // Text content (final answer)
@@ -130,7 +130,7 @@ for await (const event of agent.stream('What is 25% of 80?')) {
       console.log(`\n🔧 Using ${event.tool}:`, JSON.stringify(event.input));
       break;
     case 'observation':
-      console.log(`📋 Result:`, JSON.stringify(event.content));
+      console.log(`📋 Result:`, JSON.stringify(event.result));
       break;
     case 'text':
       process.stdout.write(event.content);

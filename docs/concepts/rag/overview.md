@@ -353,11 +353,11 @@ const searchKnowledgeTool = defineTool({
   parameters: z.object({
     query: z.string().describe('Search query'),
   }),
-  execute: async ({ query }) => {
+  execute: async ({ query }, context) => {
     const results = await rag.search(query);
     return {
-      context: results.context,
-      sources: results.sources,
+      success: true,
+      data: { context: results.context, sources: results.sources },
     };
   },
 });

@@ -24,9 +24,13 @@ const calculatorTool = defineTool({
   parameters: z.object({
     expression: z.string().describe('Math expression like "2 + 2"'),
   }),
-  execute: async ({ expression }) => {
-    const result = Function(`"use strict"; return (${expression})`)();
-    return { result, expression };
+  execute: async ({ expression }, context) => {
+    try {
+      const result = Function(`"use strict"; return (${expression})`)();
+      return { success: true, data: { result, expression } };
+    } catch (error) {
+      return { success: false, error: 'Invalid expression' };
+    }
   },
 });
 ```
@@ -53,22 +57,36 @@ console.log(response.output); // "15% of 250 is 37.5"
 // See tool usage in trace
 console.log(response.trace.steps);
 // [
-//   { type: 'thought', content: 'I need to calculate...' },
-//   { type: 'action', tool: 'calculator', input: { expression: '250 * 0.15' } },
-//   { type: 'observation', content: { result: 37.5 } },
+//   { type: 'thought', content: 'I need to calculate...', timestamp: 1234567890 },
+//   { type: 'action', tool: 'calculator', input: { expression: '250 * 0.15' }, timestamp: 1234567891 },
+//   { type: 'observation', result: { result: 37.5, expression: '250 * 0.15' }, success: true, timestamp: 1234567892 },
 // ]
 ```
 
 ## Tool Structure
 
 ```typescript
-interface ToolConfig {
+interface ToolConfig<TInput, TOutput> {
   name: string;           // Unique identifier
   description: string;    // What the tool does (shown to LLM)
-  parameters: z.ZodObject; // Input schema (Zod)
-  execute: (input, context) => Promise<any>; // Implementation
-  timeout?: number;       // Max execution time (ms)
-  retries?: number;       // Retry attempts on failure
+  parameters: z.ZodType<TInput>; // Input schema (Zod)
+  execute: (input: TInput, context: ToolExecuteContext) => Promise<ToolResult<TOutput>>;
+  timeout?: number;       // Max execution time (ms, default: 30000)
+  outputSchema?: z.ZodType<TOutput>; // Optional output validation
+}
+
+// Tool must return this structure
+interface ToolResult<T = unknown> {
+  success: boolean;       // Did the tool execute successfully?
+  data?: T;               // Result data (when success: true)
+  error?: string;         // Error message (when success: false)
+}
+
+// Context passed to execute function
+interface ToolExecuteContext {
+  signal?: AbortSignal;   // For cancellation
+  metadata?: Record<string, unknown>; // Additional metadata
+  timeout?: number;       // Runtime timeout override
 }
 ```
 
@@ -179,15 +197,16 @@ const weatherTool = defineTool({
     country: z.string().optional().describe('Country code (e.g., US)'),
   }),
   timeout: 10000,
-  execute: async ({ city, country }) => {
+  execute: async ({ city, country }, context) => {
     const url = `https://api.weather.com/v1/current?city=${city}`;
     const response = await fetch(url);
 
     if (!response.ok) {
-      return { error: 'WEATHER_API_ERROR', status: response.status };
+      return { success: false, error: `WEATHER_API_ERROR: ${response.status}` };
     }
 
-    return response.json();
+    const data = await response.json();
+    return { success: true, data };
   },
 });
 ```
@@ -203,7 +222,7 @@ const searchTool = defineTool({
     category: z.string().optional(),
     limit: z.number().default(10),
   }),
-  execute: async ({ query, category, limit }) => {
+  execute: async ({ query, category, limit }, context) => {
     const results = await db.products.findMany({
       where: {
         OR: [
@@ -215,7 +234,7 @@ const searchTool = defineTool({
       take: limit,
     });
 
-    return { results, count: results.length };
+    return { success: true, data: { results, count: results.length } };
   },
 });
 ```
@@ -229,17 +248,17 @@ const readFileTool = defineTool({
   parameters: z.object({
     path: z.string().describe('File path relative to project root'),
   }),
-  execute: async ({ path }) => {
-    try {
-      // Validate path for security
-      if (path.includes('..') || path.startsWith('/')) {
-        return { error: 'INVALID_PATH', message: 'Path traversal not allowed' };
-      }
+  execute: async ({ path }, context) => {
+    // Validate path for security
+    if (path.includes('..') || path.startsWith('/')) {
+      return { success: false, error: 'INVALID_PATH: Path traversal not allowed' };
+    }
 
+    try {
       const content = await fs.readFile(path, 'utf-8');
-      return { content, path };
+      return { success: true, data: { content, path } };
     } catch (error) {
-      return { error: 'FILE_NOT_FOUND', path };
+      return { success: false, error: 'FILE_NOT_FOUND' };
     }
   },
 });
@@ -257,12 +276,12 @@ const sendEmailTool = defineTool({
     body: z.string().max(10000),
   }),
   timeout: 30000,
-  execute: async ({ to, subject, body }) => {
+  execute: async ({ to, subject, body }, context) => {
     try {
       await emailService.send({ to, subject, body });
-      return { success: true, to, subject };
+      return { success: true, data: { to, subject } };
     } catch (error) {
-      return { error: 'EMAIL_FAILED', message: error.message };
+      return { success: false, error: `EMAIL_FAILED: ${error.message}` };
     }
   },
 });
@@ -272,20 +291,20 @@ const sendEmailTool = defineTool({
 
 ### Return Errors (Preferred)
 
-Let the agent see and handle errors:
+Let the agent see and handle errors by using the `ToolResult` pattern:
 
 ```typescript
 const tool = defineTool({
-  execute: async (input) => {
+  execute: async (input, context) => {
     try {
       const result = await riskyOperation(input);
-      return { success: true, result };
+      // Success: return data
+      return { success: true, data: result };
     } catch (error) {
-      // Return error info - agent can see this
+      // Failure: return error string - agent can see this and adapt
       return {
-        error: error.code || 'UNKNOWN',
-        message: error.message,
-        suggestion: 'Try a different input',
+        success: false,
+        error: `${error.code || 'UNKNOWN'}: ${error.message}`,
       };
     }
   },
@@ -320,14 +339,11 @@ Access runtime context in your tool:
 ```typescript
 const tool = defineTool({
   execute: async (input, context) => {
-    // Session identifier
-    const sessionId = context.sessionId;
-
-    // Custom metadata
+    // Custom metadata (passed via agent config or run options)
     const userId = context.metadata?.userId;
 
     // Use in your logic
-    return { result: 'done', session: sessionId };
+    return { success: true, data: { result: 'done', userId } };
   },
 });
 
@@ -360,9 +376,10 @@ const agent = new Agent({
 const slowTool = defineTool({
   name: 'slow_operation',
   timeout: 60000, // 60 seconds
-  execute: async (input) => {
+  execute: async (input, context) => {
     // Long-running operation
-    return await longProcess(input);
+    const result = await longProcess(input);
+    return { success: true, data: result };
   },
 });
 ```
@@ -375,8 +392,9 @@ If exceeded, a `ToolTimeoutError` is thrown.
 const flakyTool = defineTool({
   name: 'flaky_api',
   retries: 3, // Retry up to 3 times
-  execute: async (input) => {
-    return await sometimesFailsAPI(input);
+  execute: async (input, context) => {
+    const result = await sometimesFailsAPI(input);
+    return { success: true, data: result };
   },
 });
 ```
@@ -390,21 +408,22 @@ describe('calculator tool', () => {
   it('calculates expressions', async () => {
     const result = await calculatorTool.execute(
       { expression: '2 + 2' },
-      { sessionId: 'test' }
+      {} // ToolExecuteContext (optional fields)
     );
 
     expect(result).toEqual({
-      result: 4,
-      expression: '2 + 2',
+      success: true,
+      data: { result: 4, expression: '2 + 2' },
     });
   });
 
   it('handles invalid expressions', async () => {
     const result = await calculatorTool.execute(
       { expression: 'invalid' },
-      { sessionId: 'test' }
+      {}
     );
 
+    expect(result.success).toBe(false);
     expect(result.error).toBeDefined();
   });
 });
@@ -443,29 +462,30 @@ defineTool({
 ### 3. Return Structured Data
 
 ```typescript
-// Good
+// Good - ToolResult with structured data
 return {
   success: true,
-  results: [...],
-  count: 5,
-  query: input.query,
+  data: {
+    results: [...],
+    count: 5,
+    query: input.query,
+  },
 };
 
-// Bad
-return results; // No context
+// Bad - Missing ToolResult wrapper
+return { results }; // Agent can't tell if this succeeded
 ```
 
 ### 4. Handle Errors Gracefully
 
 ```typescript
-// Good
+// Good - ToolResult with error info
 return {
-  error: 'NOT_FOUND',
-  message: 'Product not found',
-  suggestion: 'Check the product ID and try again',
+  success: false,
+  error: 'NOT_FOUND: Product not found. Try a different product ID.',
 };
 
-// Bad
+// Bad - Throwing stops the agent entirely
 throw new Error('Not found'); // Agent can't recover
 ```
 

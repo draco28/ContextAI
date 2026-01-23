@@ -106,8 +106,8 @@ const weatherTool = defineTool({
   parameters: z.object({
     location: z.string(),
   }),
-  execute: async ({ location }) => {
-    return { temperature: 72, condition: 'sunny' };
+  execute: async ({ location }, context) => {
+    return { success: true, data: { temperature: 72, condition: 'sunny' } };
   },
 });
 

@@ -315,7 +315,7 @@ const searchKnowledgeTool = defineTool({
   parameters: z.object({
     query: z.string().describe('Search query'),
   }),
-  execute: async ({ query }) => {
+  execute: async ({ query }, context) => {
     const results = await rag.search(query, {
       topK: 5,
       rerank: true,
@@ -323,8 +323,11 @@ const searchKnowledgeTool = defineTool({
     });
 
     return {
-      context: results.context,
-      sources: results.sources.map((s) => s.source),
+      success: true,
+      data: {
+        context: results.context,
+        sources: results.sources.map((s) => s.source),
+      },
     };
   },
 });

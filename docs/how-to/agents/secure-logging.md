@@ -255,6 +255,7 @@ import { z } from 'zod';
 
 const apiTool = defineTool({
   name: 'call_api',
+  description: 'Call an external API with secure logging',
   parameters: z.object({
     endpoint: z.string(),
     headers: z.record(z.string()).optional(),
@@ -265,7 +266,7 @@ const apiTool = defineTool({
 
     // Redact any secrets in the response before returning
     const { data: safeData } = redactObject(data);
-    return safeData;
+    return { success: true, data: safeData };
   },
 });
 ```

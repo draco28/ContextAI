@@ -84,13 +84,13 @@ const calculatorTool = defineTool({
   parameters: z.object({
     expression: z.string().describe('Math expression like "2 + 2" or "sqrt(16)"'),
   }),
-  execute: async ({ expression }) => {
+  execute: async ({ expression }, context) => {
     try {
       // Simple eval for demo (use a math library in production)
       const result = Function(`"use strict"; return (${expression})`)();
-      return { result, expression };
+      return { success: true, data: { result, expression } };
     } catch {
-      return { error: 'Invalid expression', expression };
+      return { success: false, error: 'Invalid expression' };
     }
   },
 });
@@ -263,14 +263,15 @@ const weatherTool = defineTool({
   parameters: z.object({
     city: z.string().describe('City name'),
   }),
-  execute: async ({ city }) => {
+  execute: async ({ city }, context) => {
     // Mock weather data
-    const weather = {
+    const weather: Record<string, { temp: number; condition: string }> = {
       'New York': { temp: 72, condition: 'Sunny' },
       'London': { temp: 55, condition: 'Cloudy' },
       'Tokyo': { temp: 68, condition: 'Clear' },
     };
-    return weather[city] || { temp: 70, condition: 'Unknown' };
+    const data = weather[city] || { temp: 70, condition: 'Unknown' };
+    return { success: true, data };
   },
 });
 
@@ -280,9 +281,9 @@ const timeTool = defineTool({
   parameters: z.object({
     timezone: z.string().describe('Timezone like "America/New_York"'),
   }),
-  execute: async ({ timezone }) => {
+  execute: async ({ timezone }, context) => {
     const time = new Date().toLocaleString('en-US', { timeZone: timezone });
-    return { time, timezone };
+    return { success: true, data: { time, timezone } };
   },
 });
 
@@ -342,14 +343,15 @@ export OPENAI_API_KEY=sk-...
 
 ### "Tool execution failed"
 
-Check your tool's `execute` function handles errors:
+Check your tool's `execute` function returns proper `ToolResult` format:
 
 ```typescript
-execute: async (input) => {
+execute: async (input, context) => {
   try {
-    return { result: doSomething(input) };
+    const result = doSomething(input);
+    return { success: true, data: result };
   } catch (error) {
-    return { error: error.message };
+    return { success: false, error: error.message };
   }
 },
 ```

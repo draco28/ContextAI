@@ -39,7 +39,7 @@ console.log(response.trace);
 //   steps: [
 //     { type: 'thought', content: 'User wants a simple calculation' },
 //     { type: 'action', tool: 'calculator', input: { expr: '2 + 2' } },
-//     { type: 'observation', content: '4' },
+//     { type: 'observation', result: { success: true, data: 4 }, success: true },
 //     { type: 'thought', content: 'I have the answer' }
 //   ]
 // }
@@ -72,9 +72,10 @@ const weatherTool = defineTool({
     city: z.string(),
     unit: z.enum(['celsius', 'fahrenheit']),
   }),
-  execute: async ({ city, unit }) => {
-    // city: string, unit: 'celsius' | 'fahrenheit'
-    return getWeather(city, unit);
+  execute: async ({ city, unit }, context) => {
+    // city: string, unit: 'celsius' | 'fahrenheit' (auto-inferred from Zod!)
+    const data = await getWeather(city, unit);
+    return { success: true, data };
   },
 });
 ```
@@ -170,7 +171,12 @@ const agent = new Agent({
   tools: [
     defineTool({
       name: 'search_docs',
-      execute: async ({ query }) => rag.search(query),
+      description: 'Search documentation for relevant information',
+      parameters: z.object({ query: z.string() }),
+      execute: async ({ query }, context) => {
+        const results = await rag.search(query);
+        return { success: true, data: results };
+      },
     }),
   ],
 });

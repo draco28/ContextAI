@@ -73,7 +73,7 @@ const searchKnowledge = defineTool({
   parameters: z.object({
     query: z.string().describe('The search query'),
   }),
-  execute: async ({ query }) => {
+  execute: async ({ query }, context) => {
     // Simple keyword matching (use RAG in production)
     const results = knowledgeBase.filter(
       (item) =>
@@ -82,12 +82,12 @@ const searchKnowledge = defineTool({
     );
 
     if (results.length === 0) {
-      return { found: false, message: 'No relevant information found.' };
+      return { success: true, data: { found: false, message: 'No relevant information found.' } };
     }
 
     return {
-      found: true,
-      results: results.map((r) => r.content),
+      success: true,
+      data: { found: true, results: results.map((r) => r.content) },
     };
   },
 });

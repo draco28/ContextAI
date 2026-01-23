@@ -124,15 +124,16 @@ if (!result.valid) {
 // In file-reading tools
 const fileTool = defineTool({
   name: 'read_file',
-  execute: async ({ path }) => {
+  execute: async ({ path }, context) => {
     // Validate before reading
     const result = await validatePath(path, {
       allowedPaths: [process.cwd()],
     });
     if (!result.valid) {
-      return { error: 'PATH_BLOCKED', reason: result.reason };
+      return { success: false, error: `PATH_BLOCKED: ${result.reason}` };
     }
-    return { content: await fs.readFile(path, 'utf-8') };
+    const content = await fs.readFile(path, 'utf-8');
+    return { success: true, data: { content } };
   },
 });
 ```
@@ -178,10 +179,10 @@ const { query, params } = builder
 // In database tools
 const dbTool = defineTool({
   name: 'query_db',
-  execute: async ({ table, filters }) => {
+  execute: async ({ table, filters }, context) => {
     // Validate table name
     if (!isValidIdentifier(table)) {
-      return { error: 'INVALID_TABLE' };
+      return { success: false, error: 'INVALID_TABLE' };
     }
 
     // Build safe query
@@ -191,7 +192,8 @@ const dbTool = defineTool({
       .limit(100)
       .build();
 
-    return await db.query(query, params);
+    const results = await db.query(query, params);
+    return { success: true, data: results };
   },
 });
 ```
@@ -224,8 +226,10 @@ const tool = defineTool({
     command: z.enum(['list', 'status', 'help']),  // Restricted
     target: z.string().max(100).regex(/^[a-z0-9-]+$/),  // Validated
   }),
-  execute: async ({ command, target }) => {
+  execute: async ({ command, target }, context) => {
     // Input is guaranteed to match schema
+    const result = await runCommand(command, target);
+    return { success: true, data: result };
   },
 });
 ```

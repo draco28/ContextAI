@@ -38,19 +38,22 @@ const searchKnowledgeTool = defineTool({
     maxResults: z.number().optional().default(5)
       .describe('Number of results to return'),
   }),
-  execute: async ({ query, maxResults }) => {
+  execute: async ({ query, maxResults }, context) => {
     const results = await rag.search(query, {
       topK: maxResults,
       rerank: true,
     });
 
     return {
-      context: results.context,
-      sources: results.sources.map((s) => ({
-        title: s.title,
-        source: s.source,
-      })),
-      resultCount: results.chunks.length,
+      success: true,
+      data: {
+        context: results.context,
+        sources: results.sources.map((s) => ({
+          title: s.title,
+          source: s.source,
+        })),
+        resultCount: results.chunks.length,
+      },
     };
   },
 });
@@ -156,21 +159,30 @@ const searchDocsTool = defineTool({
   name: 'search_docs',
   description: 'Search technical documentation',
   parameters: z.object({ query: z.string() }),
-  execute: async ({ query }) => docsRag.search(query),
+  execute: async ({ query }, context) => {
+    const results = await docsRag.search(query);
+    return { success: true, data: results };
+  },
 });
 
 const searchFaqTool = defineTool({
   name: 'search_faq',
   description: 'Search frequently asked questions',
   parameters: z.object({ query: z.string() }),
-  execute: async ({ query }) => faqRag.search(query),
+  execute: async ({ query }, context) => {
+    const results = await faqRag.search(query);
+    return { success: true, data: results };
+  },
 });
 
 const searchCodeTool = defineTool({
   name: 'search_code',
   description: 'Search code examples and snippets',
   parameters: z.object({ query: z.string() }),
-  execute: async ({ query }) => codeRag.search(query),
+  execute: async ({ query }, context) => {
+    const results = await codeRag.search(query);
+    return { success: true, data: results };
+  },
 });
 
 const agent = new Agent({
@@ -213,6 +225,7 @@ const agent = new Agent({
 ```typescript
 const searchWithContextTool = defineTool({
   name: 'search_knowledge',
+  description: 'Search knowledge base with context-aware filtering',
   parameters: z.object({
     query: z.string(),
   }),
@@ -226,7 +239,7 @@ const searchWithContextTool = defineTool({
       },
     });
 
-    return results;
+    return { success: true, data: results };
   },
 });
 
@@ -274,9 +287,9 @@ const createTicketTool = defineTool({
     description: z.string(),
     priority: z.enum(['low', 'medium', 'high']),
   }),
-  execute: async (input) => {
+  execute: async (input, context) => {
     const ticket = await ticketService.create(input);
-    return { ticketId: ticket.id };
+    return { success: true, data: { ticketId: ticket.id } };
   },
 });
 
@@ -391,12 +404,15 @@ const agent = new Agent({
 ### 4. Return Useful Metadata
 
 ```typescript
-execute: async ({ query }) => {
+execute: async ({ query }, context) => {
   const results = await rag.search(query);
   return {
-    context: results.context,
-    sources: results.sources, // For citations
-    confidence: results.chunks[0]?.score || 0, // Quality indicator
+    success: true,
+    data: {
+      context: results.context,
+      sources: results.sources, // For citations
+      confidence: results.chunks[0]?.score || 0, // Quality indicator
+    },
   };
 }
 ```

@@ -67,8 +67,8 @@ interface StreamChunk {
 ```typescript
 type AgentStreamEvent =
   | { type: 'thought'; content: string }
-  | { type: 'action'; tool: string; input: unknown }
-  | { type: 'observation'; content: unknown }
+  | { type: 'action'; tool: string; input: Record<string, unknown> }
+  | { type: 'observation'; result: unknown; success: boolean }
   | { type: 'text'; content: string }
   | { type: 'done'; response: AgentResponse }
   | { type: 'error'; error: Error };
@@ -151,7 +151,7 @@ for await (const event of agent.stream('Research quantum computing')) {
 
     case 'observation':
       // Tool returned a result
-      console.log(`[Observation] ${JSON.stringify(event.content)}`);
+      console.log(`[Observation] ${JSON.stringify(event.result)}`);
       break;
 
     case 'text':

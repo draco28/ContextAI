@@ -42,7 +42,7 @@ const searchTool = defineTool({
     query: z.string().describe('Search query'),
     limit: z.number().optional().default(10),
   }),
-  execute: async ({ query, limit }) => {
+  execute: async ({ query, limit }, context) => {
     const results = await search(query, limit);
     return { success: true, data: results };
   },

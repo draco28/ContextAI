@@ -94,8 +94,9 @@ const searchTool = defineTool({
   parameters: z.object({
     query: z.string().describe('Search query'),
   }),
-  execute: async ({ query }) => {
-    return { results: [`Result for: ${query}`] };
+  execute: async ({ query }, context) => {
+    // Tools must return ToolResult: { success, data?, error? }
+    return { success: true, data: { results: [`Result for: ${query}`] } };
   },
 });
 

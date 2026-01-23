@@ -278,11 +278,11 @@ Every step is visible for debugging:
 ```typescript
 // Find where things went wrong
 const failedAction = response.trace.steps.find(
-  (s) => s.type === 'observation' && s.content?.error
+  (s) => s.type === 'observation' && !s.success
 );
 
 if (failedAction) {
-  console.log('Tool failed:', failedAction.content.error);
+  console.log('Tool failed:', failedAction.result);
 }
 ```
 
@@ -344,7 +344,7 @@ console.log('Tools used:', [...new Set(toolCalls)]);
 
 ```typescript
 const errors = response.trace.steps
-  .filter((s) => s.type === 'observation' && s.content?.error);
+  .filter((s) => s.type === 'observation' && !s.success);
 
 if (errors.length > 0) {
   console.log('Tool errors:', errors);

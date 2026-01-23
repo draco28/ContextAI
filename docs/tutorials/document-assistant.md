@@ -130,8 +130,8 @@ const myTool = defineTool({
   parameters: z.object({
     input: z.string(),
   }),
-  execute: async ({ input }) => {
-    return { result: input.toUpperCase() };
+  execute: async ({ input }, context) => {
+    return { success: true, data: { result: input.toUpperCase() } };
   },
 });
 \`\`\`
@@ -249,7 +249,7 @@ export const searchDocsTool = defineTool({
   parameters: z.object({
     query: z.string().describe('Search query - be specific'),
   }),
-  execute: async ({ query }) => {
+  execute: async ({ query }, context) => {
     const results = await rag.search(query, {
       topK: 5,
       rerank: true,
@@ -257,11 +257,14 @@ export const searchDocsTool = defineTool({
     });
 
     return {
-      context: results.context,
-      sources: results.sources.map((s) => ({
-        file: s.source,
-        score: s.relevanceScore.toFixed(2),
-      })),
+      success: true,
+      data: {
+        context: results.context,
+        sources: results.sources.map((s) => ({
+          file: s.source,
+          score: s.relevanceScore.toFixed(2),
+        })),
+      },
     };
   },
 });
@@ -424,15 +427,18 @@ const results = await rag.search(query, {
 Include clickable references:
 
 ```typescript
-execute: async ({ query }) => {
+execute: async ({ query }, context) => {
   const results = await rag.search(query);
 
   return {
-    context: results.context,
-    sources: results.sources.map((s) => ({
-      file: s.source,
-      url: `/docs/${s.source}`, // Link to doc
-    })),
+    success: true,
+    data: {
+      context: results.context,
+      sources: results.sources.map((s) => ({
+        file: s.source,
+        url: `/docs/${s.source}`, // Link to doc
+      })),
+    },
   };
 },
 ```

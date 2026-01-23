@@ -26,9 +26,9 @@ const searchTool = defineTool({
   parameters: z.object({
     query: z.string().describe('Search query'),
   }),
-  execute: async ({ query }) => {
+  execute: async ({ query }, context) => {
     const results = await searchAPI(query);
-    return { results };
+    return { success: true, data: { results } };
   },
 });
 ```
@@ -114,9 +114,9 @@ const tool = defineTool({
   parameters: z.object({
     expression: z.string(),
   }),
-  execute: async ({ expression }) => {
+  execute: async ({ expression }, context) => {
     const result = evaluate(expression);
-    return { result };
+    return { success: true, data: { result } };
   },
 });
 ```
@@ -136,7 +136,7 @@ const tool = defineTool({
     const userId = context.sessionId;
     const metadata = context.metadata;
 
-    return { performed: action, user: userId };
+    return { success: true, data: { performed: action, user: userId } };
   },
 });
 ```
@@ -151,16 +151,15 @@ const tool = defineTool({
   parameters: z.object({
     path: z.string(),
   }),
-  execute: async ({ path }) => {
+  execute: async ({ path }, context) => {
     try {
       const content = await fs.readFile(path, 'utf-8');
-      return { content };
+      return { success: true, data: { content } };
     } catch (error) {
       // Return error info - don't throw
       return {
-        error: 'FILE_NOT_FOUND',
-        message: `File not found: ${path}`,
-        suggestion: 'Check if the file path is correct',
+        success: false,
+        error: `FILE_NOT_FOUND: File not found: ${path}. Check if the file path is correct.`,
       };
     }
   },
@@ -174,9 +173,10 @@ const tool = defineTool({
   name: 'slow_api',
   parameters: z.object({ query: z.string() }),
   timeout: 60000, // 60 seconds
-  execute: async ({ query }) => {
+  execute: async ({ query }, context) => {
     // Long-running operation
-    return await slowExternalAPI(query);
+    const result = await slowExternalAPI(query);
+    return { success: true, data: result };
   },
 });
 ```
@@ -190,9 +190,10 @@ const tool = defineTool({
   name: 'flaky_api',
   parameters: z.object({ id: z.string() }),
   retries: 3,
-  execute: async ({ id }) => {
+  execute: async ({ id }, context) => {
     // Will retry up to 3 times on failure
-    return await sometimesFailsAPI(id);
+    const result = await sometimesFailsAPI(id);
+    return { success: true, data: result };
   },
 });
 ```
@@ -212,9 +213,9 @@ const tool = defineTool({
     name: z.string(),
     email: z.string().email(),
   }),
-  execute: async ({ userId }) => {
+  execute: async ({ userId }, context) => {
     const user = await db.getUser(userId);
-    return user; // Validated against outputSchema
+    return { success: true, data: user }; // data is validated against outputSchema
   },
 });
 ```
@@ -231,9 +232,9 @@ const searchTool = defineTool({
     query: z.string(),
     limit: z.number().default(5),
   }),
-  execute: async ({ query, limit }) => {
+  execute: async ({ query, limit }, context) => {
     const results = await ragEngine.search(query, { topK: limit });
-    return { results: results.chunks };
+    return { success: true, data: { results: results.chunks } };
   },
 });
 ```
@@ -250,9 +251,9 @@ const createRecordTool = defineTool({
     dueDate: z.string().datetime().optional(),
     priority: z.enum(['low', 'medium', 'high']).default('medium'),
   }),
-  execute: async (input) => {
+  execute: async (input, context) => {
     const task = await taskService.create(input);
-    return { taskId: task.id, status: 'created' };
+    return { success: true, data: { taskId: task.id, status: 'created' } };
   },
 });
 ```
@@ -266,10 +267,10 @@ const calculatorTool = defineTool({
   parameters: z.object({
     expression: z.string().describe('Math expression like "2 + 2" or "sqrt(16)"'),
   }),
-  execute: async ({ expression }) => {
+  execute: async ({ expression }, context) => {
     // Use a safe math parser (not eval!)
     const result = mathjs.evaluate(expression);
-    return { result, expression };
+    return { success: true, data: { result, expression } };
   },
 });
 ```
@@ -285,14 +286,15 @@ const weatherTool = defineTool({
     country: z.string().optional(),
   }),
   timeout: 10000,
-  execute: async ({ city, country }) => {
+  execute: async ({ city, country }, context) => {
     const response = await fetch(
       `https://api.weather.com/current?city=${city}&country=${country || ''}`
     );
     if (!response.ok) {
-      return { error: 'WEATHER_API_ERROR', status: response.status };
+      return { success: false, error: `WEATHER_API_ERROR: status ${response.status}` };
     }
-    return response.json();
+    const data = await response.json();
+    return { success: true, data };
   },
 });
 ```
@@ -352,17 +354,15 @@ z.object({
 ### 3. Return Structured Data
 
 ```typescript
-// Good: Consistent structure
-execute: async ({ query }) => {
+// Good: ToolResult with data wrapper
+execute: async ({ query }, context) => {
   return {
     success: true,
-    results: [...],
-    count: 5,
-    query,
+    data: { results: [...], count: 5, query },
   };
 };
 
-// Bad: Inconsistent
+// Bad: Missing ToolResult wrapper
 execute: async ({ query }) => {
   return results.length > 0 ? results : 'No results';
 };
@@ -371,16 +371,16 @@ execute: async ({ query }) => {
 ### 4. Handle Errors Gracefully
 
 ```typescript
-execute: async ({ id }) => {
+execute: async ({ id }, context) => {
   try {
-    const data = await fetch(`/api/${id}`);
-    return { data };
+    const response = await fetch(`/api/${id}`);
+    const data = await response.json();
+    return { success: true, data };
   } catch (error) {
     // Return error info, don't throw
     return {
-      error: error.code || 'UNKNOWN',
-      message: error.message,
-      suggestion: 'Try a different ID or check the API status',
+      success: false,
+      error: `${error.code || 'UNKNOWN'}: ${error.message}. Try a different ID or check the API status.`,
     };
   }
 };

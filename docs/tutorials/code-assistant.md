@@ -43,15 +43,13 @@ export const readFileTool = defineTool({
   parameters: z.object({
     filePath: z.string().describe('Relative path to the file'),
   }),
-  execute: async ({ filePath }) => {
+  execute: async ({ filePath }, context) => {
     try {
       const fullPath = path.resolve(process.cwd(), filePath);
       const content = await fs.readFile(fullPath, 'utf-8');
       return {
         success: true,
-        path: filePath,
-        content,
-        lines: content.split('\n').length,
+        data: { path: filePath, content, lines: content.split('\n').length },
       };
     } catch (error) {
       return {
@@ -70,7 +68,7 @@ export const listFilesTool = defineTool({
     directory: z.string().describe('Directory path'),
     pattern: z.string().optional().describe('File pattern (e.g., "*.ts")'),
   }),
-  execute: async ({ directory, pattern }) => {
+  execute: async ({ directory, pattern }, context) => {
     try {
       const fullPath = path.resolve(process.cwd(), directory);
       const entries = await fs.readdir(fullPath, { withFileTypes: true });
@@ -89,7 +87,7 @@ export const listFilesTool = defineTool({
         files = files.filter((f) => regex.test(f.name));
       }
 
-      return { success: true, files };
+      return { success: true, data: { files } };
     } catch (error) {
       return { success: false, error: `Could not list directory: ${directory}` };
     }
@@ -105,7 +103,7 @@ export const searchCodeTool = defineTool({
     directory: z.string().optional().default('.').describe('Directory to search'),
     fileType: z.string().optional().describe('File extension (e.g., "ts")'),
   }),
-  execute: async ({ query, directory, fileType }) => {
+  execute: async ({ query, directory, fileType }, context) => {
     const results: Array<{
       file: string;
       line: number;
@@ -155,8 +153,7 @@ export const searchCodeTool = defineTool({
 
     return {
       success: true,
-      matches: results.slice(0, 20), // Limit results
-      totalMatches: results.length,
+      data: { matches: results.slice(0, 20), totalMatches: results.length },
     };
   },
 });
@@ -275,15 +272,15 @@ export const searchCodebaseTool = defineTool({
   parameters: z.object({
     query: z.string().describe('What you want to find (e.g., "user authentication", "API routing")'),
   }),
-  execute: async ({ query }) => {
+  execute: async ({ query }, context) => {
     const results = await codeRag.search(query, {
       topK: 5,
       rerank: false, // Skip reranking for speed
     });
 
     return {
-      context: results.context,
-      sources: results.sources.map((s) => s.source),
+      success: true,
+      data: { context: results.context, sources: results.sources.map((s) => s.source) },
     };
   },
 });
@@ -440,7 +437,7 @@ const codeChunker = new CodeChunker({
 ### Show Line Numbers
 
 ```typescript
-execute: async ({ filePath }) => {
+execute: async ({ filePath }, context) => {
   const content = await fs.readFile(filePath, 'utf-8');
   const lines = content.split('\n');
 
@@ -448,7 +445,7 @@ execute: async ({ filePath }) => {
     .map((line, i) => `${(i + 1).toString().padStart(4)} | ${line}`)
     .join('\n');
 
-  return { content: numberedContent };
+  return { success: true, data: { content: numberedContent } };
 },
 ```
 
@@ -461,7 +458,7 @@ const findFunctionTool = defineTool({
   parameters: z.object({
     functionName: z.string(),
   }),
-  execute: async ({ functionName }) => {
+  execute: async ({ functionName }, context) => {
     // Search for function definitions
     const patterns = [
       `function ${functionName}`,
@@ -474,9 +471,10 @@ const findFunctionTool = defineTool({
       const results = await searchCode(pattern);
       if (results.length > 0) {
         // Read the file and extract the full function
-        // ...
+        return { success: true, data: { found: true, results } };
       }
     }
+    return { success: true, data: { found: false } };
   },
 });
 ```
@@ -490,10 +488,10 @@ const gitBlameTool = defineTool({
   parameters: z.object({
     filePath: z.string(),
   }),
-  execute: async ({ filePath }) => {
+  execute: async ({ filePath }, context) => {
     const { execSync } = require('child_process');
     const blame = execSync(`git blame ${filePath}`, { encoding: 'utf-8' });
-    return { blame };
+    return { success: true, data: { blame } };
   },
 });
 ```
@@ -539,14 +537,15 @@ if (stats.size > MAX_FILE_SIZE) {
 ```typescript
 const searchCache = new Map<string, any>();
 
-execute: async ({ query }) => {
+execute: async ({ query }, context) => {
   if (searchCache.has(query)) {
-    return searchCache.get(query);
+    return searchCache.get(query); // Returns cached ToolResult
   }
 
   const results = await codeRag.search(query);
-  searchCache.set(query, results);
-  return results;
+  const toolResult = { success: true, data: results };
+  searchCache.set(query, toolResult);
+  return toolResult;
 },
 ```
 
