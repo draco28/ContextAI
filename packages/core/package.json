@@ -1,6 +1,6 @@
 {
   "name": "@contextaisdk/core",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "ContextAI Agent SDK - TypeScript-first AI Agent runtime with ReAct reasoning",
   "license": "MIT",
   "author": "ContextAI Team",
@@ -105,12 +105,24 @@
   ],
   "typesVersions": {
     "*": {
-      "agent": ["./dist/agent/index.d.ts"],
-      "tool": ["./dist/tool/index.d.ts"],
-      "provider": ["./dist/provider/index.d.ts"],
-      "errors": ["./dist/errors/index.d.ts"],
-      "security": ["./dist/security/index.d.ts"],
-      "tools": ["./dist/tools/index.d.ts"]
+      "agent": [
+        "./dist/agent/index.d.ts"
+      ],
+      "tool": [
+        "./dist/tool/index.d.ts"
+      ],
+      "provider": [
+        "./dist/provider/index.d.ts"
+      ],
+      "errors": [
+        "./dist/errors/index.d.ts"
+      ],
+      "security": [
+        "./dist/security/index.d.ts"
+      ],
+      "tools": [
+        "./dist/tools/index.d.ts"
+      ]
     }
   },
   "scripts": {

@@ -1,6 +1,6 @@
 {
   "name": "@contextaisdk/provider-ollama",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Ollama local LLM provider for ContextAI SDK",
   "license": "MIT",
   "author": "ContextAI Team",

@@ -1,6 +1,6 @@
 {
   "name": "@contextaisdk/provider-anthropic",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Anthropic Claude LLM provider for ContextAI SDK",
   "license": "MIT",
   "author": "ContextAI Team",

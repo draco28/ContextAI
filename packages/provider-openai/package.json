@@ -1,6 +1,6 @@
 {
   "name": "@contextaisdk/provider-openai",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "OpenAI GPT provider for ContextAI SDK",
   "license": "MIT",
   "author": "ContextAI Team",

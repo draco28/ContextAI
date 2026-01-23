@@ -1,6 +1,6 @@
 {
   "name": "@contextaisdk/rag",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "ContextAI RAG Engine - Document loading, chunking, and retrieval",
   "license": "MIT",
   "author": "ContextAI Team",
@@ -166,18 +166,42 @@
   ],
   "typesVersions": {
     "*": {
-      "cache": ["./dist/cache/index.d.ts"],
-      "loaders": ["./dist/loaders/index.d.ts"],
-      "embeddings": ["./dist/embeddings/index.d.ts"],
-      "vector-store": ["./dist/vector-store/index.d.ts"],
-      "chunking": ["./dist/chunking/index.d.ts"],
-      "retrieval": ["./dist/retrieval/index.d.ts"],
-      "reranker": ["./dist/reranker/index.d.ts"],
-      "assembly": ["./dist/assembly/index.d.ts"],
-      "query-enhancement": ["./dist/query-enhancement/index.d.ts"],
-      "engine": ["./dist/engine/index.d.ts"],
-      "adaptive": ["./dist/adaptive/index.d.ts"],
-      "memory": ["./dist/memory/index.d.ts"]
+      "cache": [
+        "./dist/cache/index.d.ts"
+      ],
+      "loaders": [
+        "./dist/loaders/index.d.ts"
+      ],
+      "embeddings": [
+        "./dist/embeddings/index.d.ts"
+      ],
+      "vector-store": [
+        "./dist/vector-store/index.d.ts"
+      ],
+      "chunking": [
+        "./dist/chunking/index.d.ts"
+      ],
+      "retrieval": [
+        "./dist/retrieval/index.d.ts"
+      ],
+      "reranker": [
+        "./dist/reranker/index.d.ts"
+      ],
+      "assembly": [
+        "./dist/assembly/index.d.ts"
+      ],
+      "query-enhancement": [
+        "./dist/query-enhancement/index.d.ts"
+      ],
+      "engine": [
+        "./dist/engine/index.d.ts"
+      ],
+      "adaptive": [
+        "./dist/adaptive/index.d.ts"
+      ],
+      "memory": [
+        "./dist/memory/index.d.ts"
+      ]
     }
   },
   "scripts": {

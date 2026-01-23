@@ -1,6 +1,6 @@
 {
   "name": "@contextaisdk/cli",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "CLI for scaffolding ContextAI projects and packages",
   "license": "MIT",
   "author": "ContextAI Team",
