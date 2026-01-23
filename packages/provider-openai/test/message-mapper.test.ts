@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import type { ChatMessage, ToolDefinition, ResponseFormat } from '@contextai/core';
+import type { ChatMessage, ToolDefinition, ResponseFormat } from '@contextaisdk/core';
 import {
   mapMessages,
   mapMessage,

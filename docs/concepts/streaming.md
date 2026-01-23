@@ -112,7 +112,7 @@ for await (const chunk of provider.streamChat(messages, { tools })) {
 ### Anthropic Extended Thinking
 
 ```typescript
-import { AnthropicProvider } from '@contextai/provider-anthropic';
+import { AnthropicProvider } from '@contextaisdk/provider-anthropic';
 
 const provider = new AnthropicProvider({
   model: 'claude-3-5-sonnet-20241022',
@@ -197,7 +197,7 @@ console.log('Trace:', lastResponse?.trace);
 ### useChat Hook
 
 ```tsx
-import { useChat } from '@contextai/react';
+import { useChat } from '@contextaisdk/react';
 
 function ChatUI() {
   const {
@@ -226,7 +226,7 @@ function ChatUI() {
 For ReAct reasoning visualization:
 
 ```tsx
-import { useAgentStream } from '@contextai/react';
+import { useAgentStream } from '@contextaisdk/react';
 
 function AgentUI() {
   const {

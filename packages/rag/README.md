@@ -1,21 +1,21 @@
-# @contextai/rag
+# @contextaisdk/rag
 
 > Production-grade RAG pipeline with hybrid retrieval, reranking, and context assembly
 
-[![npm version](https://img.shields.io/npm/v/@contextai/rag.svg?style=flat-square)](https://www.npmjs.com/package/@contextai/rag)
+[![npm version](https://img.shields.io/npm/v/@contextaisdk/rag.svg?style=flat-square)](https://www.npmjs.com/package/@contextaisdk/rag)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.5+-blue.svg?style=flat-square)](https://www.typescriptlang.org/)
 
 ## Installation
 
 ```bash
-npm install @contextai/rag
+npm install @contextaisdk/rag
 # or
-pnpm add @contextai/rag
+pnpm add @contextaisdk/rag
 ```
 
 ## Overview
 
-`@contextai/rag` implements a 9-stage RAG (Retrieval-Augmented Generation) pipeline designed for production use:
+`@contextaisdk/rag` implements a 9-stage RAG (Retrieval-Augmented Generation) pipeline designed for production use:
 
 ```mermaid
 graph LR
@@ -46,7 +46,7 @@ import {
   DenseRetriever,
   BGEReranker,
   MarkdownAssembler,
-} from '@contextai/rag';
+} from '@contextaisdk/rag';
 
 // 1. Set up components
 const embeddings = new HuggingFaceEmbeddingProvider({
@@ -87,7 +87,7 @@ console.log(results.sources); // Source attributions
 Load documents from various sources with the `DocumentLoader` interface.
 
 ```typescript
-import { DocumentLoaderRegistry, defaultRegistry } from '@contextai/rag';
+import { DocumentLoaderRegistry, defaultRegistry } from '@contextaisdk/rag';
 
 // Use the default registry (supports .txt, .md, .json, code files)
 const docs = await defaultRegistry.load('./documents/guide.md');
@@ -104,7 +104,7 @@ registry.register('.custom', myCustomLoader);
 Split documents into chunks using different strategies.
 
 ```typescript
-import { FixedSizeChunker, RecursiveChunker, SentenceChunker } from '@contextai/rag';
+import { FixedSizeChunker, RecursiveChunker, SentenceChunker } from '@contextaisdk/rag';
 
 // Fixed-size chunks (fastest)
 const fixed = new FixedSizeChunker({
@@ -139,7 +139,7 @@ const chunks = await chunker.chunk(document);
 Generate vector embeddings for chunks.
 
 ```typescript
-import { HuggingFaceEmbeddingProvider, OllamaEmbeddingProvider } from '@contextai/rag';
+import { HuggingFaceEmbeddingProvider, OllamaEmbeddingProvider } from '@contextaisdk/rag';
 
 // HuggingFace (local, via Transformers.js)
 const hf = new HuggingFaceEmbeddingProvider({
@@ -160,7 +160,7 @@ const embeddings = await provider.embedBatch(['Text 1', 'Text 2', 'Text 3']);
 **Caching for performance:**
 
 ```typescript
-import { CachedEmbeddingProvider, LRUEmbeddingCache } from '@contextai/rag';
+import { CachedEmbeddingProvider, LRUEmbeddingCache } from '@contextaisdk/rag';
 
 const cache = new LRUEmbeddingCache({ maxSize: 10000 });
 const cached = new CachedEmbeddingProvider({ provider: hf, cache });
@@ -171,7 +171,7 @@ const cached = new CachedEmbeddingProvider({ provider: hf, cache });
 Store and search embeddings.
 
 ```typescript
-import { InMemoryVectorStore } from '@contextai/rag';
+import { InMemoryVectorStore } from '@contextaisdk/rag';
 
 // Basic setup (brute-force search, good for <10K vectors)
 const store = new InMemoryVectorStore({
@@ -217,7 +217,7 @@ const store = new InMemoryVectorStore({
 The vector store includes memory-efficient storage and budget enforcement:
 
 ```typescript
-import { InMemoryVectorStore, formatBytes } from '@contextai/rag';
+import { InMemoryVectorStore, formatBytes } from '@contextaisdk/rag';
 
 // Float32 storage (50% memory savings, enabled by default)
 const store = new InMemoryVectorStore({
@@ -251,7 +251,7 @@ See the [Memory Management Guide](../../docs/how-to/rag/memory-management.md) fo
 Improve retrieval quality by enhancing queries.
 
 ```typescript
-import { QueryRewriter, HyDEEnhancer, MultiQueryExpander } from '@contextai/rag';
+import { QueryRewriter, HyDEEnhancer, MultiQueryExpander } from '@contextaisdk/rag';
 
 // Query rewriting (fix typos, expand abbreviations)
 const rewriter = new QueryRewriter({ llm: yourLLM });
@@ -274,7 +274,7 @@ const queries = await expander.enhance('user login');
 Retrieve relevant chunks using dense, sparse, or hybrid search.
 
 ```typescript
-import { DenseRetriever, BM25Retriever, HybridRetriever } from '@contextai/rag';
+import { DenseRetriever, BM25Retriever, HybridRetriever } from '@contextaisdk/rag';
 
 // Dense retrieval (semantic similarity)
 const dense = new DenseRetriever({
@@ -305,7 +305,7 @@ const results = await retriever.retrieve('authentication flow');
 **RRF (Reciprocal Rank Fusion):**
 
 ```typescript
-import { reciprocalRankFusion, DEFAULT_RRF_K } from '@contextai/rag';
+import { reciprocalRankFusion, DEFAULT_RRF_K } from '@contextaisdk/rag';
 
 const fused = reciprocalRankFusion([denseResults, sparseResults], {
   k: DEFAULT_RRF_K, // 60
@@ -317,7 +317,7 @@ const fused = reciprocalRankFusion([denseResults, sparseResults], {
 Re-score and re-order results for higher relevance.
 
 ```typescript
-import { BGEReranker, MMRReranker, LLMReranker } from '@contextai/rag';
+import { BGEReranker, MMRReranker, LLMReranker } from '@contextaisdk/rag';
 
 // Cross-encoder reranking (most accurate)
 const bge = new BGEReranker({
@@ -342,7 +342,7 @@ const reranked = await reranker.rerank(query, results);
 **Position bias mitigation:**
 
 ```typescript
-import { applySandwichOrdering, applyInterleaveOrdering } from '@contextai/rag';
+import { applySandwichOrdering, applyInterleaveOrdering } from '@contextaisdk/rag';
 
 // Sandwich ordering (most relevant at start AND end)
 const sandwiched = applySandwichOrdering(results);
@@ -356,7 +356,7 @@ const interleaved = applyInterleaveOrdering(results);
 Format chunks for LLM consumption.
 
 ```typescript
-import { XMLAssembler, MarkdownAssembler } from '@contextai/rag';
+import { XMLAssembler, MarkdownAssembler } from '@contextaisdk/rag';
 
 // XML format (Claude-preferred)
 const xml = new XMLAssembler({
@@ -384,7 +384,7 @@ console.log(assembled.tokens);  // Token count
 **Token budget management:**
 
 ```typescript
-import { calculateTokenBudget, applyTokenBudget } from '@contextai/rag';
+import { calculateTokenBudget, applyTokenBudget } from '@contextaisdk/rag';
 
 const budget = calculateTokenBudget({
   maxTokens: 4000,
@@ -400,7 +400,7 @@ const fitted = applyTokenBudget(results, budget);
 Let the agent decide when and how to retrieve.
 
 ```typescript
-import { Agent, defineTool } from '@contextai/core';
+import { Agent, defineTool } from '@contextaisdk/core';
 
 // Create a retrieve_knowledge tool
 const retrieveTool = defineTool({
@@ -497,35 +497,35 @@ For faster startup times and smaller bundles, import only the modules you need:
 
 ```typescript
 // Instead of importing everything:
-import { RAGEngineImpl, DenseRetriever } from '@contextai/rag';
+import { RAGEngineImpl, DenseRetriever } from '@contextaisdk/rag';
 
 // Import specific modules:
-import { RAGEngineImpl } from '@contextai/rag/engine';
-import { DenseRetriever, HybridRetriever } from '@contextai/rag/retrieval';
-import { HuggingFaceEmbeddingProvider } from '@contextai/rag/embeddings';
-import { InMemoryVectorStore } from '@contextai/rag/vector-store';
-import { BGEReranker } from '@contextai/rag/reranker';
-import { MarkdownAssembler } from '@contextai/rag/assembly';
+import { RAGEngineImpl } from '@contextaisdk/rag/engine';
+import { DenseRetriever, HybridRetriever } from '@contextaisdk/rag/retrieval';
+import { HuggingFaceEmbeddingProvider } from '@contextaisdk/rag/embeddings';
+import { InMemoryVectorStore } from '@contextaisdk/rag/vector-store';
+import { BGEReranker } from '@contextaisdk/rag/reranker';
+import { MarkdownAssembler } from '@contextaisdk/rag/assembly';
 ```
 
 **Available sub-entry points:**
 
 | Path | Contents |
 |------|----------|
-| `@contextai/rag/engine` | RAGEngineImpl, RAGEngineError, types |
-| `@contextai/rag/retrieval` | DenseRetriever, BM25Retriever, HybridRetriever, RRF utilities |
-| `@contextai/rag/embeddings` | HuggingFaceEmbeddingProvider, OllamaEmbeddingProvider, cache utilities |
-| `@contextai/rag/vector-store` | InMemoryVectorStore, BaseVectorStore, types |
-| `@contextai/rag/reranker` | BGEReranker, MMRReranker, LLMReranker, position bias utilities |
-| `@contextai/rag/chunking` | FixedSizeChunker, RecursiveChunker, SentenceChunker |
-| `@contextai/rag/assembly` | XMLAssembler, MarkdownAssembler, token budget utilities |
-| `@contextai/rag/query-enhancement` | QueryRewriter, HyDEEnhancer, MultiQueryExpander |
-| `@contextai/rag/loaders` | DocumentLoaderRegistry, BaseDocumentLoader |
-| `@contextai/rag/adaptive` | AdaptiveRAG, QueryClassifier |
-| `@contextai/rag/memory` | MemoryBudget, memory utilities |
-| `@contextai/rag/cache` | LRUCacheProvider, NoCacheProvider |
+| `@contextaisdk/rag/engine` | RAGEngineImpl, RAGEngineError, types |
+| `@contextaisdk/rag/retrieval` | DenseRetriever, BM25Retriever, HybridRetriever, RRF utilities |
+| `@contextaisdk/rag/embeddings` | HuggingFaceEmbeddingProvider, OllamaEmbeddingProvider, cache utilities |
+| `@contextaisdk/rag/vector-store` | InMemoryVectorStore, BaseVectorStore, types |
+| `@contextaisdk/rag/reranker` | BGEReranker, MMRReranker, LLMReranker, position bias utilities |
+| `@contextaisdk/rag/chunking` | FixedSizeChunker, RecursiveChunker, SentenceChunker |
+| `@contextaisdk/rag/assembly` | XMLAssembler, MarkdownAssembler, token budget utilities |
+| `@contextaisdk/rag/query-enhancement` | QueryRewriter, HyDEEnhancer, MultiQueryExpander |
+| `@contextaisdk/rag/loaders` | DocumentLoaderRegistry, BaseDocumentLoader |
+| `@contextaisdk/rag/adaptive` | AdaptiveRAG, QueryClassifier |
+| `@contextaisdk/rag/memory` | MemoryBudget, memory utilities |
+| `@contextaisdk/rag/cache` | LRUCacheProvider, NoCacheProvider |
 
-**Performance impact:** Using `@contextai/rag/engine` is ~68% faster than importing the full package.
+**Performance impact:** Using `@contextaisdk/rag/engine` is ~68% faster than importing the full package.
 
 ## Startup Optimization
 
@@ -534,8 +534,8 @@ import { MarkdownAssembler } from '@contextai/rag/assembly';
 ML models (BGE reranker, HuggingFace embeddings) are loaded lazily on first use. To avoid first-request latency, call `warmUp()` during application startup:
 
 ```typescript
-import { RAGEngineImpl } from '@contextai/rag/engine';
-import { BGEReranker } from '@contextai/rag/reranker';
+import { RAGEngineImpl } from '@contextaisdk/rag/engine';
+import { BGEReranker } from '@contextaisdk/rag/reranker';
 
 // Create engine with reranker
 const reranker = new BGEReranker({ model: 'BAAI/bge-reranker-base' });
@@ -557,7 +557,7 @@ const results = await rag.search('authentication flow');
 You can also warm up the embedding provider directly:
 
 ```typescript
-import { HuggingFaceEmbeddingProvider } from '@contextai/rag/embeddings';
+import { HuggingFaceEmbeddingProvider } from '@contextaisdk/rag/embeddings';
 
 const embeddings = new HuggingFaceEmbeddingProvider({
   model: 'BAAI/bge-small-en-v1.5',
@@ -581,7 +581,7 @@ console.log(embeddings.isLoaded()); // true
 All components throw typed errors:
 
 ```typescript
-import { VectorStoreError, EmbeddingError, RetrieverError } from '@contextai/rag';
+import { VectorStoreError, EmbeddingError, RetrieverError } from '@contextaisdk/rag';
 
 try {
   await vectorStore.search(embedding, { topK: 10 });

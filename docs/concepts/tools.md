@@ -17,7 +17,7 @@ Tools extend what an agent can do beyond generating text. They allow agents to:
 ### Basic Tool
 
 ```typescript
-import { defineTool } from '@contextai/core';
+import { defineTool } from '@contextaisdk/core';
 import { z } from 'zod';
 
 const searchTool = defineTool({
@@ -402,7 +402,7 @@ defineTool({ timeout: 60000, /* ... */ });
 ## Error Types
 
 ```typescript
-import { ToolError, ToolTimeoutError, ValidationError } from '@contextai/core';
+import { ToolError, ToolTimeoutError, ValidationError } from '@contextaisdk/core';
 
 // ToolError - General tool failure
 throw new ToolError('Failed to process', 'my_tool', originalError);

@@ -1,12 +1,16 @@
 {
-  "name": "@contextai/react",
+  "name": "@contextaisdk/react",
   "version": "0.0.1",
   "description": "React components and hooks for ContextAI Agent SDK",
   "license": "MIT",
   "author": "ContextAI Team",
+  "homepage": "https://github.com/draco28/contextai#readme",
+  "bugs": {
+    "url": "https://github.com/draco28/contextai/issues"
+  },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/contextai/contextai.git",
+    "url": "git+https://github.com/draco28/contextai.git",
     "directory": "packages/react"
   },
   "keywords": [
@@ -47,14 +51,14 @@
     "clean": "rm -rf dist .turbo"
   },
   "dependencies": {
-    "@contextai/core": "workspace:*"
+    "@contextaisdk/core": "workspace:*"
   },
   "peerDependencies": {
     "react": "^18.0.0 || ^19.0.0",
     "react-dom": "^18.0.0 || ^19.0.0"
   },
   "devDependencies": {
-    "@contextai/tsconfig": "workspace:*",
+    "@contextaisdk/tsconfig": "workspace:*",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.2.0",
     "@testing-library/user-event": "^14.6.1",

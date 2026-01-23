@@ -7,7 +7,7 @@
 
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import type { ReActTrace } from '@contextai/core';
+import type { ReActTrace } from '@contextaisdk/core';
 import {
   ReasoningTrace,
   TraceStep,

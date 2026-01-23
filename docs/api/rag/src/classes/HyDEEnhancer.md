@@ -22,8 +22,8 @@ Latency: ~500-1000ms per doc + embedding time
 ## Example
 
 ```typescript
-import { OpenAIProvider } from '@contextai/provider-openai';
-import { HuggingFaceEmbeddingProvider } from '@contextai/rag';
+import { OpenAIProvider } from '@contextaisdk/provider-openai';
+import { HuggingFaceEmbeddingProvider } from '@contextaisdk/rag';
 
 const hyde = new HyDEEnhancer({
   llmProvider: new OpenAIProvider({

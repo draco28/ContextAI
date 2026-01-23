@@ -26,7 +26,7 @@ const cache = new LRUEmbeddingCache({ maxSize: 1000 });
 await cache.get('hello'); // returns null on miss
 
 // New approach (recommended):
-import { LRUCacheProvider } from '@contextai/rag';
+import { LRUCacheProvider } from '@contextaisdk/rag';
 const cache = new LRUCacheProvider<number[]>({ maxSize: 1000 });
 await cache.get('hello'); // returns undefined on miss
 ```

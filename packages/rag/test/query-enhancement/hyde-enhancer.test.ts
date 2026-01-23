@@ -11,7 +11,7 @@ import type {
   ChatResponse,
   GenerateOptions,
   StreamChunk,
-} from '@contextai/core';
+} from '@contextaisdk/core';
 import type { EmbeddingProvider, EmbeddingResult } from '../../src/embeddings/types.js';
 import { HyDEEnhancer } from '../../src/query-enhancement/hyde-enhancer.js';
 import { QueryEnhancementError } from '../../src/query-enhancement/errors.js';

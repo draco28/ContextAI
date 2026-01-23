@@ -19,7 +19,7 @@ import {
   DenseRetriever,
   BM25Retriever,
   HybridRetriever,
-} from '@contextai/rag';
+} from '@contextaisdk/rag';
 
 // Dense (semantic similarity)
 const denseRetriever = new DenseRetriever({
@@ -58,7 +58,7 @@ import {
   HybridRetriever,
   BGEReranker,
   MarkdownAssembler,
-} from '@contextai/rag';
+} from '@contextaisdk/rag';
 
 async function createHybridRAG() {
   // Setup components
@@ -132,7 +132,7 @@ const results = await rag.search('ERROR_CODE_404 authentication');
 Combines rankings, ignoring score magnitudes:
 
 ```typescript
-import { reciprocalRankFusion, DEFAULT_RRF_K } from '@contextai/rag';
+import { reciprocalRankFusion, DEFAULT_RRF_K } from '@contextaisdk/rag';
 
 const hybridRetriever = new HybridRetriever({
   denseRetriever,

@@ -14,13 +14,13 @@ For most projects, start with core and a provider:
 
 ```bash
 # Using npm
-npm install @contextai/core @contextai/provider-openai zod
+npm install @contextaisdk/core @contextaisdk/provider-openai zod
 
 # Using pnpm (recommended)
-pnpm add @contextai/core @contextai/provider-openai zod
+pnpm add @contextaisdk/core @contextaisdk/provider-openai zod
 
 # Using yarn
-yarn add @contextai/core @contextai/provider-openai zod
+yarn add @contextaisdk/core @contextaisdk/provider-openai zod
 ```
 
 ## Package Guide
@@ -30,7 +30,7 @@ yarn add @contextai/core @contextai/provider-openai zod
 The foundation for all ContextAI functionality:
 
 ```bash
-pnpm add @contextai/core zod
+pnpm add @contextaisdk/core zod
 ```
 
 **Peer Dependencies:**
@@ -47,7 +47,7 @@ pnpm add @contextai/core zod
 #### OpenAI
 
 ```bash
-pnpm add @contextai/provider-openai openai
+pnpm add @contextaisdk/provider-openai openai
 ```
 
 **Peer Dependencies:**
@@ -58,7 +58,7 @@ pnpm add @contextai/provider-openai openai
 #### Anthropic Claude
 
 ```bash
-pnpm add @contextai/provider-anthropic @anthropic-ai/sdk
+pnpm add @contextaisdk/provider-anthropic @anthropic-ai/sdk
 ```
 
 **Peer Dependencies:**
@@ -69,7 +69,7 @@ pnpm add @contextai/provider-anthropic @anthropic-ai/sdk
 #### Ollama (Local)
 
 ```bash
-pnpm add @contextai/provider-ollama
+pnpm add @contextaisdk/provider-ollama
 ```
 
 **No peer dependencies!** Communicates directly with Ollama server.
@@ -81,7 +81,7 @@ pnpm add @contextai/provider-ollama
 For retrieval-augmented generation:
 
 ```bash
-pnpm add @contextai/rag
+pnpm add @contextaisdk/rag
 ```
 
 **Provides:**
@@ -96,12 +96,12 @@ pnpm add @contextai/rag
 For building chat UIs:
 
 ```bash
-pnpm add @contextai/react
+pnpm add @contextaisdk/react
 ```
 
 **Peer Dependencies:**
 - `react` ^18.0.0
-- `@contextai/core`
+- `@contextaisdk/core`
 
 **Provides:**
 - Hooks: `useChat`, `useAgent`, `useAgentStream`
@@ -115,12 +115,12 @@ pnpm add @contextai/react
 Just need an agent with tools:
 
 ```bash
-pnpm add @contextai/core @contextai/provider-openai zod
+pnpm add @contextaisdk/core @contextaisdk/provider-openai zod
 ```
 
 ```typescript
-import { Agent, defineTool } from '@contextai/core';
-import { OpenAIProvider } from '@contextai/provider-openai';
+import { Agent, defineTool } from '@contextaisdk/core';
+import { OpenAIProvider } from '@contextaisdk/provider-openai';
 ```
 
 ### RAG Application
@@ -128,13 +128,13 @@ import { OpenAIProvider } from '@contextai/provider-openai';
 Build a document Q&A system:
 
 ```bash
-pnpm add @contextai/core @contextai/rag @contextai/provider-openai zod
+pnpm add @contextaisdk/core @contextaisdk/rag @contextaisdk/provider-openai zod
 ```
 
 ```typescript
-import { Agent } from '@contextai/core';
-import { RAGEngineImpl, HuggingFaceEmbeddingProvider } from '@contextai/rag';
-import { OpenAIProvider } from '@contextai/provider-openai';
+import { Agent } from '@contextaisdk/core';
+import { RAGEngineImpl, HuggingFaceEmbeddingProvider } from '@contextaisdk/rag';
+import { OpenAIProvider } from '@contextaisdk/provider-openai';
 ```
 
 ### React Chat Application
@@ -142,13 +142,13 @@ import { OpenAIProvider } from '@contextai/provider-openai';
 Build a chat interface:
 
 ```bash
-pnpm add @contextai/core @contextai/react @contextai/provider-openai zod
+pnpm add @contextaisdk/core @contextaisdk/react @contextaisdk/provider-openai zod
 ```
 
 ```typescript
-import { Agent } from '@contextai/core';
-import { useChat, ChatWindow } from '@contextai/react';
-import { OpenAIProvider } from '@contextai/provider-openai';
+import { Agent } from '@contextaisdk/core';
+import { useChat, ChatWindow } from '@contextaisdk/react';
+import { OpenAIProvider } from '@contextaisdk/provider-openai';
 ```
 
 ### Full Stack with Local LLM
@@ -156,7 +156,7 @@ import { OpenAIProvider } from '@contextai/provider-openai';
 Complete setup with local inference:
 
 ```bash
-pnpm add @contextai/core @contextai/rag @contextai/react @contextai/provider-ollama zod
+pnpm add @contextaisdk/core @contextaisdk/rag @contextaisdk/react @contextaisdk/provider-ollama zod
 ```
 
 ## TypeScript Configuration
@@ -211,8 +211,8 @@ Test your setup:
 
 ```typescript
 // test-install.ts
-import { Agent } from '@contextai/core';
-import { OpenAIProvider } from '@contextai/provider-openai';
+import { Agent } from '@contextaisdk/core';
+import { OpenAIProvider } from '@contextaisdk/provider-openai';
 
 const agent = new Agent({
   name: 'Test',
@@ -236,7 +236,7 @@ npx tsx test-install.ts
 
 ## Common Issues
 
-### "Cannot find module '@contextai/core'"
+### "Cannot find module '@contextaisdk/core'"
 
 Ensure you're using a compatible Node.js version and module resolution:
 

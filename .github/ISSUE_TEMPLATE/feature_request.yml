@@ -13,10 +13,10 @@ body:
       label: Related Package
       description: Which package would this feature be part of?
       options:
-        - "@contextai/core"
-        - "@contextai/rag"
-        - "@contextai/provider-openai"
-        - "@contextai/provider-anthropic"
+        - "@contextaisdk/core"
+        - "@contextaisdk/rag"
+        - "@contextaisdk/provider-openai"
+        - "@contextaisdk/provider-anthropic"
         - New package
         - Not sure
     validations:

@@ -13,7 +13,7 @@
  *
  * @example
  * ```typescript
- * import { OllamaProvider } from '@contextai/provider-ollama';
+ * import { OllamaProvider } from '@contextaisdk/provider-ollama';
  *
  * const provider = new OllamaProvider({
  *   model: 'llama3.2',
@@ -41,7 +41,7 @@ import type {
   StreamChunk,
   GenerateOptions,
   ModelInfo,
-} from '@contextai/core';
+} from '@contextaisdk/core';
 
 import type { OllamaProviderConfig, OllamaTagsResponse } from './types.js';
 import { OllamaProviderError, mapOllamaError, createErrorFromResponse } from './errors.js';

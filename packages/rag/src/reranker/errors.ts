@@ -5,7 +5,7 @@
  * Uses factory methods for consistent error creation.
  */
 
-import { ContextAIError } from '@contextai/core';
+import { ContextAIError } from '@contextaisdk/core';
 import type { RerankerErrorCode, RerankerErrorDetails } from './types.js';
 
 /**

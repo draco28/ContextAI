@@ -1,7 +1,19 @@
 {
-  "name": "@contextai/provider-anthropic",
+  "name": "@contextaisdk/provider-anthropic",
   "version": "0.0.1",
   "description": "Anthropic Claude LLM provider for ContextAI SDK",
+  "license": "MIT",
+  "author": "ContextAI Team",
+  "homepage": "https://github.com/draco28/contextai#readme",
+  "bugs": {
+    "url": "https://github.com/draco28/contextai/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/draco28/contextai.git",
+    "directory": "packages/provider-anthropic"
+  },
+  "sideEffects": false,
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
@@ -32,7 +44,7 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@contextai/core": "workspace:*"
+    "@contextaisdk/core": "workspace:*"
   },
   "peerDependencies": {
     "@anthropic-ai/sdk": ">=0.30.0"
@@ -44,7 +56,7 @@
   },
   "devDependencies": {
     "@anthropic-ai/sdk": "^0.39.0",
-    "@contextai/tsconfig": "workspace:*",
+    "@contextaisdk/tsconfig": "workspace:*",
     "tsup": "^8.0.0",
     "typescript": "^5.5.0",
     "vitest": "^2.1.0"
@@ -57,5 +69,10 @@
     "ai",
     "provider"
   ],
-  "license": "MIT"
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
 }

@@ -2,7 +2,7 @@
 
 > TypeScript-first AI Agent SDK with ReAct reasoning and production-grade RAG
 
-[![npm version](https://img.shields.io/npm/v/@contextai/core.svg?style=flat-square)](https://www.npmjs.com/package/@contextai/core)
+[![npm version](https://img.shields.io/npm/v/@contextaisdk/core.svg?style=flat-square)](https://www.npmjs.com/package/@contextaisdk/core)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.5+-blue.svg?style=flat-square)](https://www.typescriptlang.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](https://opensource.org/licenses/MIT)
 
@@ -11,8 +11,8 @@
 ContextAI SDK is a TypeScript-first framework for building AI agents with transparent reasoning and production-grade RAG (Retrieval-Augmented Generation). It's designed to be the "anti-LangChain" - focused, debuggable, and minimal.
 
 ```typescript
-import { Agent, defineTool } from '@contextai/core';
-import { OpenAIProvider } from '@contextai/provider-openai';
+import { Agent, defineTool } from '@contextaisdk/core';
+import { OpenAIProvider } from '@contextaisdk/provider-openai';
 import { z } from 'zod';
 
 const agent = new Agent({
@@ -38,12 +38,12 @@ console.log(response.trace); // See exactly how the agent reasoned
 
 | Package | Description | npm |
 |---------|-------------|-----|
-| [@contextai/core](./api/core/) | Agent framework with ReAct reasoning | [![npm](https://img.shields.io/npm/v/@contextai/core.svg?style=flat-square)](https://www.npmjs.com/package/@contextai/core) |
-| [@contextai/rag](./api/rag/) | 9-stage RAG pipeline | [![npm](https://img.shields.io/npm/v/@contextai/rag.svg?style=flat-square)](https://www.npmjs.com/package/@contextai/rag) |
-| [@contextai/react](./api/react/) | React components and hooks | [![npm](https://img.shields.io/npm/v/@contextai/react.svg?style=flat-square)](https://www.npmjs.com/package/@contextai/react) |
-| [@contextai/provider-openai](./integrations/providers/openai/) | OpenAI GPT provider | [![npm](https://img.shields.io/npm/v/@contextai/provider-openai.svg?style=flat-square)](https://www.npmjs.com/package/@contextai/provider-openai) |
-| [@contextai/provider-anthropic](./integrations/providers/anthropic/) | Anthropic Claude provider | [![npm](https://img.shields.io/npm/v/@contextai/provider-anthropic.svg?style=flat-square)](https://www.npmjs.com/package/@contextai/provider-anthropic) |
-| [@contextai/provider-ollama](./integrations/providers/ollama/) | Ollama local LLM provider | [![npm](https://img.shields.io/npm/v/@contextai/provider-ollama.svg?style=flat-square)](https://www.npmjs.com/package/@contextai/provider-ollama) |
+| [@contextaisdk/core](./api/core/) | Agent framework with ReAct reasoning | [![npm](https://img.shields.io/npm/v/@contextaisdk/core.svg?style=flat-square)](https://www.npmjs.com/package/@contextaisdk/core) |
+| [@contextaisdk/rag](./api/rag/) | 9-stage RAG pipeline | [![npm](https://img.shields.io/npm/v/@contextaisdk/rag.svg?style=flat-square)](https://www.npmjs.com/package/@contextaisdk/rag) |
+| [@contextaisdk/react](./api/react/) | React components and hooks | [![npm](https://img.shields.io/npm/v/@contextaisdk/react.svg?style=flat-square)](https://www.npmjs.com/package/@contextaisdk/react) |
+| [@contextaisdk/provider-openai](./integrations/providers/openai/) | OpenAI GPT provider | [![npm](https://img.shields.io/npm/v/@contextaisdk/provider-openai.svg?style=flat-square)](https://www.npmjs.com/package/@contextaisdk/provider-openai) |
+| [@contextaisdk/provider-anthropic](./integrations/providers/anthropic/) | Anthropic Claude provider | [![npm](https://img.shields.io/npm/v/@contextaisdk/provider-anthropic.svg?style=flat-square)](https://www.npmjs.com/package/@contextaisdk/provider-anthropic) |
+| [@contextaisdk/provider-ollama](./integrations/providers/ollama/) | Ollama local LLM provider | [![npm](https://img.shields.io/npm/v/@contextaisdk/provider-ollama.svg?style=flat-square)](https://www.npmjs.com/package/@contextaisdk/provider-ollama) |
 
 ## Documentation Sections
 
@@ -126,10 +126,10 @@ Auto-generated TypeScript documentation:
 
 ## Quick Links
 
-- [GitHub Repository](https://github.com/contextai/contextai-sdk)
-- [npm Organization](https://www.npmjs.com/org/contextai)
-- [Changelog](https://github.com/contextai/contextai-sdk/blob/main/CHANGELOG.md)
-- [Contributing Guide](https://github.com/contextai/contextai-sdk/blob/main/CONTRIBUTING.md)
+- [GitHub Repository](https://github.com/draco28/contextai)
+- [npm Organization](https://www.npmjs.com/org/contextaisdk)
+- [Changelog](https://github.com/draco28/contextai/blob/main/CHANGELOG.md)
+- [Contributing Guide](https://github.com/draco28/contextai/blob/main/CONTRIBUTING.md)
 
 ## License
 

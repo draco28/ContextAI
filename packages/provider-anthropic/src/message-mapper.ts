@@ -14,12 +14,12 @@ import type {
   ContentPart,
   GenerateOptions,
   ToolDefinition,
-} from '@contextai/core';
+} from '@contextaisdk/core';
 import {
   isImageContent,
   isTextContent,
   isDocumentContent,
-} from '@contextai/core';
+} from '@contextaisdk/core';
 import type Anthropic from '@anthropic-ai/sdk';
 
 // ============================================================================

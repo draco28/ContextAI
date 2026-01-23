@@ -6,7 +6,7 @@
 
 # rag/src
 
-@contextai/rag - RAG Engine
+@contextaisdk/rag - RAG Engine
 
 Document loading, chunking, and retrieval for AI applications.
 

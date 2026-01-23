@@ -5,14 +5,14 @@ Complete guide to using Claude models with ContextAI.
 ## Installation
 
 ```bash
-pnpm add @contextai/provider-anthropic @anthropic-ai/sdk
+pnpm add @contextaisdk/provider-anthropic @anthropic-ai/sdk
 ```
 
 ## Quick Start
 
 ```typescript
-import { AnthropicProvider } from '@contextai/provider-anthropic';
-import { Agent } from '@contextai/core';
+import { AnthropicProvider } from '@contextaisdk/provider-anthropic';
+import { Agent } from '@contextaisdk/core';
 
 const provider = new AnthropicProvider({
   apiKey: process.env.ANTHROPIC_API_KEY!,
@@ -50,7 +50,7 @@ const provider = new AnthropicProvider({
 ### Available Models
 
 ```typescript
-import { AnthropicModels } from '@contextai/provider-anthropic';
+import { AnthropicModels } from '@contextaisdk/provider-anthropic';
 
 // Claude 4 (Latest)
 AnthropicModels.CLAUDE_OPUS_4 // 'claude-opus-4-20250514'
@@ -114,7 +114,7 @@ for await (const chunk of provider.streamChat(messages)) {
 Claude has excellent tool support:
 
 ```typescript
-import { defineTool } from '@contextai/core';
+import { defineTool } from '@contextaisdk/core';
 import { z } from 'zod';
 
 const calculatorTool = defineTool({
@@ -175,7 +175,7 @@ console.log('Tokens remaining:', limits.tokensRemaining);
 ### Handle Rate Limits
 
 ```typescript
-import { ProviderError } from '@contextai/core';
+import { ProviderError } from '@contextaisdk/core';
 
 try {
   await agent.run(input);
@@ -191,7 +191,7 @@ try {
 ## Error Handling
 
 ```typescript
-import { ProviderError } from '@contextai/core';
+import { ProviderError } from '@contextaisdk/core';
 
 try {
   const response = await provider.chat(messages);

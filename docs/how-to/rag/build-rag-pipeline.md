@@ -5,7 +5,7 @@ Step-by-step guide to building a complete RAG (Retrieval-Augmented Generation) p
 ## Prerequisites
 
 ```bash
-pnpm add @contextai/core @contextai/rag @contextai/provider-openai zod
+pnpm add @contextaisdk/core @contextaisdk/rag @contextaisdk/provider-openai zod
 ```
 
 ## Complete Pipeline
@@ -13,7 +13,7 @@ pnpm add @contextai/core @contextai/rag @contextai/provider-openai zod
 ### Step 1: Set Up Embeddings
 
 ```typescript
-import { HuggingFaceEmbeddingProvider } from '@contextai/rag';
+import { HuggingFaceEmbeddingProvider } from '@contextaisdk/rag';
 
 const embeddings = new HuggingFaceEmbeddingProvider({
   model: 'BAAI/bge-small-en-v1.5', // 384 dimensions
@@ -27,7 +27,7 @@ console.log('Dimensions:', vector.length); // 384
 ### Step 2: Create Vector Store
 
 ```typescript
-import { InMemoryVectorStore } from '@contextai/rag';
+import { InMemoryVectorStore } from '@contextaisdk/rag';
 
 // Brute-force (default) - for <10K vectors
 const vectorStore = new InMemoryVectorStore({
@@ -52,7 +52,7 @@ const vectorStore = new InMemoryVectorStore({
 ### Step 3: Choose a Chunker
 
 ```typescript
-import { RecursiveChunker } from '@contextai/rag';
+import { RecursiveChunker } from '@contextaisdk/rag';
 
 const chunker = new RecursiveChunker({
   chunkSize: 512,
@@ -63,7 +63,7 @@ const chunker = new RecursiveChunker({
 ### Step 4: Set Up Retrieval
 
 ```typescript
-import { DenseRetriever } from '@contextai/rag';
+import { DenseRetriever } from '@contextaisdk/rag';
 
 const retriever = new DenseRetriever({
   vectorStore,
@@ -75,7 +75,7 @@ const retriever = new DenseRetriever({
 ### Step 5: Add Reranking (Optional)
 
 ```typescript
-import { BGEReranker } from '@contextai/rag';
+import { BGEReranker } from '@contextaisdk/rag';
 
 const reranker = new BGEReranker({
   model: 'BAAI/bge-reranker-base',
@@ -85,7 +85,7 @@ const reranker = new BGEReranker({
 ### Step 6: Configure Assembly
 
 ```typescript
-import { MarkdownAssembler } from '@contextai/rag';
+import { MarkdownAssembler } from '@contextaisdk/rag';
 
 const assembler = new MarkdownAssembler({
   headerLevel: 2,
@@ -96,7 +96,7 @@ const assembler = new MarkdownAssembler({
 ### Step 7: Create RAG Engine
 
 ```typescript
-import { RAGEngineImpl } from '@contextai/rag';
+import { RAGEngineImpl } from '@contextaisdk/rag';
 
 const rag = new RAGEngineImpl({
   embeddingProvider: embeddings,
@@ -120,7 +120,7 @@ import {
   DenseRetriever,
   BGEReranker,
   MarkdownAssembler,
-} from '@contextai/rag';
+} from '@contextaisdk/rag';
 
 async function main() {
   // 1. Components
@@ -229,7 +229,7 @@ main().catch(console.error);
 ### From Files
 
 ```typescript
-import { defaultRegistry } from '@contextai/rag';
+import { defaultRegistry } from '@contextaisdk/rag';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 
@@ -306,7 +306,7 @@ const results = await rag.search(query, {
 ## Using with an Agent
 
 ```typescript
-import { Agent, defineTool } from '@contextai/core';
+import { Agent, defineTool } from '@contextaisdk/core';
 import { z } from 'zod';
 
 const searchKnowledgeTool = defineTool({
@@ -357,7 +357,7 @@ const vectors = await embeddings.embedBatch([
 ### Caching
 
 ```typescript
-import { CachedEmbeddingProvider, LRUEmbeddingCache } from '@contextai/rag';
+import { CachedEmbeddingProvider, LRUEmbeddingCache } from '@contextaisdk/rag';
 
 const cache = new LRUEmbeddingCache({ maxSize: 10000 });
 const cachedEmbeddings = new CachedEmbeddingProvider({
@@ -390,12 +390,12 @@ Import only what you need instead of the full package:
 
 ```typescript
 // ❌ Slower - imports everything
-import { RAGEngineImpl, DenseRetriever, HuggingFaceEmbeddingProvider } from '@contextai/rag';
+import { RAGEngineImpl, DenseRetriever, HuggingFaceEmbeddingProvider } from '@contextaisdk/rag';
 
 // ✅ Faster - selective imports (up to 68% faster)
-import { RAGEngineImpl } from '@contextai/rag/engine';
-import { DenseRetriever } from '@contextai/rag/retrieval';
-import { HuggingFaceEmbeddingProvider } from '@contextai/rag/embeddings';
+import { RAGEngineImpl } from '@contextaisdk/rag/engine';
+import { DenseRetriever } from '@contextaisdk/rag/retrieval';
+import { HuggingFaceEmbeddingProvider } from '@contextaisdk/rag/embeddings';
 ```
 
 Available sub-paths: `/engine`, `/retrieval`, `/embeddings`, `/vector-store`, `/reranker`, `/chunking`, `/assembly`, `/query-enhancement`, `/adaptive`, `/memory`, `/cache`, `/loaders`

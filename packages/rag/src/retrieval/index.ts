@@ -10,7 +10,7 @@
  *   BM25Retriever,
  *   DenseRetriever,
  *   reciprocalRankFusion,
- * } from '@contextai/rag';
+ * } from '@contextaisdk/rag';
  *
  * // Create hybrid retriever
  * const retriever = new HybridRetriever(vectorStore, embeddingProvider);

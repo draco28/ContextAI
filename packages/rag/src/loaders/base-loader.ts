@@ -7,7 +7,7 @@
 import { createHash } from 'node:crypto';
 import { readFile, stat } from 'node:fs/promises';
 import { extname } from 'node:path';
-import { PathValidator, PathTraversalError } from '@contextai/core';
+import { PathValidator, PathTraversalError } from '@contextaisdk/core';
 import type {
   Document,
   DocumentLoader,

@@ -1,13 +1,13 @@
-# @contextai/provider-openai
+# @contextaisdk/provider-openai
 
 OpenAI GPT provider for the ContextAI SDK.
 
 ## Installation
 
 ```bash
-npm install @contextai/provider-openai openai
+npm install @contextaisdk/provider-openai openai
 # or
-pnpm add @contextai/provider-openai openai
+pnpm add @contextaisdk/provider-openai openai
 ```
 
 > **Note**: The `openai` package is a peer dependency - you must install it separately.
@@ -15,7 +15,7 @@ pnpm add @contextai/provider-openai openai
 ## Quick Start
 
 ```typescript
-import { OpenAIProvider } from '@contextai/provider-openai';
+import { OpenAIProvider } from '@contextaisdk/provider-openai';
 
 const provider = new OpenAIProvider({
   apiKey: process.env.OPENAI_API_KEY!,
@@ -82,8 +82,8 @@ const provider = new OpenAIProvider({
 ## Using with ContextAI Agent
 
 ```typescript
-import { Agent } from '@contextai/core';
-import { OpenAIProvider } from '@contextai/provider-openai';
+import { Agent } from '@contextaisdk/core';
+import { OpenAIProvider } from '@contextaisdk/provider-openai';
 
 const agent = new Agent({
   llm: new OpenAIProvider({
@@ -122,7 +122,7 @@ With low `maxTokens` values (e.g., 20), the model may exhaust its budget on reas
 ## Error Handling
 
 ```typescript
-import { OpenAIProviderError } from '@contextai/provider-openai';
+import { OpenAIProviderError } from '@contextaisdk/provider-openai';
 
 try {
   await provider.chat(messages);

@@ -4,11 +4,11 @@
  * Measures cold-start performance of ContextAI SDK packages.
  * Target: Agent initialization <500ms (excluding model loading)
  *
- * Run with: pnpm --filter @contextai/core exec vitest bench
+ * Run with: pnpm --filter @contextaisdk/core exec vitest bench
  */
 
 import { bench, describe } from 'vitest';
-import { Agent } from '@contextai/core';
+import { Agent } from '@contextaisdk/core';
 
 // Mock LLM provider for testing (no actual API calls)
 const mockLLM = {
@@ -24,14 +24,14 @@ const mockLLM = {
 
 describe('Package Import Time', () => {
   /**
-   * Measures the time to import @contextai/core.
+   * Measures the time to import @contextaisdk/core.
    * Note: After first import, this measures cached module access.
    * For true cold-start measurement, see standalone-cold-start.ts
    */
   bench(
-    '@contextai/core import (cached)',
+    '@contextaisdk/core import (cached)',
     async () => {
-      const { Agent } = await import('@contextai/core');
+      const { Agent } = await import('@contextaisdk/core');
       void Agent;
     },
     {
@@ -126,7 +126,7 @@ describe('Cold Start Simulation', () => {
   bench(
     'cold start: import + Agent creation',
     async () => {
-      const { Agent: AgentClass } = await import('@contextai/core');
+      const { Agent: AgentClass } = await import('@contextaisdk/core');
 
       const agent = new AgentClass({
         name: 'cold-start-agent',

@@ -12,7 +12,7 @@ body:
     attributes:
       label: Package Version
       description: Which version are you using?
-      placeholder: "@contextai/core@0.0.1"
+      placeholder: "@contextaisdk/core@0.0.1"
     validations:
       required: true
 
@@ -22,10 +22,10 @@ body:
       label: Affected Package
       description: Which package is affected?
       options:
-        - "@contextai/core"
-        - "@contextai/rag"
-        - "@contextai/provider-openai"
-        - "@contextai/provider-anthropic"
+        - "@contextaisdk/core"
+        - "@contextaisdk/rag"
+        - "@contextaisdk/provider-openai"
+        - "@contextaisdk/provider-anthropic"
         - Multiple packages
     validations:
       required: true

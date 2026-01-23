@@ -5,14 +5,14 @@ Complete guide to using OpenAI models with ContextAI.
 ## Installation
 
 ```bash
-pnpm add @contextai/provider-openai openai
+pnpm add @contextaisdk/provider-openai openai
 ```
 
 ## Quick Start
 
 ```typescript
-import { OpenAIProvider } from '@contextai/provider-openai';
-import { Agent } from '@contextai/core';
+import { OpenAIProvider } from '@contextaisdk/provider-openai';
+import { Agent } from '@contextaisdk/core';
 
 const provider = new OpenAIProvider({
   apiKey: process.env.OPENAI_API_KEY!,
@@ -50,7 +50,7 @@ const provider = new OpenAIProvider({
 ### Available Models
 
 ```typescript
-import { OpenAIModels } from '@contextai/provider-openai';
+import { OpenAIModels } from '@contextaisdk/provider-openai';
 
 // GPT-4o (recommended)
 OpenAIModels.GPT_4O // 'gpt-4o'
@@ -97,7 +97,7 @@ for await (const event of agent.stream('Tell me a story')) {
 OpenAI has excellent native tool support:
 
 ```typescript
-import { defineTool } from '@contextai/core';
+import { defineTool } from '@contextaisdk/core';
 import { z } from 'zod';
 
 const weatherTool = defineTool({
@@ -156,7 +156,7 @@ console.log('Resets at:', limits.resetsAt);
 ### Handle Rate Limits
 
 ```typescript
-import { ProviderError } from '@contextai/core';
+import { ProviderError } from '@contextaisdk/core';
 
 try {
   await agent.run(input);
@@ -173,7 +173,7 @@ try {
 ## Error Handling
 
 ```typescript
-import { ProviderError } from '@contextai/core';
+import { ProviderError } from '@contextaisdk/core';
 
 try {
   const response = await provider.chat(messages);

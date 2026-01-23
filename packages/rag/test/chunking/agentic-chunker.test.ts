@@ -9,7 +9,7 @@ import { AgenticChunker } from '../../src/chunking/agentic-chunker.js';
 import { RecursiveChunker } from '../../src/chunking/recursive-chunker.js';
 import { ChunkerError } from '../../src/chunking/errors.js';
 import type { Document } from '../../src/chunking/types.js';
-import type { LLMProvider, ChatMessage, ChatResponse, StreamChunk } from '@contextai/core';
+import type { LLMProvider, ChatMessage, ChatResponse, StreamChunk } from '@contextaisdk/core';
 
 // ============================================================================
 // Test Utilities

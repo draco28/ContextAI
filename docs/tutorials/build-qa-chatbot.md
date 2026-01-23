@@ -22,7 +22,7 @@ mkdir qa-chatbot && cd qa-chatbot
 pnpm init -y
 
 # Install dependencies
-pnpm add @contextai/core @contextai/react @contextai/provider-openai zod react react-dom
+pnpm add @contextaisdk/core @contextaisdk/react @contextaisdk/provider-openai zod react react-dom
 pnpm add -D typescript @types/react @types/react-dom vite
 ```
 
@@ -31,8 +31,8 @@ pnpm add -D typescript @types/react @types/react-dom vite
 Create `src/agent.ts`:
 
 ```typescript
-import { OpenAIProvider } from '@contextai/provider-openai';
-import { Agent, defineTool } from '@contextai/core';
+import { OpenAIProvider } from '@contextaisdk/provider-openai';
+import { Agent, defineTool } from '@contextaisdk/core';
 import { z } from 'zod';
 
 // Create the LLM provider
@@ -51,7 +51,7 @@ Still in `src/agent.ts`, add a search tool:
 const knowledgeBase = [
   {
     topic: 'installation',
-    content: 'To install ContextAI, run: pnpm add @contextai/core',
+    content: 'To install ContextAI, run: pnpm add @contextaisdk/core',
   },
   {
     topic: 'agents',
@@ -117,7 +117,7 @@ Guidelines:
 Create `src/Chat.tsx`:
 
 ```tsx
-import { useChat } from '@contextai/react';
+import { useChat } from '@contextaisdk/react';
 import { chatAgent } from './agent';
 import { useState, useRef, useEffect } from 'react';
 
@@ -454,7 +454,7 @@ const { messages, sendMessage } = useChat(chatAgent, {
 ### Show Tool Usage
 
 ```tsx
-import { useAgentStream } from '@contextai/react';
+import { useAgentStream } from '@contextaisdk/react';
 
 const { reasoningSteps } = useAgentStream(chatAgent);
 

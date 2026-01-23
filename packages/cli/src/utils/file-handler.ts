@@ -189,10 +189,10 @@ function getPackageJsonTemplate(type: PackageType): string {
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@contextai/core": "workspace:*"${extraDeps ? ',\n    ' + extraDeps : ''}
+    "@contextaisdk/core": "workspace:*"${extraDeps ? ',\n    ' + extraDeps : ''}
   },
   "devDependencies": {
-    "@contextai/tsconfig": "workspace:*",
+    "@contextaisdk/tsconfig": "workspace:*",
     ${extraDevDeps}"@types/node": "^20.11.0",
     "tsup": "^8.3.0",
     "typescript": "^5.5.0",
@@ -210,7 +210,7 @@ function getPackageJsonTemplate(type: PackageType): string {
 }
 
 const TSCONFIG_TEMPLATE = `{
-  "extends": "@contextai/tsconfig/library.json",
+  "extends": "@contextaisdk/tsconfig/library.json",
   "compilerOptions": {
     "outDir": "dist",
     "rootDir": "src"
@@ -226,8 +226,8 @@ function getTsupConfigTemplate(type: PackageType): string {
     : `['src/index.ts']`;
 
   const external = type === 'component'
-    ? `['@contextai/core', 'react', 'react-dom']`
-    : `['@contextai/core']`;
+    ? `['@contextaisdk/core', 'react', 'react-dom']`
+    : `['@contextaisdk/core']`;
 
   return `import { defineConfig } from 'tsup';
 
@@ -312,7 +312,7 @@ const PROVIDER_CLASS_TEMPLATE = `import type {
   ChatResponse,
   StreamChunk,
   GenerateOptions,
-} from '@contextai/core';
+} from '@contextaisdk/core';
 import type { <%= pascalName %>ProviderConfig } from './types.js';
 import { <%= pascalName %>ProviderError } from './errors.js';
 
@@ -499,7 +499,7 @@ const AGENT_INDEX_TEMPLATE = `export { <%= pascalName %> } from './agent.js';
 export type { <%= pascalName %>Config, <%= pascalName %>Result } from './types.js';
 `;
 
-const AGENT_CLASS_TEMPLATE = `import type { Tool } from '@contextai/core';
+const AGENT_CLASS_TEMPLATE = `import type { Tool } from '@contextaisdk/core';
 import type { <%= pascalName %>Config, <%= pascalName %>Result } from './types.js';
 
 /**
@@ -510,7 +510,7 @@ import type { <%= pascalName %>Config, <%= pascalName %>Result } from './types.j
  *
  * @example
  * \`\`\`typescript
- * import { Agent } from '@contextai/core';
+ * import { Agent } from '@contextaisdk/core';
  * import { <%= pascalName %> } from '<%= packageName %>';
  *
  * const feature = new <%= pascalName %>({ ... });

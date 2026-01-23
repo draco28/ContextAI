@@ -1,5 +1,5 @@
 /**
- * Core accessibility utilities for @contextai/react
+ * Core accessibility utilities for @contextaisdk/react
  *
  * These utilities help build accessible UI components following WCAG 2.1 AA standards.
  */

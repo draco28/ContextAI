@@ -17,7 +17,7 @@
  *   QueryRewriter,
  *   HyDEEnhancer,
  *   MultiQueryExpander,
- * } from '@contextai/rag';
+ * } from '@contextaisdk/rag';
  *
  * // Choose the right enhancer for your use case
  * const rewriter = new QueryRewriter({ llmProvider });

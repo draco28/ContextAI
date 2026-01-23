@@ -2,7 +2,7 @@
  * Retriever Errors
  */
 
-import { ContextAIError } from '@contextai/core';
+import { ContextAIError } from '@contextaisdk/core';
 import type { RetrieverErrorCode, RetrieverErrorDetails } from './types.js';
 
 /**

@@ -5,7 +5,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import type { LLMProvider, ChatMessage, ChatResponse, GenerateOptions, StreamChunk } from '@contextai/core';
+import type { LLMProvider, ChatMessage, ChatResponse, GenerateOptions, StreamChunk } from '@contextaisdk/core';
 import type { RetrievalResult } from '../../src/retrieval/types.js';
 import { LLMReranker } from '../../src/reranker/llm-reranker.js';
 import { RerankerError } from '../../src/reranker/errors.js';

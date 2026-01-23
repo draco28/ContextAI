@@ -10,7 +10,7 @@ Defined in: [core/src/tools/retrieve-knowledge.ts:44](https://github.com/draco28
 
 Interface for the RAG engine that this tool uses.
 
-This is a minimal interface to avoid tight coupling with @contextai/rag.
+This is a minimal interface to avoid tight coupling with @contextaisdk/rag.
 Any object implementing this interface can be used.
 
 ## Methods

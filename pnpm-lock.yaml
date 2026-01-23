@@ -66,7 +66,7 @@ importers:
         specifier: ^3.23.8
         version: 3.25.76
     devDependencies:
-      '@contextai/tsconfig':
+      '@contextaisdk/tsconfig':
         specifier: workspace:*
         version: link:../tsconfig
       '@types/ejs':
@@ -94,7 +94,7 @@ importers:
         specifier: ^3.23.0
         version: 3.25.76
     devDependencies:
-      '@contextai/tsconfig':
+      '@contextaisdk/tsconfig':
         specifier: workspace:*
         version: link:../tsconfig
       '@types/node':
@@ -116,38 +116,16 @@ importers:
         specifier: ^2.1.0
         version: 2.1.9(@types/node@20.19.27)(jsdom@26.1.0)
 
-  packages/my-agent:
-    dependencies:
-      '@contextai/core':
-        specifier: workspace:*
-        version: link:../core
-    devDependencies:
-      '@contextai/tsconfig':
-        specifier: workspace:*
-        version: link:../tsconfig
-      '@types/node':
-        specifier: ^20.11.0
-        version: 20.19.27
-      tsup:
-        specifier: ^8.3.0
-        version: 8.5.1(jiti@2.6.1)(postcss@8.5.6)(typescript@5.9.3)(yaml@2.8.2)
-      typescript:
-        specifier: ^5.5.0
-        version: 5.9.3
-      vitest:
-        specifier: ^2.1.0
-        version: 2.1.9(@types/node@20.19.27)(jsdom@26.1.0)
-
   packages/provider-anthropic:
     dependencies:
-      '@contextai/core':
+      '@contextaisdk/core':
         specifier: workspace:*
         version: link:../core
     devDependencies:
       '@anthropic-ai/sdk':
         specifier: ^0.39.0
         version: 0.39.0
-      '@contextai/tsconfig':
+      '@contextaisdk/tsconfig':
         specifier: workspace:*
         version: link:../tsconfig
       tsup:
@@ -162,11 +140,11 @@ importers:
 
   packages/provider-ollama:
     dependencies:
-      '@contextai/core':
+      '@contextaisdk/core':
         specifier: workspace:*
         version: link:../core
     devDependencies:
-      '@contextai/tsconfig':
+      '@contextaisdk/tsconfig':
         specifier: workspace:*
         version: link:../tsconfig
       tsup:
@@ -181,11 +159,11 @@ importers:
 
   packages/provider-openai:
     dependencies:
-      '@contextai/core':
+      '@contextaisdk/core':
         specifier: workspace:*
         version: link:../core
     devDependencies:
-      '@contextai/tsconfig':
+      '@contextaisdk/tsconfig':
         specifier: workspace:*
         version: link:../tsconfig
       openai:
@@ -201,31 +179,9 @@ importers:
         specifier: ^2.1.0
         version: 2.1.9(@types/node@20.19.27)(jsdom@26.1.0)
 
-  packages/provider-test-provider:
-    dependencies:
-      '@contextai/core':
-        specifier: workspace:*
-        version: link:../core
-    devDependencies:
-      '@contextai/tsconfig':
-        specifier: workspace:*
-        version: link:../tsconfig
-      '@types/node':
-        specifier: ^20.11.0
-        version: 20.19.27
-      tsup:
-        specifier: ^8.3.0
-        version: 8.5.1(jiti@2.6.1)(postcss@8.5.6)(typescript@5.9.3)(yaml@2.8.2)
-      typescript:
-        specifier: ^5.5.0
-        version: 5.9.3
-      vitest:
-        specifier: ^2.1.0
-        version: 2.1.9(@types/node@20.19.27)(jsdom@26.1.0)
-
   packages/rag:
     dependencies:
-      '@contextai/core':
+      '@contextaisdk/core':
         specifier: workspace:*
         version: link:../core
       '@xenova/transformers':
@@ -247,7 +203,7 @@ importers:
         specifier: ^8.11.0
         version: 8.17.1
     devDependencies:
-      '@contextai/tsconfig':
+      '@contextaisdk/tsconfig':
         specifier: workspace:*
         version: link:../tsconfig
       '@types/node':
@@ -274,11 +230,11 @@ importers:
 
   packages/react:
     dependencies:
-      '@contextai/core':
+      '@contextaisdk/core':
         specifier: workspace:*
         version: link:../core
     devDependencies:
-      '@contextai/tsconfig':
+      '@contextaisdk/tsconfig':
         specifier: workspace:*
         version: link:../tsconfig
       '@testing-library/jest-dom':

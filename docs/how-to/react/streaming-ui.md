@@ -14,7 +14,7 @@ Create real-time interfaces that show agent responses as they generate.
 ### useChat Hook
 
 ```tsx
-import { useChat } from '@contextai/react';
+import { useChat } from '@contextaisdk/react';
 
 function StreamingChat() {
   const {
@@ -79,7 +79,7 @@ function StreamingChat() {
 Show the agent's thought process:
 
 ```tsx
-import { useAgentStream } from '@contextai/react';
+import { useAgentStream } from '@contextaisdk/react';
 
 function AgentWithReasoning() {
   const {
@@ -152,7 +152,7 @@ function ReasoningStep({ step }) {
 ### ReasoningTrace Component
 
 ```tsx
-import { ReasoningTrace, ThoughtStep, ActionStep, ObservationStep } from '@contextai/react';
+import { ReasoningTrace, ThoughtStep, ActionStep, ObservationStep } from '@contextaisdk/react';
 
 function AgentTrace({ trace }) {
   return (
@@ -359,7 +359,7 @@ const MessageBubble = memo(function MessageBubble({ message }) {
 ### Live Regions
 
 ```tsx
-import { useAnnouncer } from '@contextai/react';
+import { useAnnouncer } from '@contextaisdk/react';
 
 function AccessibleChat() {
   const { announce } = useAnnouncer();
@@ -395,7 +395,7 @@ function StreamingStatus({ isLoading, streamingContent }) {
 ### Focus Management
 
 ```tsx
-import { useFocusTrap } from '@contextai/react';
+import { useFocusTrap } from '@contextaisdk/react';
 
 function ChatModal({ isOpen, onClose }) {
   const ref = useFocusTrap(isOpen);
@@ -462,8 +462,8 @@ function RetryableMessage({ message, onRetry }) {
 
 ```tsx
 // StreamingChat.tsx
-import { useAgentStream, useAnnouncer } from '@contextai/react';
-import { Agent } from '@contextai/core';
+import { useAgentStream, useAnnouncer } from '@contextaisdk/react';
+import { Agent } from '@contextaisdk/core';
 import { useState, useRef, useEffect, memo } from 'react';
 
 export function StreamingChat({ agent }: { agent: Agent }) {

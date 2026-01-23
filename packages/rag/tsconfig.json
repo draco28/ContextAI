@@ -1,5 +1,5 @@
 {
-  "extends": "@contextai/tsconfig/library.json",
+  "extends": "@contextaisdk/tsconfig/library.json",
   "compilerOptions": {
     "outDir": "dist",
     "rootDir": "src"

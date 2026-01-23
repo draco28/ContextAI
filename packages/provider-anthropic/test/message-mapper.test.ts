@@ -11,7 +11,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import type { ChatMessage, ToolDefinition } from '@contextai/core';
+import type { ChatMessage, ToolDefinition } from '@contextaisdk/core';
 import {
   extractSystemMessage,
   mapMessages,

@@ -5,7 +5,7 @@
  */
 
 import { useState, useCallback, useRef, useEffect } from 'react';
-import type { Agent, AgentRunOptions, ReActTrace } from '@contextai/core';
+import type { Agent, AgentRunOptions, ReActTrace } from '@contextaisdk/core';
 import type { Message } from '../types.js';
 import { generateMessageId } from '../types.js';
 import type {
@@ -31,8 +31,8 @@ import type {
  *
  * @example
  * ```tsx
- * import { useAgentStream } from '@contextai/react';
- * import { Agent } from '@contextai/core';
+ * import { useAgentStream } from '@contextaisdk/react';
+ * import { Agent } from '@contextaisdk/core';
  *
  * const agent = new Agent({ ... });
  *

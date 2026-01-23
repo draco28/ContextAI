@@ -25,7 +25,7 @@ Supports two modes:
 ## Example
 
 ```typescript
-import { OpenAIProvider } from '@contextai/provider-openai';
+import { OpenAIProvider } from '@contextaisdk/provider-openai';
 
 const reranker = new LLMReranker({
   llmProvider: new OpenAIProvider({

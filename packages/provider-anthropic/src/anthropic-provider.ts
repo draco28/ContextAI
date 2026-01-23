@@ -6,7 +6,7 @@
  *
  * @example
  * ```typescript
- * import { AnthropicProvider } from '@contextai/provider-anthropic';
+ * import { AnthropicProvider } from '@contextaisdk/provider-anthropic';
  *
  * const provider = new AnthropicProvider({
  *   apiKey: process.env.ANTHROPIC_API_KEY!,
@@ -32,7 +32,7 @@ import type {
   StreamChunk,
   GenerateOptions,
   RateLimitInfo,
-} from '@contextai/core';
+} from '@contextaisdk/core';
 import Anthropic from '@anthropic-ai/sdk';
 
 import type { AnthropicProviderConfig, RateLimitState } from './types.js';

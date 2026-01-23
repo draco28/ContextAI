@@ -11,5 +11,5 @@ export default defineConfig({
   splitting: false,
   treeshake: true,
   minify: true,
-  external: ['@contextai/core', 'openai'],
+  external: ['@contextaisdk/core', 'openai'],
 });

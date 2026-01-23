@@ -2,7 +2,7 @@
  * Vector Store Errors
  */
 
-import { ContextAIError } from '@contextai/core';
+import { ContextAIError } from '@contextaisdk/core';
 import type { VectorStoreErrorCode, VectorStoreErrorDetails } from './types.js';
 
 /**

@@ -1,6 +1,6 @@
 # Memory Management for RAG Applications
 
-This guide covers memory-efficient storage and budget enforcement in the `@contextai/rag` package.
+This guide covers memory-efficient storage and budget enforcement in the `@contextaisdk/rag` package.
 
 ## Overview
 
@@ -21,7 +21,7 @@ The RAG package addresses these challenges with:
 By default, `InMemoryVectorStore` stores embeddings as `Float32Array` instead of `number[]`:
 
 ```typescript
-import { InMemoryVectorStore } from '@contextai/rag';
+import { InMemoryVectorStore } from '@contextaisdk/rag';
 
 // Float32 is enabled by default (useFloat32: true)
 const store = new InMemoryVectorStore({
@@ -56,7 +56,7 @@ const store = new InMemoryVectorStore({
 Set a memory limit with automatic LRU (Least Recently Used) eviction:
 
 ```typescript
-import { InMemoryVectorStore, formatBytes } from '@contextai/rag';
+import { InMemoryVectorStore, formatBytes } from '@contextaisdk/rag';
 
 const store = new InMemoryVectorStore({
   dimensions: 1536,
@@ -95,7 +95,7 @@ console.log(`Float32: ${stats.useFloat32}`);
 ### Global Memory Statistics
 
 ```typescript
-import { getMemoryStats, formatMemoryStats } from '@contextai/rag';
+import { getMemoryStats, formatMemoryStats } from '@contextaisdk/rag';
 
 const memory = getMemoryStats();
 console.log(formatMemoryStats(memory));
@@ -107,7 +107,7 @@ console.log(formatMemoryStats(memory));
 Estimate memory usage before allocating:
 
 ```typescript
-import { estimateSize, estimateEmbeddingMemory, formatBytes } from '@contextai/rag';
+import { estimateSize, estimateEmbeddingMemory, formatBytes } from '@contextaisdk/rag';
 
 // Estimate embedding memory
 const bytes = estimateEmbeddingMemory(1536, 1000, true);  // 1000 chunks, Float32
@@ -123,7 +123,7 @@ console.log(`Object size: ${formatBytes(estimateSize(obj))}`);
 The embedding cache also supports memory-based limits:
 
 ```typescript
-import { LRUCacheProvider, estimateSize } from '@contextai/rag';
+import { LRUCacheProvider, estimateSize } from '@contextaisdk/rag';
 
 const cache = new LRUCacheProvider<string, number[]>({
   maxMemoryBytes: 50 * 1024 * 1024,  // 50MB limit
@@ -191,7 +191,7 @@ The SDK meets the requirement: **baseline memory usage shall not exceed 100MB fo
 ### Proof
 
 ```typescript
-import { InMemoryVectorStore, formatBytes } from '@contextai/rag';
+import { InMemoryVectorStore, formatBytes } from '@contextaisdk/rag';
 
 const store = new InMemoryVectorStore({
   dimensions: 1536,  // OpenAI embedding size
@@ -261,7 +261,7 @@ function toNumberArray(embedding: Float32Array): number[];
 For custom memory tracking:
 
 ```typescript
-import { MemoryBudget } from '@contextai/rag';
+import { MemoryBudget } from '@contextaisdk/rag';
 
 const budget = new MemoryBudget({
   maxBytes: 100 * 1024 * 1024,

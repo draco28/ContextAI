@@ -14,7 +14,7 @@ import {
   ToolTimeoutError,
   ProviderError,
   ValidationError,
-} from '@contextai/core';
+} from '@contextaisdk/core';
 ```
 
 ### Error Hierarchy
@@ -33,7 +33,7 @@ ContextAIError (base)
 ### Try/Catch
 
 ```typescript
-import { AgentError, ToolError, ProviderError } from '@contextai/core';
+import { AgentError, ToolError, ProviderError } from '@contextaisdk/core';
 
 try {
   const response = await agent.run('Do something');
@@ -89,7 +89,7 @@ try {
 ### Provider Errors
 
 ```typescript
-import { ProviderError } from '@contextai/core';
+import { ProviderError } from '@contextaisdk/core';
 
 try {
   await agent.run(input);
@@ -136,7 +136,7 @@ try {
 ### Tool Errors
 
 ```typescript
-import { ToolError, ToolTimeoutError } from '@contextai/core';
+import { ToolError, ToolTimeoutError } from '@contextaisdk/core';
 
 try {
   await agent.run(input);
@@ -154,7 +154,7 @@ try {
 ### Agent Errors
 
 ```typescript
-import { AgentError } from '@contextai/core';
+import { AgentError } from '@contextaisdk/core';
 
 try {
   await agent.run(input);
@@ -180,7 +180,7 @@ try {
 ### Validation Errors
 
 ```typescript
-import { ValidationError } from '@contextai/core';
+import { ValidationError } from '@contextaisdk/core';
 
 try {
   await agent.run(input);
@@ -424,7 +424,7 @@ try {
 
 ```typescript
 import { describe, it, expect, vi } from 'vitest';
-import { ProviderError, ToolError } from '@contextai/core';
+import { ProviderError, ToolError } from '@contextaisdk/core';
 
 describe('error handling', () => {
   it('handles provider rate limiting', async () => {
@@ -466,7 +466,7 @@ describe('error handling', () => {
 When logging errors, ensure sensitive data is redacted:
 
 ```typescript
-import { createSafeLogger, redactObject, consoleLogger } from '@contextai/core';
+import { createSafeLogger, redactObject, consoleLogger } from '@contextaisdk/core';
 
 // Create a safe logger that auto-redacts secrets
 const logger = createSafeLogger(consoleLogger);
@@ -510,7 +510,7 @@ try {
 For non-logger contexts:
 
 ```typescript
-import { redactObject } from '@contextai/core';
+import { redactObject } from '@contextaisdk/core';
 
 // Before sending to error tracking
 const { data: safeContext } = redactObject({

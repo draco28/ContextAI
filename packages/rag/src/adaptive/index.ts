@@ -6,7 +6,7 @@
  *
  * @example
  * ```typescript
- * import { AdaptiveRAG, QueryClassifier } from '@contextai/rag';
+ * import { AdaptiveRAG, QueryClassifier } from '@contextaisdk/rag';
  *
  * // Use standalone classifier
  * const classifier = new QueryClassifier();

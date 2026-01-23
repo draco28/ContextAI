@@ -12,7 +12,7 @@ Build your first AI agent in 5 minutes.
 ```bash
 mkdir my-agent && cd my-agent
 npm init -y
-npm install @contextai/core @contextai/provider-openai zod typescript tsx
+npm install @contextaisdk/core @contextaisdk/provider-openai zod typescript tsx
 ```
 
 Create `tsconfig.json`:
@@ -34,8 +34,8 @@ Create `tsconfig.json`:
 Create `agent.ts`:
 
 ```typescript
-import { Agent } from '@contextai/core';
-import { OpenAIProvider } from '@contextai/provider-openai';
+import { Agent } from '@contextaisdk/core';
+import { OpenAIProvider } from '@contextaisdk/provider-openai';
 
 // 1. Create an LLM provider
 const llm = new OpenAIProvider({
@@ -68,8 +68,8 @@ OPENAI_API_KEY=sk-... npx tsx agent.ts
 Tools let your agent take actions. Create `agent-with-tool.ts`:
 
 ```typescript
-import { Agent, defineTool } from '@contextai/core';
-import { OpenAIProvider } from '@contextai/provider-openai';
+import { Agent, defineTool } from '@contextaisdk/core';
+import { OpenAIProvider } from '@contextaisdk/provider-openai';
 import { z } from 'zod';
 
 const llm = new OpenAIProvider({
@@ -136,8 +136,8 @@ Reasoning trace:
 For real-time responses, create `streaming-agent.ts`:
 
 ```typescript
-import { Agent, defineTool } from '@contextai/core';
-import { OpenAIProvider } from '@contextai/provider-openai';
+import { Agent, defineTool } from '@contextaisdk/core';
+import { OpenAIProvider } from '@contextaisdk/provider-openai';
 import { z } from 'zod';
 
 const llm = new OpenAIProvider({
@@ -180,8 +180,8 @@ OPENAI_API_KEY=sk-... npx tsx streaming-agent.ts
 For conversations that remember context, create `chat-agent.ts`:
 
 ```typescript
-import { Agent } from '@contextai/core';
-import { OpenAIProvider } from '@contextai/provider-openai';
+import { Agent } from '@contextaisdk/core';
+import { OpenAIProvider } from '@contextaisdk/provider-openai';
 import * as readline from 'readline';
 
 const llm = new OpenAIProvider({
@@ -243,8 +243,8 @@ Here's a full example combining everything:
 
 ```typescript
 // complete-agent.ts
-import { Agent, defineTool, createSafeLogger, consoleLogger } from '@contextai/core';
-import { OpenAIProvider } from '@contextai/provider-openai';
+import { Agent, defineTool, createSafeLogger, consoleLogger } from '@contextaisdk/core';
+import { OpenAIProvider } from '@contextaisdk/provider-openai';
 import { z } from 'zod';
 
 // Provider

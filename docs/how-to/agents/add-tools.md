@@ -15,7 +15,7 @@ Tools let agents perform actions beyond text generation:
 ### Step 1: Define the Tool
 
 ```typescript
-import { defineTool } from '@contextai/core';
+import { defineTool } from '@contextaisdk/core';
 import { z } from 'zod';
 
 const calculatorTool = defineTool({
@@ -34,7 +34,7 @@ const calculatorTool = defineTool({
 ### Step 2: Add to Agent
 
 ```typescript
-import { Agent } from '@contextai/core';
+import { Agent } from '@contextaisdk/core';
 
 const agent = new Agent({
   name: 'Math Assistant',
@@ -297,7 +297,7 @@ const tool = defineTool({
 For fatal errors that should stop the agent:
 
 ```typescript
-import { ToolError } from '@contextai/core';
+import { ToolError } from '@contextaisdk/core';
 
 const tool = defineTool({
   execute: async (input) => {

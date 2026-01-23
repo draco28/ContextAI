@@ -12,13 +12,13 @@ Step-by-step guide to creating your first ContextAI agent.
 ### Step 1: Install Dependencies
 
 ```bash
-pnpm add @contextai/core @contextai/provider-openai zod
+pnpm add @contextaisdk/core @contextaisdk/provider-openai zod
 ```
 
 ### Step 2: Create the Provider
 
 ```typescript
-import { OpenAIProvider } from '@contextai/provider-openai';
+import { OpenAIProvider } from '@contextaisdk/provider-openai';
 
 const provider = new OpenAIProvider({
   apiKey: process.env.OPENAI_API_KEY!,
@@ -29,7 +29,7 @@ const provider = new OpenAIProvider({
 ### Step 3: Create the Agent
 
 ```typescript
-import { Agent } from '@contextai/core';
+import { Agent } from '@contextaisdk/core';
 
 const agent = new Agent({
   name: 'My Assistant',
@@ -54,8 +54,8 @@ console.log(response.success);
 
 ```typescript
 // agent.ts
-import { Agent } from '@contextai/core';
-import { OpenAIProvider } from '@contextai/provider-openai';
+import { Agent } from '@contextaisdk/core';
+import { OpenAIProvider } from '@contextaisdk/provider-openai';
 
 async function main() {
   // Create provider
@@ -111,7 +111,7 @@ const agent = new Agent({
 ### With Tools
 
 ```typescript
-import { defineTool } from '@contextai/core';
+import { defineTool } from '@contextaisdk/core';
 import { z } from 'zod';
 
 const searchTool = defineTool({
@@ -285,7 +285,7 @@ console.log(response.trace.durationMs);
 ### Formatting Traces
 
 ```typescript
-import { formatTrace } from '@contextai/core';
+import { formatTrace } from '@contextaisdk/core';
 
 const response = await agent.run('Calculate 15% of 200');
 console.log(formatTrace(response.trace));
@@ -310,8 +310,8 @@ Duration: 1.2s
 ### Multi-Provider Support
 
 ```typescript
-import { OpenAIProvider } from '@contextai/provider-openai';
-import { OllamaProvider } from '@contextai/provider-ollama';
+import { OpenAIProvider } from '@contextaisdk/provider-openai';
+import { OllamaProvider } from '@contextaisdk/provider-ollama';
 
 const prodProvider = new OpenAIProvider({
   apiKey: process.env.OPENAI_API_KEY!,

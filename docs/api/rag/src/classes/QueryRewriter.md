@@ -20,7 +20,7 @@ Latency: ~200-500ms depending on LLM
 ## Example
 
 ```typescript
-import { OpenAIProvider } from '@contextai/provider-openai';
+import { OpenAIProvider } from '@contextaisdk/provider-openai';
 
 const rewriter = new QueryRewriter({
   llmProvider: new OpenAIProvider({

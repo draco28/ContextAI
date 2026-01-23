@@ -27,11 +27,11 @@ const mockLLM = {
 describe('NFR-104: Startup Time', () => {
   it('should profile sub-entry point import times', async () => {
     const components = [
-      '@contextai/core', // Full package
-      '@contextai/core/agent', // Just agent
-      '@contextai/core/security', // Just security utilities
-      '@contextai/core/tool', // Just tool framework
-      '@contextai/core/errors', // Just errors
+      '@contextaisdk/core', // Full package
+      '@contextaisdk/core/agent', // Just agent
+      '@contextaisdk/core/security', // Just security utilities
+      '@contextaisdk/core/tool', // Just tool framework
+      '@contextaisdk/core/errors', // Just errors
     ];
 
     console.log('\n--- Core Sub-Entry Point Import Times ---');
@@ -49,7 +49,7 @@ describe('NFR-104: Startup Time', () => {
   it('should initialize Agent in under 500ms', async () => {
     // Import and measure
     const importStart = performance.now();
-    const { Agent } = await import('@contextai/core');
+    const { Agent } = await import('@contextaisdk/core');
     const importTime = performance.now() - importStart;
 
     // Create agent and measure
@@ -79,7 +79,7 @@ describe('NFR-104: Startup Time', () => {
   });
 
   it('should initialize Agent with 10 tools in under 500ms', async () => {
-    const { Agent } = await import('@contextai/core');
+    const { Agent } = await import('@contextaisdk/core');
 
     const tools = Array.from({ length: 10 }, (_, i) => ({
       name: `tool_${i}`,
@@ -104,7 +104,7 @@ describe('NFR-104: Startup Time', () => {
   });
 
   it('should initialize Agent with context in under 500ms', async () => {
-    const { Agent } = await import('@contextai/core');
+    const { Agent } = await import('@contextaisdk/core');
 
     const start = performance.now();
     const agent = new Agent({
@@ -126,7 +126,7 @@ describe('NFR-104: Startup Time', () => {
   });
 
   it('should measure multiple initialization cycles', async () => {
-    const { Agent } = await import('@contextai/core');
+    const { Agent } = await import('@contextaisdk/core');
 
     const times: number[] = [];
     const iterations = 100;

@@ -41,7 +41,7 @@ graph TB
 Load documents from various sources:
 
 ```typescript
-import { DocumentLoaderRegistry, defaultRegistry } from '@contextai/rag';
+import { DocumentLoaderRegistry, defaultRegistry } from '@contextaisdk/rag';
 
 // Load a single file
 const docs = await defaultRegistry.load('./data/guide.md');
@@ -61,7 +61,7 @@ registry.register('.pdf', myPDFLoader);
 Split documents into manageable pieces:
 
 ```typescript
-import { FixedSizeChunker, RecursiveChunker, SentenceChunker } from '@contextai/rag';
+import { FixedSizeChunker, RecursiveChunker, SentenceChunker } from '@contextaisdk/rag';
 
 // Fixed-size (fastest)
 const chunker = new FixedSizeChunker({ chunkSize: 512, overlap: 50 });
@@ -86,7 +86,7 @@ const chunks = await chunker.chunk(document);
 Convert text to vectors:
 
 ```typescript
-import { HuggingFaceEmbeddingProvider, OllamaEmbeddingProvider } from '@contextai/rag';
+import { HuggingFaceEmbeddingProvider, OllamaEmbeddingProvider } from '@contextaisdk/rag';
 
 // Local HuggingFace (via Transformers.js)
 const embeddings = new HuggingFaceEmbeddingProvider({
@@ -106,7 +106,7 @@ const vector = await embeddings.embed('Your text here');
 Store and index embeddings:
 
 ```typescript
-import { InMemoryVectorStore } from '@contextai/rag';
+import { InMemoryVectorStore } from '@contextaisdk/rag';
 
 // Brute-force (default) - exact results for <10K vectors
 const store = new InMemoryVectorStore({
@@ -138,7 +138,7 @@ await store.add(chunksWithEmbeddings);
 Improve search queries:
 
 ```typescript
-import { QueryRewriter, HyDEEnhancer, MultiQueryExpander } from '@contextai/rag';
+import { QueryRewriter, HyDEEnhancer, MultiQueryExpander } from '@contextaisdk/rag';
 
 // Fix typos, expand abbreviations
 const rewriter = new QueryRewriter({ llm });
@@ -155,7 +155,7 @@ const expander = new MultiQueryExpander({ llm, numQueries: 3 });
 Find relevant chunks:
 
 ```typescript
-import { DenseRetriever, BM25Retriever, HybridRetriever } from '@contextai/rag';
+import { DenseRetriever, BM25Retriever, HybridRetriever } from '@contextaisdk/rag';
 
 // Dense (semantic similarity)
 const dense = new DenseRetriever({ vectorStore, embeddings, topK: 10 });
@@ -178,7 +178,7 @@ const hybrid = new HybridRetriever({
 Re-score results for relevance:
 
 ```typescript
-import { BGEReranker, MMRReranker, LLMReranker } from '@contextai/rag';
+import { BGEReranker, MMRReranker, LLMReranker } from '@contextaisdk/rag';
 
 // Cross-encoder (most accurate)
 const bge = new BGEReranker({ model: 'BAAI/bge-reranker-base' });
@@ -195,7 +195,7 @@ const llm = new LLMReranker({ llm: yourLLM, batchSize: 5 });
 Format for LLM consumption:
 
 ```typescript
-import { XMLAssembler, MarkdownAssembler } from '@contextai/rag';
+import { XMLAssembler, MarkdownAssembler } from '@contextaisdk/rag';
 
 // XML (Claude-preferred)
 const xml = new XMLAssembler({
@@ -218,7 +218,7 @@ const assembled = await assembler.assemble(results, { maxTokens: 4000 });
 Let the system decide retrieval strategy:
 
 ```typescript
-import { QueryClassifier, AdaptiveRAG } from '@contextai/rag';
+import { QueryClassifier, AdaptiveRAG } from '@contextaisdk/rag';
 
 const classifier = new QueryClassifier({ llm });
 const adaptive = new AdaptiveRAG({
@@ -236,7 +236,7 @@ const adaptive = new AdaptiveRAG({
 The main orchestrator combines all stages:
 
 ```typescript
-import { RAGEngineImpl } from '@contextai/rag';
+import { RAGEngineImpl } from '@contextaisdk/rag';
 
 const rag = new RAGEngineImpl({
   // Required
@@ -344,7 +344,7 @@ User Query: "How do I implement OAuth?"
 ### As a Tool
 
 ```typescript
-import { Agent, defineTool } from '@contextai/core';
+import { Agent, defineTool } from '@contextaisdk/core';
 import { z } from 'zod';
 
 const searchKnowledgeTool = defineTool({

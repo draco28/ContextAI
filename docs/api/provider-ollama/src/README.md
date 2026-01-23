@@ -6,7 +6,7 @@
 
 # provider-ollama/src
 
-@contextai/provider-ollama
+@contextaisdk/provider-ollama
 
 Ollama local LLM provider for ContextAI SDK.
 
@@ -16,7 +16,7 @@ via the Ollama server. No API key required - run LLMs locally!
 ## Example
 
 ```typescript
-import { OllamaProvider, OllamaModels } from '@contextai/provider-ollama';
+import { OllamaProvider, OllamaModels } from '@contextaisdk/provider-ollama';
 
 const provider = new OllamaProvider({
   model: OllamaModels.LLAMA_3_2,

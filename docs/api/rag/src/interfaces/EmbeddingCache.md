@@ -19,7 +19,7 @@ cache module. This interface is maintained for backward compatibility.
 
 ```typescript
 // New approach (recommended):
-import { LRUCacheProvider, type CacheProvider } from '@contextai/rag';
+import { LRUCacheProvider, type CacheProvider } from '@contextaisdk/rag';
 const cache: CacheProvider<number[]> = new LRUCacheProvider({ maxSize: 1000 });
 
 // Legacy approach (still supported):

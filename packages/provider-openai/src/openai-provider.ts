@@ -5,7 +5,7 @@ import type {
   LLMProvider,
   RateLimitInfo,
   StreamChunk,
-} from '@contextai/core';
+} from '@contextaisdk/core';
 import OpenAI from 'openai';
 import type { OpenAIProviderConfig, RateLimitState } from './types.js';
 import { mapOpenAIError } from './errors.js';
@@ -25,7 +25,7 @@ import {
  *
  * @example
  * ```typescript
- * import { OpenAIProvider } from '@contextai/provider-openai';
+ * import { OpenAIProvider } from '@contextaisdk/provider-openai';
  *
  * const provider = new OpenAIProvider({
  *   apiKey: process.env.OPENAI_API_KEY!,

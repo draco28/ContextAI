@@ -11,7 +11,7 @@
  *   MarkdownAssembler,
  *   applyOrdering,
  *   estimateTokens,
- * } from '@contextai/rag';
+ * } from '@contextaisdk/rag';
  *
  * // Create an XML assembler with sandwich ordering
  * const assembler = new XMLAssembler({

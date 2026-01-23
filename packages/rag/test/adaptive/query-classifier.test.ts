@@ -284,7 +284,7 @@ describe('QueryClassifier', () => {
     });
 
     it('should handle queries with special characters', () => {
-      const result = classifier.classify('What is @contextai/rag?');
+      const result = classifier.classify('What is @contextaisdk/rag?');
       expect(result.type).toBe('factual');
     });
 

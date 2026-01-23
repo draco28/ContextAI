@@ -1,4 +1,4 @@
-import type { GenerateOptions, LLMProviderConfig } from '@contextai/core';
+import type { GenerateOptions, LLMProviderConfig } from '@contextaisdk/core';
 
 /**
  * Configuration for the Ollama local LLM provider.

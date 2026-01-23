@@ -18,7 +18,7 @@
  * ```
  */
 
-import { escapeIdentifier } from '@contextai/core';
+import { escapeIdentifier } from '@contextaisdk/core';
 import type {
   PgVectorStoreConfig,
   ChunkWithEmbedding,

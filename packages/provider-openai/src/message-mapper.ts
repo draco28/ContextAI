@@ -4,13 +4,13 @@ import type {
   GenerateOptions,
   ResponseFormat,
   ToolDefinition,
-} from '@contextai/core';
+} from '@contextaisdk/core';
 import {
   isDocumentContent,
   isImageContent,
   isMultimodalContent,
   isTextContent,
-} from '@contextai/core';
+} from '@contextaisdk/core';
 import type OpenAI from 'openai';
 
 type OpenAIMessage = OpenAI.Chat.Completions.ChatCompletionMessageParam;

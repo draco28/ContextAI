@@ -16,7 +16,7 @@ Also compatible with OpenAI-compatible APIs like OpenRouter.
 ## Example
 
 ```typescript
-import { OpenAIProvider } from '@contextai/provider-openai';
+import { OpenAIProvider } from '@contextaisdk/provider-openai';
 
 const provider = new OpenAIProvider({
   apiKey: process.env.OPENAI_API_KEY!,

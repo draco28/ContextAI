@@ -38,7 +38,7 @@ const agent = new Agent({
 ### Advanced: Custom Provider
 
 ```typescript
-import { InMemoryProvider } from '@contextai/core';
+import { InMemoryProvider } from '@contextaisdk/core';
 
 const memoryProvider = new InMemoryProvider({
   maxMessages: 100,     // Keep last 100 messages
@@ -122,7 +122,7 @@ interface MemoryOptions {
 In-process memory (lost on restart):
 
 ```typescript
-import { InMemoryProvider } from '@contextai/core';
+import { InMemoryProvider } from '@contextaisdk/core';
 
 const memory = new InMemoryProvider({
   maxMessages: 50,

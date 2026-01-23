@@ -5,7 +5,7 @@
  */
 
 import { useState, useCallback, useRef, useEffect } from 'react';
-import type { Agent, AgentResponse, AgentRunOptions } from '@contextai/core';
+import type { Agent, AgentResponse, AgentRunOptions } from '@contextaisdk/core';
 import type { Message } from '../types.js';
 import { generateMessageId } from '../types.js';
 import type { UseChatOptions, UseChatReturn } from './types.js';
@@ -27,8 +27,8 @@ import type { UseChatOptions, UseChatReturn } from './types.js';
  *
  * @example
  * ```tsx
- * import { useChat } from '@contextai/react';
- * import { Agent } from '@contextai/core';
+ * import { useChat } from '@contextaisdk/react';
+ * import { Agent } from '@contextaisdk/core';
  *
  * const agent = new Agent({ ... });
  *

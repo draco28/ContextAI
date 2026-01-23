@@ -1,4 +1,4 @@
-import { ContextAIError } from '@contextai/core';
+import { ContextAIError } from '@contextaisdk/core';
 
 /**
  * Error codes for OpenAI provider errors.

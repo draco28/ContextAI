@@ -10,9 +10,9 @@
 import { describe, it, expect } from 'vitest';
 
 describe('NFR-104: RAG Package Startup Time', () => {
-  it('should import @contextai/rag package efficiently', async () => {
+  it('should import @contextaisdk/rag package efficiently', async () => {
     const start = performance.now();
-    const rag = await import('@contextai/rag');
+    const rag = await import('@contextaisdk/rag');
     const elapsed = performance.now() - start;
 
     console.log('\n--- RAG Package Import Time ---');
@@ -33,7 +33,7 @@ describe('NFR-104: RAG Package Startup Time', () => {
       InMemoryVectorStore,
       MarkdownAssembler,
       DenseRetriever,
-    } = await import('@contextai/rag');
+    } = await import('@contextaisdk/rag');
 
     // Create minimal components
     const vectorStore = new InMemoryVectorStore({ dimensions: 384 });
@@ -76,7 +76,7 @@ describe('NFR-104: RAG Package Startup Time', () => {
       MarkdownAssembler,
       DenseRetriever,
       LRUCacheProvider,
-    } = await import('@contextai/rag');
+    } = await import('@contextaisdk/rag');
 
     const vectorStore = new InMemoryVectorStore({ dimensions: 384 });
     const assembler = new MarkdownAssembler();
@@ -123,15 +123,15 @@ describe('NFR-104: RAG Package Startup Time', () => {
   it('should profile individual component import times', async () => {
     // Sub-entry points for lazy loading
     const components = [
-      '@contextai/rag', // Full package (107 exports)
-      '@contextai/rag/engine', // Just the engine
-      '@contextai/rag/retrieval', // Just retrievers
-      '@contextai/rag/embeddings', // Just embedding providers
-      '@contextai/rag/vector-store', // Just vector stores
-      '@contextai/rag/reranker', // Just rerankers
-      '@contextai/rag/chunking', // Just chunking
-      '@contextai/rag/assembly', // Just assemblers
-      '@contextai/rag/memory', // Just memory utilities
+      '@contextaisdk/rag', // Full package (107 exports)
+      '@contextaisdk/rag/engine', // Just the engine
+      '@contextaisdk/rag/retrieval', // Just retrievers
+      '@contextaisdk/rag/embeddings', // Just embedding providers
+      '@contextaisdk/rag/vector-store', // Just vector stores
+      '@contextaisdk/rag/reranker', // Just rerankers
+      '@contextaisdk/rag/chunking', // Just chunking
+      '@contextaisdk/rag/assembly', // Just assemblers
+      '@contextaisdk/rag/memory', // Just memory utilities
     ];
 
     console.log('\n--- Component Import Profiling ---');
@@ -151,11 +151,11 @@ describe('NFR-104: RAG Package Startup Time', () => {
     // can now import just the engine instead of everything
     const start = performance.now();
     const { RAGEngineImpl, RAGEngineError } = await import(
-      '@contextai/rag/engine'
+      '@contextaisdk/rag/engine'
     );
     const elapsed = performance.now() - start;
 
-    console.log(`@contextai/rag/engine import: ${elapsed.toFixed(3)}ms`);
+    console.log(`@contextaisdk/rag/engine import: ${elapsed.toFixed(3)}ms`);
 
     expect(RAGEngineImpl).toBeDefined();
     expect(RAGEngineError).toBeDefined();

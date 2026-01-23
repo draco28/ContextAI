@@ -1,8 +1,8 @@
 /**
- * Type definitions for @contextai/react hooks
+ * Type definitions for @contextaisdk/react hooks
  */
 
-import type { Agent, AgentResponse, ReActTrace } from '@contextai/core';
+import type { Agent, AgentResponse, ReActTrace } from '@contextaisdk/core';
 import type { Message } from '../types.js';
 
 // ===== REASONING TYPES (for useAgentStream) =====

@@ -1,19 +1,19 @@
-# @contextai/provider-ollama
+# @contextaisdk/provider-ollama
 
 > Local LLM provider for ContextAI SDK via Ollama
 
-[![npm version](https://img.shields.io/npm/v/@contextai/provider-ollama.svg?style=flat-square)](https://www.npmjs.com/package/@contextai/provider-ollama)
+[![npm version](https://img.shields.io/npm/v/@contextaisdk/provider-ollama.svg?style=flat-square)](https://www.npmjs.com/package/@contextaisdk/provider-ollama)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.5+-blue.svg?style=flat-square)](https://www.typescriptlang.org/)
 
 ## Installation
 
 ```bash
-npm install @contextai/provider-ollama
+npm install @contextaisdk/provider-ollama
 # or
-pnpm add @contextai/provider-ollama
+pnpm add @contextaisdk/provider-ollama
 ```
 
-**No peer dependencies!** This package has no external dependencies beyond `@contextai/core`.
+**No peer dependencies!** This package has no external dependencies beyond `@contextaisdk/core`.
 
 ## Prerequisites
 
@@ -36,8 +36,8 @@ ollama pull llama3.2
 ## Quick Start
 
 ```typescript
-import { OllamaProvider, OllamaModels } from '@contextai/provider-ollama';
-import { Agent } from '@contextai/core';
+import { OllamaProvider, OllamaModels } from '@contextaisdk/provider-ollama';
+import { Agent } from '@contextaisdk/core';
 
 // Create the provider (no API key needed!)
 const ollama = new OllamaProvider({
@@ -87,7 +87,7 @@ const provider = new OllamaProvider({
 ## Available Models
 
 ```typescript
-import { OllamaModels } from '@contextai/provider-ollama';
+import { OllamaModels } from '@contextaisdk/provider-ollama';
 
 // Llama 3.2
 OllamaModels.LLAMA_3_2        // 'llama3.2' (default size)
@@ -133,7 +133,7 @@ for await (const chunk of provider.streamChat([
 Ollama supports function calling with compatible models:
 
 ```typescript
-import { defineTool } from '@contextai/core';
+import { defineTool } from '@contextaisdk/core';
 import { z } from 'zod';
 
 const calculatorTool = defineTool({
@@ -175,7 +175,7 @@ for (const model of models) {
 ### Multimodal (Vision Models)
 
 ```typescript
-import { OllamaProvider } from '@contextai/provider-ollama';
+import { OllamaProvider } from '@contextaisdk/provider-ollama';
 
 const provider = new OllamaProvider({
   model: 'llava', // Vision model
@@ -243,7 +243,7 @@ for await (const chunk of provider.streamChat(messages)) {
 ## Error Handling
 
 ```typescript
-import { OllamaProviderError } from '@contextai/provider-ollama';
+import { OllamaProviderError } from '@contextaisdk/provider-ollama';
 
 try {
   const response = await provider.chat(messages);

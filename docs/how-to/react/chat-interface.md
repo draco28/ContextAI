@@ -5,14 +5,14 @@ Create a chat UI with ContextAI React components and hooks.
 ## Prerequisites
 
 ```bash
-pnpm add @contextai/react @contextai/core react
+pnpm add @contextaisdk/react @contextaisdk/core react
 ```
 
 ## Quick Start
 
 ```tsx
-import { useChat, ChatWindow } from '@contextai/react';
-import { Agent } from '@contextai/core';
+import { useChat, ChatWindow } from '@contextaisdk/react';
+import { Agent } from '@contextaisdk/core';
 
 function Chat() {
   const agent = useMemo(() => new Agent({
@@ -32,7 +32,7 @@ function Chat() {
 ### Basic Usage
 
 ```tsx
-import { useChat } from '@contextai/react';
+import { useChat } from '@contextaisdk/react';
 
 function ChatApp() {
   const {
@@ -235,7 +235,7 @@ function ChatInput({ onSend, isLoading, onCancel }: ChatInputProps) {
 ### ChatWindow
 
 ```tsx
-import { ChatWindow } from '@contextai/react';
+import { ChatWindow } from '@contextaisdk/react';
 
 function App() {
   const chat = useChat(agent);
@@ -269,7 +269,7 @@ function App() {
 ### MessageList Component
 
 ```tsx
-import { MessageList } from '@contextai/react';
+import { MessageList } from '@contextaisdk/react';
 
 <MessageList
   messages={messages}
@@ -283,7 +283,7 @@ import { MessageList } from '@contextai/react';
 ### MessageInput Component
 
 ```tsx
-import { MessageInput } from '@contextai/react';
+import { MessageInput } from '@contextaisdk/react';
 
 <MessageInput
   onSubmit={sendMessage}

@@ -124,7 +124,7 @@ interface ObservationStep {
 Human-readable trace output:
 
 ```typescript
-import { formatTrace } from '@contextai/core';
+import { formatTrace } from '@contextaisdk/core';
 
 const response = await agent.run('What is 15% of 200?');
 console.log(formatTrace(response.trace));
@@ -153,7 +153,7 @@ Duration: 1.2s
 Structured JSON output for logging:
 
 ```typescript
-import { formatTraceJSON } from '@contextai/core';
+import { formatTraceJSON } from '@contextaisdk/core';
 
 const json = formatTraceJSON(response.trace);
 console.log(JSON.stringify(json, null, 2));
@@ -164,7 +164,7 @@ console.log(JSON.stringify(json, null, 2));
 Extract statistics:
 
 ```typescript
-import { getTraceStats } from '@contextai/core';
+import { getTraceStats } from '@contextaisdk/core';
 
 const stats = getTraceStats(response.trace);
 console.log(stats);

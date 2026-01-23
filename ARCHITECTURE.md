@@ -163,7 +163,7 @@ model UsageRecord {
 **Goal**: Basic chat with provider switching
 
 - [ ] Turborepo + pnpm monorepo setup
-- [ ] `@contextai/core` package structure
+- [ ] `@contextaisdk/core` package structure
 - [ ] Claude provider implementation
 - [ ] OpenAI provider implementation
 - [ ] SSE streaming (real-time responses)
@@ -178,7 +178,7 @@ model UsageRecord {
 ### Phase 2: Knowledge Adapters (Weeks 3-4)
 **Goal**: RAG-powered chat with codebase context
 
-- [ ] `@contextai/adapters` package
+- [ ] `@contextaisdk/adapters` package
 - [ ] Git adapter (Tree-sitter for AST-aware chunking)
 - [ ] Markdown/docs adapter
 - [ ] Ollama embeddings integration
@@ -194,9 +194,9 @@ model UsageRecord {
 ### Phase 3: Widget & React SDK (Weeks 5-6)
 **Goal**: Embeddable chatbot for any web app
 
-- [ ] `@contextai/widget` - Vanilla JS embed script
+- [ ] `@contextaisdk/widget` - Vanilla JS embed script
 - [ ] CDN distribution (Cloudflare/Vercel)
-- [ ] `@contextai/react` - React component library
+- [ ] `@contextaisdk/react` - React component library
 - [ ] `ChatWindow`, `MessageList`, `ProviderSelector` components
 - [ ] `useChat`, `useStreaming`, `useProvider` hooks
 - [ ] Theme customization (light/dark/auto)

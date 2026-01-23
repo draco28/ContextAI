@@ -31,7 +31,7 @@
  * ```
  */
 
-import type { LLMProvider, ChatMessage } from '@contextai/core';
+import type { LLMProvider, ChatMessage } from '@contextaisdk/core';
 import type {
   HyDEConfig,
   EnhanceOptions,
@@ -94,8 +94,8 @@ const DEFAULT_NUM_HYPOTHETICAL = 1;
  *
  * @example
  * ```typescript
- * import { OpenAIProvider } from '@contextai/provider-openai';
- * import { HuggingFaceEmbeddingProvider } from '@contextai/rag';
+ * import { OpenAIProvider } from '@contextaisdk/provider-openai';
+ * import { HuggingFaceEmbeddingProvider } from '@contextaisdk/rag';
  *
  * const hyde = new HyDEEnhancer({
  *   llmProvider: new OpenAIProvider({

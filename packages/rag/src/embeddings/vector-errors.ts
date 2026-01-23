@@ -5,7 +5,7 @@
  * such as dot product, cosine similarity, and distance calculations.
  */
 
-import { ContextAIError } from '@contextai/core';
+import { ContextAIError } from '@contextaisdk/core';
 
 // ============================================================================
 // Types

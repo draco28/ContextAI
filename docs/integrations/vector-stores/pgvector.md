@@ -29,13 +29,13 @@ CREATE EXTENSION vector;
 ## Installation
 
 ```bash
-pnpm add @contextai/rag pg
+pnpm add @contextaisdk/rag pg
 ```
 
 ## Quick Start
 
 ```typescript
-import { PgVectorStore } from '@contextai/rag';
+import { PgVectorStore } from '@contextaisdk/rag';
 
 const vectorStore = new PgVectorStore({
   connectionString: process.env.DATABASE_URL!,
@@ -258,7 +258,7 @@ import {
   HuggingFaceEmbeddingProvider,
   RecursiveChunker,
   DenseRetriever,
-} from '@contextai/rag';
+} from '@contextaisdk/rag';
 
 const embeddings = new HuggingFaceEmbeddingProvider({
   model: 'BAAI/bge-small-en-v1.5',

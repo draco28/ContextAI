@@ -43,8 +43,8 @@ Hook state and actions including reasoning steps
 ## Example
 
 ```tsx
-import { useAgentStream } from '@contextai/react';
-import { Agent } from '@contextai/core';
+import { useAgentStream } from '@contextaisdk/react';
+import { Agent } from '@contextaisdk/core';
 
 const agent = new Agent({ ... });
 

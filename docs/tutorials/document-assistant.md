@@ -22,7 +22,7 @@ mkdir doc-assistant && cd doc-assistant
 pnpm init -y
 
 # Install dependencies
-pnpm add @contextai/core @contextai/rag @contextai/provider-openai zod
+pnpm add @contextaisdk/core @contextaisdk/rag @contextaisdk/provider-openai zod
 pnpm add -D typescript tsx @types/node
 ```
 
@@ -39,7 +39,7 @@ import {
   DenseRetriever,
   BGEReranker,
   MarkdownAssembler,
-} from '@contextai/rag';
+} from '@contextaisdk/rag';
 
 // 1. Embeddings - converts text to vectors
 const embeddings = new HuggingFaceEmbeddingProvider({
@@ -98,7 +98,7 @@ Create `docs/getting-started.md`:
 Install the core package:
 
 \`\`\`bash
-pnpm add @contextai/core
+pnpm add @contextaisdk/core
 \`\`\`
 
 ## Your First Agent
@@ -106,7 +106,7 @@ pnpm add @contextai/core
 Create a simple agent:
 
 \`\`\`typescript
-import { Agent } from '@contextai/core';
+import { Agent } from '@contextaisdk/core';
 
 const agent = new Agent({
   name: 'Assistant',
@@ -122,7 +122,7 @@ const response = await agent.run('Hello!');
 Agents can use tools to perform actions:
 
 \`\`\`typescript
-import { defineTool } from '@contextai/core';
+import { defineTool } from '@contextaisdk/core';
 
 const myTool = defineTool({
   name: 'my_tool',
@@ -237,7 +237,7 @@ npx tsx src/ingest.ts
 Create `src/tools.ts`:
 
 ```typescript
-import { defineTool } from '@contextai/core';
+import { defineTool } from '@contextaisdk/core';
 import { z } from 'zod';
 import { rag } from './rag';
 
@@ -272,8 +272,8 @@ export const searchDocsTool = defineTool({
 Create `src/agent.ts`:
 
 ```typescript
-import { Agent } from '@contextai/core';
-import { OpenAIProvider } from '@contextai/provider-openai';
+import { Agent } from '@contextaisdk/core';
+import { OpenAIProvider } from '@contextaisdk/provider-openai';
 import { searchDocsTool } from './tools';
 
 const provider = new OpenAIProvider({
@@ -376,7 +376,7 @@ Try asking:
 Better retrieval with keyword + semantic:
 
 ```typescript
-import { BM25Retriever, HybridRetriever } from '@contextai/rag';
+import { BM25Retriever, HybridRetriever } from '@contextaisdk/rag';
 
 const sparseRetriever = new BM25Retriever({
   documents: chunks,
@@ -396,7 +396,7 @@ const hybridRetriever = new HybridRetriever({
 Remember previous questions:
 
 ```typescript
-import { InMemoryProvider } from '@contextai/core';
+import { InMemoryProvider } from '@contextaisdk/core';
 
 const memory = new InMemoryProvider();
 
@@ -444,7 +444,7 @@ execute: async ({ query }) => {
 Replace InMemory with pgvector for persistence:
 
 ```typescript
-import { PgVectorStore } from '@contextai/rag';
+import { PgVectorStore } from '@contextaisdk/rag';
 
 const vectorStore = new PgVectorStore({
   connectionString: process.env.DATABASE_URL,
@@ -457,7 +457,7 @@ const vectorStore = new PgVectorStore({
 Avoid re-computing embeddings:
 
 ```typescript
-import { CachedEmbeddingProvider, LRUEmbeddingCache } from '@contextai/rag';
+import { CachedEmbeddingProvider, LRUEmbeddingCache } from '@contextaisdk/rag';
 
 const cache = new LRUEmbeddingCache({ maxSize: 10000 });
 const cachedEmbeddings = new CachedEmbeddingProvider({

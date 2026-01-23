@@ -25,7 +25,7 @@ graph TD
 ### Create the RAG Tool
 
 ```typescript
-import { defineTool } from '@contextai/core';
+import { defineTool } from '@contextaisdk/core';
 import { z } from 'zod';
 
 const searchKnowledgeTool = defineTool({
@@ -59,7 +59,7 @@ const searchKnowledgeTool = defineTool({
 ### Create the Agent
 
 ```typescript
-import { Agent } from '@contextai/core';
+import { Agent } from '@contextaisdk/core';
 
 const agent = new Agent({
   name: 'Knowledge Assistant',

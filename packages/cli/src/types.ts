@@ -13,7 +13,7 @@ export interface TemplateContext {
   pascalName: string;
   /** Package name in camelCase (e.g., "myProvider") */
   camelName: string;
-  /** Full npm package name (e.g., "@contextai/provider-my") */
+  /** Full npm package name (e.g., "@contextaisdk/provider-my") */
   packageName: string;
   /** Package description */
   description: string;

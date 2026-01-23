@@ -134,9 +134,9 @@ Tree-shakeable with no native modules:
 
 | Package | Size | Dependencies |
 |---------|------|--------------|
-| @contextai/core | ~15KB | 1 (zod) |
-| @contextai/rag | ~25KB | 3 |
-| @contextai/react | ~10KB | 0 (peer: react) |
+| @contextaisdk/core | ~15KB | 1 (zod) |
+| @contextaisdk/rag | ~25KB | 3 |
+| @contextaisdk/react | ~10KB | 0 (peer: react) |
 | **Total (core use)** | **~15KB** | |
 
 Compare to LangChain's hundreds of KB and dozens of dependencies.

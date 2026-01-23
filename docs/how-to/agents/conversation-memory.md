@@ -25,7 +25,7 @@ await agent.run('What is my name?'); // "Your name is Alice"
 ### Enable Memory
 
 ```typescript
-import { Agent } from '@contextai/core';
+import { Agent } from '@contextaisdk/core';
 
 const agent = new Agent({
   name: 'Chat Assistant',
@@ -111,7 +111,7 @@ class ChatService {
 Default, in-process memory (lost on restart):
 
 ```typescript
-import { InMemoryProvider } from '@contextai/core';
+import { InMemoryProvider } from '@contextaisdk/core';
 
 const memory = new InMemoryProvider({
   maxMessages: 100, // Keep last 100 messages

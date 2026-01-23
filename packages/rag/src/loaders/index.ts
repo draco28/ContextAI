@@ -10,7 +10,7 @@
  *   BaseDocumentLoader,
  *   type Document,
  *   type DocumentLoader,
- * } from '@contextai/rag';
+ * } from '@contextaisdk/rag';
  *
  * // Create a custom loader
  * class MyLoader extends BaseDocumentLoader {

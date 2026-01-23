@@ -35,7 +35,7 @@ graph LR
 Most accurate, uses transformer model:
 
 ```typescript
-import { BGEReranker } from '@contextai/rag';
+import { BGEReranker } from '@contextaisdk/rag';
 
 const reranker = new BGEReranker({
   model: 'BAAI/bge-reranker-base',    // or 'bge-reranker-large'
@@ -65,7 +65,7 @@ const reranked = await reranker.rerank(
 Balances relevance with diversity:
 
 ```typescript
-import { MMRReranker } from '@contextai/rag';
+import { MMRReranker } from '@contextaisdk/rag';
 
 const reranker = new MMRReranker({
   lambda: 0.5,      // 0 = pure diversity, 1 = pure relevance
@@ -94,7 +94,7 @@ Score = λ × Relevance(doc, query) - (1-λ) × max(Similarity(doc, selected_doc
 Uses language model as judge:
 
 ```typescript
-import { LLMReranker } from '@contextai/rag';
+import { LLMReranker } from '@contextaisdk/rag';
 
 const reranker = new LLMReranker({
   llm: yourLLM,
@@ -136,7 +136,7 @@ LLMs have position bias (attend more to start/end). Mitigate with ordering:
 Place most relevant at start AND end:
 
 ```typescript
-import { applySandwichOrdering } from '@contextai/rag';
+import { applySandwichOrdering } from '@contextaisdk/rag';
 
 // Input:  [1, 2, 3, 4, 5] (by relevance)
 // Output: [1, 3, 5, 4, 2] (sandwich pattern)
@@ -156,7 +156,7 @@ Fifth            →  Position 3 (middle, least attended)
 Alternates high and low relevance:
 
 ```typescript
-import { applyInterleaveOrdering } from '@contextai/rag';
+import { applyInterleaveOrdering } from '@contextaisdk/rag';
 
 // Input:  [1, 2, 3, 4, 5]
 // Output: [1, 5, 2, 4, 3]

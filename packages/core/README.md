@@ -1,19 +1,19 @@
-# @contextai/core
+# @contextaisdk/core
 
 > TypeScript-first AI Agent SDK with ReAct reasoning
 
 ## Installation
 
 ```bash
-npm install @contextai/core zod
+npm install @contextaisdk/core zod
 # or
-pnpm add @contextai/core zod
+pnpm add @contextaisdk/core zod
 ```
 
 ## Quick Start
 
 ```typescript
-import { Agent, defineTool } from '@contextai/core';
+import { Agent, defineTool } from '@contextaisdk/core';
 import { z } from 'zod';
 
 // Define a tool with Zod validation
@@ -58,24 +58,24 @@ For optimal startup performance, import only what you need:
 
 | Path | Exports | Use Case |
 |------|---------|----------|
-| `@contextai/core` | Everything | Full package (convenience) |
-| `@contextai/core/agent` | `Agent`, types | Agent creation only |
-| `@contextai/core/tool` | `defineTool`, `Tool`, types | Tool definitions only |
-| `@contextai/core/provider` | `LLMProvider`, types | Provider interfaces |
-| `@contextai/core/errors` | Error classes | Error handling |
-| `@contextai/core/security` | Security utilities | Secret redaction, validation |
-| `@contextai/core/tools` | Built-in tools | Pre-built tool library |
+| `@contextaisdk/core` | Everything | Full package (convenience) |
+| `@contextaisdk/core/agent` | `Agent`, types | Agent creation only |
+| `@contextaisdk/core/tool` | `defineTool`, `Tool`, types | Tool definitions only |
+| `@contextaisdk/core/provider` | `LLMProvider`, types | Provider interfaces |
+| `@contextaisdk/core/errors` | Error classes | Error handling |
+| `@contextaisdk/core/security` | Security utilities | Secret redaction, validation |
+| `@contextaisdk/core/tools` | Built-in tools | Pre-built tool library |
 
 ### Example: Selective Import
 
 ```typescript
 // Instead of importing everything:
-import { Agent, defineTool, LLMProvider } from '@contextai/core';
+import { Agent, defineTool, LLMProvider } from '@contextaisdk/core';
 
 // Import only what you need:
-import { Agent } from '@contextai/core/agent';
-import { defineTool } from '@contextai/core/tool';
-import type { LLMProvider } from '@contextai/core/provider';
+import { Agent } from '@contextaisdk/core/agent';
+import { defineTool } from '@contextaisdk/core/tool';
+import type { LLMProvider } from '@contextaisdk/core/provider';
 ```
 
 **Benefit**: Up to 59% faster imports when using specific sub-paths vs full package import.
@@ -87,7 +87,7 @@ The agent is designed for fast cold starts:
 - **Agent initialization**: 0.67ms (target <500ms per NFR-104)
 - **741x faster** than requirement threshold
 
-This makes `@contextai/core` suitable for serverless environments where cold start latency matters.
+This makes `@contextaisdk/core` suitable for serverless environments where cold start latency matters.
 
 ## API Reference
 
@@ -141,7 +141,7 @@ interface LLMProvider {
 Prevent secrets from leaking into logs:
 
 ```typescript
-import { createSafeLogger, redactObject, consoleLogger } from '@contextai/core';
+import { createSafeLogger, redactObject, consoleLogger } from '@contextaisdk/core';
 
 // Wrap any logger to auto-redact secrets
 const logger = createSafeLogger(consoleLogger);

@@ -23,7 +23,7 @@ so consider the cost/latency tradeoff.
 ## Example
 
 ```typescript
-import { OpenAIProvider } from '@contextai/provider-openai';
+import { OpenAIProvider } from '@contextaisdk/provider-openai';
 
 const expander = new MultiQueryExpander({
   llmProvider: new OpenAIProvider({

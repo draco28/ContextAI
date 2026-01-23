@@ -10,7 +10,7 @@
  */
 import { describe, it, expect, beforeAll } from 'vitest';
 import { OpenAIProvider } from '../src/openai-provider.js';
-import type { ChatMessage } from '@contextai/core';
+import type { ChatMessage } from '@contextaisdk/core';
 
 // Configuration for different OpenAI-compatible providers
 const CONFIG = {

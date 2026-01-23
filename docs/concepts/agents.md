@@ -27,8 +27,8 @@ graph LR
 ### Basic Agent
 
 ```typescript
-import { Agent } from '@contextai/core';
-import { OpenAIProvider } from '@contextai/provider-openai';
+import { Agent } from '@contextaisdk/core';
+import { OpenAIProvider } from '@contextaisdk/provider-openai';
 
 const agent = new Agent({
   name: 'Assistant',
@@ -45,7 +45,7 @@ const response = await agent.run('Hello!');
 ### Agent with Tools
 
 ```typescript
-import { Agent, defineTool } from '@contextai/core';
+import { Agent, defineTool } from '@contextaisdk/core';
 import { z } from 'zod';
 
 const searchTool = defineTool({
@@ -253,7 +253,7 @@ for (const step of response.trace.steps) {
 }
 
 // Or use formatTrace utility
-import { formatTrace } from '@contextai/core';
+import { formatTrace } from '@contextaisdk/core';
 console.log(formatTrace(response.trace));
 ```
 
@@ -311,7 +311,7 @@ const agent = new Agent({
 ### Agent Errors
 
 ```typescript
-import { AgentError, ToolError, ToolTimeoutError } from '@contextai/core';
+import { AgentError, ToolError, ToolTimeoutError } from '@contextaisdk/core';
 
 try {
   const response = await agent.run('Do something');

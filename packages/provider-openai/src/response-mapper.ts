@@ -4,7 +4,7 @@ import type {
   TokenUsage,
   ToolCall,
   ResponseMetadata,
-} from '@contextai/core';
+} from '@contextaisdk/core';
 import type OpenAI from 'openai';
 import { OpenAIProviderError } from './errors.js';
 

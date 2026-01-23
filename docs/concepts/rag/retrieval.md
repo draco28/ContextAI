@@ -25,7 +25,7 @@ graph LR
 Uses vector embeddings for semantic similarity:
 
 ```typescript
-import { DenseRetriever } from '@contextai/rag';
+import { DenseRetriever } from '@contextaisdk/rag';
 
 const retriever = new DenseRetriever({
   vectorStore,
@@ -83,7 +83,7 @@ const retriever = new DenseRetriever({
 Uses keyword/term frequency for exact matching:
 
 ```typescript
-import { BM25Retriever } from '@contextai/rag';
+import { BM25Retriever } from '@contextaisdk/rag';
 
 const retriever = new BM25Retriever({
   documents: chunks,
@@ -139,7 +139,7 @@ const retriever = new BM25Retriever({
 Combines dense and sparse for best of both:
 
 ```typescript
-import { HybridRetriever } from '@contextai/rag';
+import { HybridRetriever } from '@contextaisdk/rag';
 
 const retriever = new HybridRetriever({
   denseRetriever: denseRetriever,
@@ -159,7 +159,7 @@ const results = await retriever.retrieve('How to fix ERROR_CODE_404?');
 Combines rankings, not scores:
 
 ```typescript
-import { reciprocalRankFusion, DEFAULT_RRF_K } from '@contextai/rag';
+import { reciprocalRankFusion, DEFAULT_RRF_K } from '@contextaisdk/rag';
 
 // Score = sum(1 / (k + rank)) for each result list
 const fused = reciprocalRankFusion([denseResults, sparseResults], {
@@ -236,7 +236,7 @@ const retriever = new DenseRetriever({
 Expand query into multiple variations:
 
 ```typescript
-import { MultiQueryExpander } from '@contextai/rag';
+import { MultiQueryExpander } from '@contextaisdk/rag';
 
 const expander = new MultiQueryExpander({
   llm: yourLLM,
@@ -291,7 +291,7 @@ const retriever = new DenseRetriever({
 ### 3. Cache Embeddings
 
 ```typescript
-import { CachedEmbeddingProvider } from '@contextai/rag';
+import { CachedEmbeddingProvider } from '@contextaisdk/rag';
 
 const cached = new CachedEmbeddingProvider({
   provider: embeddings,
@@ -310,7 +310,7 @@ const cached = new CachedEmbeddingProvider({
 **Enabling HNSW for InMemoryVectorStore:**
 
 ```typescript
-import { InMemoryVectorStore } from '@contextai/rag';
+import { InMemoryVectorStore } from '@contextaisdk/rag';
 
 // HNSW provides O(log n) search for large collections (10K+ vectors)
 const vectorStore = new InMemoryVectorStore({

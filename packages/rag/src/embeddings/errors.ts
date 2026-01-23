@@ -2,7 +2,7 @@
  * Embedding Provider Errors
  */
 
-import { ContextAIError } from '@contextai/core';
+import { ContextAIError } from '@contextaisdk/core';
 import type { EmbeddingErrorCode, EmbeddingErrorDetails } from './types.js';
 
 /**

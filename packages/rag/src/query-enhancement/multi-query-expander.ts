@@ -34,7 +34,7 @@
  * ```
  */
 
-import type { LLMProvider, ChatMessage } from '@contextai/core';
+import type { LLMProvider, ChatMessage } from '@contextaisdk/core';
 import type {
   MultiQueryConfig,
   EnhanceOptions,
@@ -93,7 +93,7 @@ const DEFAULT_NUM_VARIANTS = 3;
  *
  * @example
  * ```typescript
- * import { OpenAIProvider } from '@contextai/provider-openai';
+ * import { OpenAIProvider } from '@contextaisdk/provider-openai';
  *
  * const expander = new MultiQueryExpander({
  *   llmProvider: new OpenAIProvider({

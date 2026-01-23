@@ -7,8 +7,8 @@ export default defineConfig({
 
     // Sub-entry points for lazy loading / tree-shaking
     // Users can import specifically what they need:
-    //   import { RAGEngineImpl } from '@contextai/rag/engine'
-    //   import { DenseRetriever } from '@contextai/rag/retrieval'
+    //   import { RAGEngineImpl } from '@contextaisdk/rag/engine'
+    //   import { DenseRetriever } from '@contextaisdk/rag/retrieval'
     'cache/index': 'src/cache/index.ts',
     'loaders/index': 'src/loaders/index.ts',
     'embeddings/index': 'src/embeddings/index.ts',
@@ -31,5 +31,5 @@ export default defineConfig({
   splitting: false,
   treeshake: true,
   minify: true,
-  external: ['@contextai/core'],
+  external: ['@contextaisdk/core'],
 });

@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-#### Agent Runtime (@contextai/core)
+#### Agent Runtime (@contextaisdk/core)
 - ReAct reasoning loop with Thought → Action → Observation tracing
 - Tool framework with Zod validation
 - Streaming responses via async generators
@@ -18,7 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Input validation for Agent APIs
 
 #### LLM Providers
-- **OpenAI Provider** (@contextai/provider-openai)
+- **OpenAI Provider** (@contextaisdk/provider-openai)
   - GPT-4o, GPT-4, GPT-3.5 support
   - Streaming and non-streaming modes
   - Tool calling support
@@ -30,7 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Rate limiting configuration
   - Multimodal content types (images, audio)
 
-#### RAG Pipeline (@contextai/rag)
+#### RAG Pipeline (@contextaisdk/rag)
 - **Document Loading**
   - TXT, Markdown, JSON loaders
   - Code file loaders (JS, TS, Python)
@@ -96,8 +96,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 #### Startup Optimization (NFR-104)
 - **Sub-entry points** for selective imports:
-  - `@contextai/core/agent`, `/security`, `/tool`, `/errors`, `/provider`, `/tools`
-  - `@contextai/rag/engine`, `/retrieval`, `/embeddings`, `/vector-store`, `/reranker`, `/chunking`, `/assembly`, `/query-enhancement`, `/adaptive`, `/memory`, `/cache`, `/loaders`
+  - `@contextaisdk/core/agent`, `/security`, `/tool`, `/errors`, `/provider`, `/tools`
+  - `@contextaisdk/rag/engine`, `/retrieval`, `/embeddings`, `/vector-store`, `/reranker`, `/chunking`, `/assembly`, `/query-enhancement`, `/adaptive`, `/memory`, `/cache`, `/loaders`
   - Up to 68% faster imports when using specific sub-paths vs full package
 - **warmUp() method** on RAGEngine for pre-loading ML models
   - Avoids first-request latency during runtime
@@ -112,7 +112,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Input validation with Zod schemas
 - **Secret redaction** utilities for safe logging
 
-#### React Package (@contextai/react)
+#### React Package (@contextaisdk/react)
 - **Components**
   - ChatWindow headless chat container component
   - MessageList for rendering conversation messages
@@ -137,7 +137,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Edge (last 2 versions)
   - Browser API test suite and bundle leak detection
 
-#### CLI Tool (@contextai/cli)
+#### CLI Tool (@contextaisdk/cli)
 - Package scaffolding tool for creating new monorepo packages
 - Interactive prompts for package configuration
 - Automatic tsconfig, package.json, and test setup

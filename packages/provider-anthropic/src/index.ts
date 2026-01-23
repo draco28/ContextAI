@@ -1,4 +1,4 @@
-// @contextai/provider-anthropic
+// @contextaisdk/provider-anthropic
 // Anthropic Claude LLM Provider for ContextAI SDK
 
 // Main provider export

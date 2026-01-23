@@ -11,8 +11,8 @@
  */
 
 import { useCallback, type ReactNode } from 'react';
-import { formatTrace, formatTraceJSON, getTraceStats } from '@contextai/core';
-import type { ReActTrace, TraceStats } from '@contextai/core';
+import { formatTrace, formatTraceJSON, getTraceStats } from '@contextaisdk/core';
+import type { ReActTrace, TraceStats } from '@contextaisdk/core';
 import type { ReasoningStep } from '../hooks/types.js';
 import { TraceStep } from './trace/index.js';
 

@@ -12,14 +12,14 @@ Run embedding models locally with HuggingFace Transformers.js.
 ## Installation
 
 ```bash
-pnpm add @contextai/rag
+pnpm add @contextaisdk/rag
 # Transformers.js is included
 ```
 
 ## Quick Start
 
 ```typescript
-import { HuggingFaceEmbeddingProvider } from '@contextai/rag';
+import { HuggingFaceEmbeddingProvider } from '@contextaisdk/rag';
 
 const embeddings = new HuggingFaceEmbeddingProvider({
   model: 'BAAI/bge-small-en-v1.5',
@@ -114,7 +114,7 @@ import {
   InMemoryVectorStore,
   RecursiveChunker,
   DenseRetriever,
-} from '@contextai/rag';
+} from '@contextaisdk/rag';
 
 const embeddings = new HuggingFaceEmbeddingProvider({
   model: 'BAAI/bge-small-en-v1.5',
@@ -204,7 +204,7 @@ import {
   CachedEmbeddingProvider,
   LRUEmbeddingCache,
   HuggingFaceEmbeddingProvider,
-} from '@contextai/rag';
+} from '@contextaisdk/rag';
 
 const baseEmbeddings = new HuggingFaceEmbeddingProvider({
   model: 'BAAI/bge-small-en-v1.5',
@@ -231,7 +231,7 @@ const v2 = await embeddings.embed('Hello'); // Instant!
 For cross-session caching:
 
 ```typescript
-import { FileEmbeddingCache } from '@contextai/rag';
+import { FileEmbeddingCache } from '@contextaisdk/rag';
 
 const cache = new FileEmbeddingCache({
   path: './embedding-cache.json',

@@ -1,7 +1,7 @@
 /**
  * Browser API Compatibility Tests
  *
- * These tests verify that @contextai/react components work correctly
+ * These tests verify that @contextaisdk/react components work correctly
  * with standard browser APIs (window, document, localStorage, etc.)
  *
  * NFR-502: React components shall support Chrome, Firefox, Safari, Edge (last 2 versions)

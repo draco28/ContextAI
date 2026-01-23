@@ -1,27 +1,27 @@
-# @contextai/provider-anthropic
+# @contextaisdk/provider-anthropic
 
 > Anthropic Claude LLM provider for ContextAI SDK
 
-[![npm version](https://img.shields.io/npm/v/@contextai/provider-anthropic.svg?style=flat-square)](https://www.npmjs.com/package/@contextai/provider-anthropic)
+[![npm version](https://img.shields.io/npm/v/@contextaisdk/provider-anthropic.svg?style=flat-square)](https://www.npmjs.com/package/@contextaisdk/provider-anthropic)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.5+-blue.svg?style=flat-square)](https://www.typescriptlang.org/)
 
 ## Installation
 
 ```bash
-npm install @contextai/provider-anthropic @anthropic-ai/sdk
+npm install @contextaisdk/provider-anthropic @anthropic-ai/sdk
 # or
-pnpm add @contextai/provider-anthropic @anthropic-ai/sdk
+pnpm add @contextaisdk/provider-anthropic @anthropic-ai/sdk
 ```
 
 **Peer Dependencies:**
 - @anthropic-ai/sdk ^0.25.0
-- @contextai/core
+- @contextaisdk/core
 
 ## Quick Start
 
 ```typescript
-import { AnthropicProvider, AnthropicModels } from '@contextai/provider-anthropic';
-import { Agent } from '@contextai/core';
+import { AnthropicProvider, AnthropicModels } from '@contextaisdk/provider-anthropic';
+import { Agent } from '@contextaisdk/core';
 
 // Create the provider
 const claude = new AnthropicProvider({
@@ -72,7 +72,7 @@ const provider = new AnthropicProvider({
 ## Available Models
 
 ```typescript
-import { AnthropicModels } from '@contextai/provider-anthropic';
+import { AnthropicModels } from '@contextaisdk/provider-anthropic';
 
 // Claude 4 (Latest)
 AnthropicModels.CLAUDE_SONNET_4   // 'claude-sonnet-4-20250514'
@@ -111,7 +111,7 @@ for await (const chunk of provider.streamChat([
 ### Tool Calling
 
 ```typescript
-import { defineTool } from '@contextai/core';
+import { defineTool } from '@contextaisdk/core';
 import { z } from 'zod';
 
 const weatherTool = defineTool({
@@ -216,7 +216,7 @@ for await (const chunk of provider.streamChat(messages)) {
 ## Error Handling
 
 ```typescript
-import { AnthropicProviderError } from '@contextai/provider-anthropic';
+import { AnthropicProviderError } from '@contextaisdk/provider-anthropic';
 
 try {
   const response = await provider.chat(messages);
@@ -269,7 +269,7 @@ import {
   mapMessages,
   extractSystemMessage,
   buildRequestParams
-} from '@contextai/provider-anthropic';
+} from '@contextaisdk/provider-anthropic';
 
 // Extract system message from conversation
 const { systemMessage, messages } = extractSystemMessage(conversation);
@@ -283,7 +283,7 @@ const params = buildRequestParams(messages, tools, options);
 
 ## Comparison with Direct SDK
 
-| Feature | @contextai/provider-anthropic | @anthropic-ai/sdk |
+| Feature | @contextaisdk/provider-anthropic | @anthropic-ai/sdk |
 |---------|------------------------------|-------------------|
 | Agent Integration | Built-in | Manual |
 | Tool Calling | Zod schemas | JSON Schema |

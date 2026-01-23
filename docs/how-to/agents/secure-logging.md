@@ -20,7 +20,7 @@ Accidentally logging these creates security risks. ContextAI provides built-in u
 Wrap any logger with `createSafeLogger()`:
 
 ```typescript
-import { createSafeLogger, consoleLogger } from '@contextai/core';
+import { createSafeLogger, consoleLogger } from '@contextaisdk/core';
 
 // Create a safe logger that auto-redacts secrets
 const logger = createSafeLogger(consoleLogger);
@@ -42,7 +42,7 @@ logger.info('User authenticated', {
 Wraps any `Logger` to automatically redact secrets from metadata:
 
 ```typescript
-import { createSafeLogger, consoleLogger } from '@contextai/core';
+import { createSafeLogger, consoleLogger } from '@contextaisdk/core';
 
 const logger = createSafeLogger(consoleLogger);
 
@@ -60,7 +60,7 @@ logger.error('Error', { credentials: { user: 'a', pass: 'b' } }); // credentials
 Recursively redact secrets from any object:
 
 ```typescript
-import { redactObject } from '@contextai/core';
+import { redactObject } from '@contextaisdk/core';
 
 const config = {
   database: {
@@ -89,7 +89,7 @@ console.log(redactedCount); // 2
 Redact secrets from a single string value:
 
 ```typescript
-import { redactSecrets } from '@contextai/core';
+import { redactSecrets } from '@contextaisdk/core';
 
 redactSecrets('sk-abc123def456ghi789'); // '[REDACTED]' (API key pattern)
 redactSecrets('Bearer eyJhbGciOiJ...');  // '[REDACTED]' (Bearer token)
@@ -101,7 +101,7 @@ redactSecrets('hello world');            // 'hello world' (not a secret)
 Check if values look like secrets:
 
 ```typescript
-import { isSecretKey, isSecretValue } from '@contextai/core';
+import { isSecretKey, isSecretValue } from '@contextaisdk/core';
 
 // Check key names
 isSecretKey('password');     // true
@@ -151,7 +151,7 @@ Values matching these patterns are redacted regardless of key:
 ### Custom Replacement String
 
 ```typescript
-import { createSafeLogger, redactObject, consoleLogger } from '@contextai/core';
+import { createSafeLogger, redactObject, consoleLogger } from '@contextaisdk/core';
 
 // Use custom replacement
 const logger = createSafeLogger(consoleLogger, {
@@ -198,7 +198,7 @@ logger.info('Debug', {
 Add custom detection patterns:
 
 ```typescript
-import type { SecretPattern, RedactionConfig } from '@contextai/core';
+import type { SecretPattern, RedactionConfig } from '@contextaisdk/core';
 
 const config: RedactionConfig = {
   customPatterns: [
@@ -233,7 +233,7 @@ const logger = createSafeLogger(consoleLogger, {
 ### With Custom Logger
 
 ```typescript
-import { Agent, createSafeLogger, consoleLogger } from '@contextai/core';
+import { Agent, createSafeLogger, consoleLogger } from '@contextaisdk/core';
 
 const safeLogger = createSafeLogger(consoleLogger);
 
@@ -250,7 +250,7 @@ const agent = new Agent({
 Redact sensitive data before returning from tools:
 
 ```typescript
-import { defineTool, redactObject } from '@contextai/core';
+import { defineTool, redactObject } from '@contextaisdk/core';
 import { z } from 'zod';
 
 const apiTool = defineTool({
@@ -275,7 +275,7 @@ const apiTool = defineTool({
 Redact error contexts before logging:
 
 ```typescript
-import { redactObject } from '@contextai/core';
+import { redactObject } from '@contextaisdk/core';
 
 try {
   await riskyOperation(config);
@@ -370,7 +370,7 @@ logger.info(`User ${userId} logged in with token ${token}`);
 
 ```typescript
 import { describe, it, expect } from 'vitest';
-import { redactObject } from '@contextai/core';
+import { redactObject } from '@contextaisdk/core';
 
 describe('logging security', () => {
   it('should redact API keys', () => {

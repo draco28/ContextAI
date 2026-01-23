@@ -29,15 +29,15 @@ ollama pull llama3.2
 ## Installation
 
 ```bash
-pnpm add @contextai/provider-ollama
+pnpm add @contextaisdk/provider-ollama
 # No peer dependencies required!
 ```
 
 ## Quick Start
 
 ```typescript
-import { OllamaProvider } from '@contextai/provider-ollama';
-import { Agent } from '@contextai/core';
+import { OllamaProvider } from '@contextaisdk/provider-ollama';
+import { Agent } from '@contextaisdk/core';
 
 const provider = new OllamaProvider({
   model: 'llama3.2',
@@ -75,7 +75,7 @@ const provider = new OllamaProvider({
 ### Available Models
 
 ```typescript
-import { OllamaModels } from '@contextai/provider-ollama';
+import { OllamaModels } from '@contextaisdk/provider-ollama';
 
 // Llama models
 OllamaModels.LLAMA_3_2 // 'llama3.2'
@@ -126,7 +126,7 @@ for await (const event of agent.stream('Write a haiku')) {
 Ollama supports tool calling with compatible models:
 
 ```typescript
-import { defineTool } from '@contextai/core';
+import { defineTool } from '@contextaisdk/core';
 import { z } from 'zod';
 
 const searchTool = defineTool({
@@ -238,7 +238,7 @@ docker run -d -v ollama:/root/.ollama -p 11434:11434 ollama/ollama
 ## Error Handling
 
 ```typescript
-import { ProviderError } from '@contextai/core';
+import { ProviderError } from '@contextaisdk/core';
 
 try {
   const response = await provider.chat(messages);

@@ -39,8 +39,8 @@ Hook state and actions
 ## Example
 
 ```tsx
-import { useAgent } from '@contextai/react';
-import { Agent } from '@contextai/core';
+import { useAgent } from '@contextaisdk/react';
+import { Agent } from '@contextaisdk/core';
 
 const agent = new Agent({ ... });
 

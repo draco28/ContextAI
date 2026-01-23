@@ -22,7 +22,7 @@ mkdir code-assistant && cd code-assistant
 pnpm init -y
 
 # Install dependencies
-pnpm add @contextai/core @contextai/rag @contextai/provider-openai zod
+pnpm add @contextaisdk/core @contextaisdk/rag @contextaisdk/provider-openai zod
 pnpm add -D typescript tsx @types/node
 ```
 
@@ -31,7 +31,7 @@ pnpm add -D typescript tsx @types/node
 Create `src/tools/file-tools.ts`:
 
 ```typescript
-import { defineTool } from '@contextai/core';
+import { defineTool } from '@contextaisdk/core';
 import { z } from 'zod';
 import * as fs from 'fs/promises';
 import * as path from 'path';
@@ -174,7 +174,7 @@ import {
   RecursiveChunker,
   DenseRetriever,
   MarkdownAssembler,
-} from '@contextai/rag';
+} from '@contextaisdk/rag';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 
@@ -263,7 +263,7 @@ export async function ingestCodebase(directory: string) {
 Create `src/tools/search-tool.ts`:
 
 ```typescript
-import { defineTool } from '@contextai/core';
+import { defineTool } from '@contextaisdk/core';
 import { z } from 'zod';
 import { codeRag } from '../code-rag';
 
@@ -294,8 +294,8 @@ export const searchCodebaseTool = defineTool({
 Create `src/agent.ts`:
 
 ```typescript
-import { Agent } from '@contextai/core';
-import { OpenAIProvider } from '@contextai/provider-openai';
+import { Agent } from '@contextaisdk/core';
+import { OpenAIProvider } from '@contextaisdk/provider-openai';
 import { readFileTool, listFilesTool, searchCodeTool } from './tools/file-tools';
 import { searchCodebaseTool } from './tools/search-tool';
 
@@ -428,7 +428,7 @@ Try asking:
 Better chunking for code:
 
 ```typescript
-import { CodeChunker } from '@contextai/rag';
+import { CodeChunker } from '@contextaisdk/rag';
 
 const codeChunker = new CodeChunker({
   language: 'typescript',

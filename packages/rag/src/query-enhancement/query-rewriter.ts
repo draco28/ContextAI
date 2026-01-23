@@ -21,7 +21,7 @@
  * ```
  */
 
-import type { LLMProvider, ChatMessage } from '@contextai/core';
+import type { LLMProvider, ChatMessage } from '@contextaisdk/core';
 import type {
   QueryRewriterConfig,
   EnhanceOptions,
@@ -73,7 +73,7 @@ const DEFAULT_TEMPERATURE = 0.3;
  *
  * @example
  * ```typescript
- * import { OpenAIProvider } from '@contextai/provider-openai';
+ * import { OpenAIProvider } from '@contextaisdk/provider-openai';
  *
  * const rewriter = new QueryRewriter({
  *   llmProvider: new OpenAIProvider({

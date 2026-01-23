@@ -1,25 +1,25 @@
-# @contextai/react
+# @contextaisdk/react
 
 > Headless React components and hooks for building AI chat interfaces
 
-[![npm version](https://img.shields.io/npm/v/@contextai/react.svg?style=flat-square)](https://www.npmjs.com/package/@contextai/react)
+[![npm version](https://img.shields.io/npm/v/@contextaisdk/react.svg?style=flat-square)](https://www.npmjs.com/package/@contextaisdk/react)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.5+-blue.svg?style=flat-square)](https://www.typescriptlang.org/)
 
 ## Installation
 
 ```bash
-npm install @contextai/react @contextai/core
+npm install @contextaisdk/react @contextaisdk/core
 # or
-pnpm add @contextai/react @contextai/core
+pnpm add @contextaisdk/react @contextaisdk/core
 ```
 
 **Peer Dependencies:**
 - React 18+
-- @contextai/core
+- @contextaisdk/core
 
 ## Overview
 
-`@contextai/react` provides headless UI components and React hooks for building AI chat interfaces. All components are unstyled by default, giving you complete control over styling.
+`@contextaisdk/react` provides headless UI components and React hooks for building AI chat interfaces. All components are unstyled by default, giving you complete control over styling.
 
 ```
 ┌─────────────────────────────────────────┐
@@ -38,8 +38,8 @@ pnpm add @contextai/react @contextai/core
 ## Quick Start
 
 ```tsx
-import { ChatWindow, useChat } from '@contextai/react';
-import { Agent } from '@contextai/core';
+import { ChatWindow, useChat } from '@contextaisdk/react';
+import { Agent } from '@contextaisdk/core';
 
 // Assuming you have an agent configured
 const agent = new Agent({
@@ -76,7 +76,7 @@ function ChatApp() {
 The primary hook for chat-based interactions.
 
 ```tsx
-import { useChat } from '@contextai/react';
+import { useChat } from '@contextaisdk/react';
 
 function MyChat() {
   const {
@@ -110,7 +110,7 @@ function MyChat() {
 Lower-level hook for direct agent interaction.
 
 ```tsx
-import { useAgent } from '@contextai/react';
+import { useAgent } from '@contextaisdk/react';
 
 function MyAgent() {
   const {
@@ -135,7 +135,7 @@ function MyAgent() {
 Hook for streaming agent responses with ReAct reasoning events.
 
 ```tsx
-import { useAgentStream } from '@contextai/react';
+import { useAgentStream } from '@contextaisdk/react';
 
 function MyStreamingAgent() {
   const {
@@ -167,7 +167,7 @@ function MyStreamingAgent() {
 Complete chat interface with message list and input.
 
 ```tsx
-import { ChatWindow } from '@contextai/react';
+import { ChatWindow } from '@contextaisdk/react';
 
 <ChatWindow
   messages={messages}
@@ -186,7 +186,7 @@ import { ChatWindow } from '@contextai/react';
 Renders a list of messages.
 
 ```tsx
-import { MessageList } from '@contextai/react';
+import { MessageList } from '@contextaisdk/react';
 
 <MessageList
   messages={messages}
@@ -205,7 +205,7 @@ import { MessageList } from '@contextai/react';
 Input field for sending messages.
 
 ```tsx
-import { MessageInput } from '@contextai/react';
+import { MessageInput } from '@contextaisdk/react';
 
 <MessageInput
   onSubmit={sendMessage}
@@ -219,7 +219,7 @@ import { MessageInput } from '@contextai/react';
 Visualize agent's ReAct reasoning process.
 
 ```tsx
-import { ReasoningTrace, ThoughtStep, ActionStep, ObservationStep } from '@contextai/react';
+import { ReasoningTrace, ThoughtStep, ActionStep, ObservationStep } from '@contextaisdk/react';
 
 // Using the compound component
 <ReasoningTrace trace={response.trace}>
@@ -244,7 +244,7 @@ import { ReasoningTrace, ThoughtStep, ActionStep, ObservationStep } from '@conte
 ### Focus Management
 
 ```tsx
-import { useFocusTrap, useFocusReturn, useAutoFocus } from '@contextai/react';
+import { useFocusTrap, useFocusReturn, useAutoFocus } from '@contextaisdk/react';
 
 function Modal({ isOpen, onClose }) {
   // Trap focus within modal
@@ -270,7 +270,7 @@ function AutoFocusInput() {
 ### Screen Reader Announcements
 
 ```tsx
-import { useAnnouncer, announceToScreenReader } from '@contextai/react';
+import { useAnnouncer, announceToScreenReader } from '@contextaisdk/react';
 
 function ChatMessages() {
   const { announce } = useAnnouncer();
@@ -290,7 +290,7 @@ announceToScreenReader('Message sent', 'polite');
 ### Keyboard Navigation Helpers
 
 ```tsx
-import { isActivationKey, A11Y_KEYS, getExpandableAriaProps } from '@contextai/react';
+import { isActivationKey, A11Y_KEYS, getExpandableAriaProps } from '@contextaisdk/react';
 
 function ExpandableSection({ isExpanded, onToggle }) {
   const handleKeyDown = (e) => {
@@ -314,7 +314,7 @@ function ExpandableSection({ isExpanded, onToggle }) {
 ### Utility Functions
 
 ```tsx
-import { srOnlyStyles, generateA11yId } from '@contextai/react';
+import { srOnlyStyles, generateA11yId } from '@contextaisdk/react';
 
 // Screen-reader only content (visually hidden)
 <span style={srOnlyStyles}>

@@ -11,7 +11,7 @@ import type {
   ChatResponse,
   GenerateOptions,
   StreamChunk,
-} from '@contextai/core';
+} from '@contextaisdk/core';
 import { QueryRewriter } from '../../src/query-enhancement/query-rewriter.js';
 import { QueryEnhancementError } from '../../src/query-enhancement/errors.js';
 

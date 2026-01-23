@@ -17,7 +17,7 @@ A default instance is exported with built-in strategies pre-registered.
 
 ```typescript
 // Use default registry with built-in chunkers
-import { defaultChunkerRegistry } from '@contextai/rag';
+import { defaultChunkerRegistry } from '@contextaisdk/rag';
 
 const chunker = defaultChunkerRegistry.get('RecursiveChunker');
 const chunks = await chunker.chunk(document);

@@ -78,10 +78,10 @@ describe('toCamelCase', () => {
 
 describe('getFullPackageName', () => {
   it('should return correct package names for each type', () => {
-    expect(getFullPackageName('openai', 'provider')).toBe('@contextai/provider-openai');
-    expect(getFullPackageName('my-agent', 'agent')).toBe('@contextai/my-agent');
-    expect(getFullPackageName('chat', 'component')).toBe('@contextai/chat');
-    expect(getFullPackageName('utils', 'library')).toBe('@contextai/utils');
+    expect(getFullPackageName('openai', 'provider')).toBe('@contextaisdk/provider-openai');
+    expect(getFullPackageName('my-agent', 'agent')).toBe('@contextaisdk/my-agent');
+    expect(getFullPackageName('chat', 'component')).toBe('@contextaisdk/chat');
+    expect(getFullPackageName('utils', 'library')).toBe('@contextaisdk/utils');
   });
 });
 
@@ -99,7 +99,7 @@ describe('getPackageNameVariants', () => {
     const variants = getPackageNameVariants('my-cool', 'provider');
     expect(variants.pascalName).toBe('MyCool');
     expect(variants.camelName).toBe('myCool');
-    expect(variants.packageName).toBe('@contextai/provider-my-cool');
+    expect(variants.packageName).toBe('@contextaisdk/provider-my-cool');
     expect(variants.dirName).toBe('provider-my-cool');
   });
 });

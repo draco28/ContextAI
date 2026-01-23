@@ -1,9 +1,9 @@
 /**
- * Types for @contextai/react components
+ * Types for @contextaisdk/react components
  */
 
 /**
- * Message role - subset of @contextai/core MessageRole for UI purposes
+ * Message role - subset of @contextaisdk/core MessageRole for UI purposes
  * Excludes 'tool' as it's not typically displayed in chat UI
  */
 export type MessageRole = 'user' | 'assistant' | 'system';

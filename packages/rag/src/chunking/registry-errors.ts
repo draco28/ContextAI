@@ -5,7 +5,7 @@
  * unregistering, or looking up chunkers.
  */
 
-import { ContextAIError } from '@contextai/core';
+import { ContextAIError } from '@contextaisdk/core';
 
 // ============================================================================
 // Types

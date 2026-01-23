@@ -142,7 +142,7 @@ pnpm test
 pnpm test:watch
 
 # Run tests for a specific package
-pnpm --filter @contextai/core test
+pnpm --filter @contextaisdk/core test
 
 # Run tests with coverage
 pnpm test -- --coverage

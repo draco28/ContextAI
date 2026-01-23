@@ -1,5 +1,5 @@
 /**
- * React hooks for @contextai/react
+ * React hooks for @contextaisdk/react
  *
  * @packageDocumentation
  */

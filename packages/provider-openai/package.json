@@ -1,7 +1,18 @@
 {
-  "name": "@contextai/provider-openai",
+  "name": "@contextaisdk/provider-openai",
   "version": "0.0.1",
   "description": "OpenAI GPT provider for ContextAI SDK",
+  "license": "MIT",
+  "author": "ContextAI Team",
+  "homepage": "https://github.com/draco28/contextai#readme",
+  "bugs": {
+    "url": "https://github.com/draco28/contextai/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/draco28/contextai.git",
+    "directory": "packages/provider-openai"
+  },
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
@@ -36,7 +47,7 @@
     "clean": "rm -rf dist .turbo"
   },
   "dependencies": {
-    "@contextai/core": "workspace:*"
+    "@contextaisdk/core": "workspace:*"
   },
   "peerDependencies": {
     "openai": "^4.0.0"
@@ -47,7 +58,7 @@
     }
   },
   "devDependencies": {
-    "@contextai/tsconfig": "workspace:*",
+    "@contextaisdk/tsconfig": "workspace:*",
     "openai": "^4.77.0",
     "tsup": "^8.0.0",
     "typescript": "^5.5.0",
@@ -61,7 +72,6 @@
     "contextai",
     "provider"
   ],
-  "license": "MIT",
   "publishConfig": {
     "access": "public"
   }

@@ -4,7 +4,7 @@
  * These tests hit the real Anthropic API.
  * They are skipped unless ANTHROPIC_API_KEY is set.
  *
- * Run with: pnpm test:integration --filter=@contextai/provider-anthropic
+ * Run with: pnpm test:integration --filter=@contextaisdk/provider-anthropic
  */
 
 import { describe, it, expect, beforeAll } from 'vitest';

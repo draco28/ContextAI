@@ -22,7 +22,7 @@ Poor chunking leads to:
 Split by character/token count:
 
 ```typescript
-import { FixedSizeChunker } from '@contextai/rag';
+import { FixedSizeChunker } from '@contextaisdk/rag';
 
 const chunker = new FixedSizeChunker({
   chunkSize: 512,    // Target size in tokens
@@ -51,7 +51,7 @@ const chunks = await chunker.chunk({
 Split by separators, respecting document structure:
 
 ```typescript
-import { RecursiveChunker } from '@contextai/rag';
+import { RecursiveChunker } from '@contextaisdk/rag';
 
 const chunker = new RecursiveChunker({
   chunkSize: 512,
@@ -82,7 +82,7 @@ const chunks = await chunker.chunk(document);
 Split by sentences, respecting semantic boundaries:
 
 ```typescript
-import { SentenceChunker } from '@contextai/rag';
+import { SentenceChunker } from '@contextaisdk/rag';
 
 const chunker = new SentenceChunker({
   maxChunkSize: 512,   // Maximum tokens per chunk

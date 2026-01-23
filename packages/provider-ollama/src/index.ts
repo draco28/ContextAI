@@ -1,5 +1,5 @@
 /**
- * @contextai/provider-ollama
+ * @contextaisdk/provider-ollama
  *
  * Ollama local LLM provider for ContextAI SDK.
  *
@@ -8,7 +8,7 @@
  *
  * @example
  * ```typescript
- * import { OllamaProvider, OllamaModels } from '@contextai/provider-ollama';
+ * import { OllamaProvider, OllamaModels } from '@contextaisdk/provider-ollama';
  *
  * const provider = new OllamaProvider({
  *   model: OllamaModels.LLAMA_3_2,

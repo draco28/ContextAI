@@ -84,15 +84,15 @@ const weatherTool = defineTool({
 The core package is under 50KB with no native modules:
 
 ```
-@contextai/core: ~15KB
-@contextai/rag:  ~25KB
-@contextai/react: ~10KB
+@contextaisdk/core: ~15KB
+@contextaisdk/rag:  ~25KB
+@contextaisdk/react: ~10KB
 ```
 
 ## Package Architecture
 
 ```
-@contextai/
+@contextaisdk/
 ├── core           # Agent loop, tools, interfaces
 ├── rag            # RAG engine, chunking, retrieval
 ├── react          # React components and hooks

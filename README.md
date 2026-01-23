@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-  <a href="https://www.npmjs.com/package/@contextai/core"><img src="https://img.shields.io/npm/v/@contextai/core.svg?style=flat-square" alt="npm version" /></a>
+  <a href="https://www.npmjs.com/package/@contextaisdk/core"><img src="https://img.shields.io/npm/v/@contextaisdk/core.svg?style=flat-square" alt="npm version" /></a>
   <a href="https://github.com/draco28/ContextAI/actions"><img src="https://img.shields.io/github/actions/workflow/status/draco28/ContextAI/ci.yml?style=flat-square" alt="CI Status" /></a>
   <a href="https://www.typescriptlang.org/"><img src="https://img.shields.io/badge/TypeScript-5.5+-blue.svg?style=flat-square" alt="TypeScript" /></a>
   <a href="https://github.com/draco28/ContextAI/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-green.svg?style=flat-square" alt="MIT License" /></a>
@@ -67,24 +67,24 @@ graph TB
 
 | Package | Description | npm |
 |---------|-------------|-----|
-| [@contextai/core](./packages/core) | Agent runtime with ReAct loop and tool framework | [![npm](https://img.shields.io/npm/v/@contextai/core.svg?style=flat-square)](https://www.npmjs.com/package/@contextai/core) |
-| [@contextai/rag](./packages/rag) | 9-stage RAG pipeline with hybrid retrieval | [![npm](https://img.shields.io/npm/v/@contextai/rag.svg?style=flat-square)](https://www.npmjs.com/package/@contextai/rag) |
-| [@contextai/cli](./packages/cli) | CLI tool for scaffolding new packages | [![npm](https://img.shields.io/npm/v/@contextai/cli.svg?style=flat-square)](https://www.npmjs.com/package/@contextai/cli) |
-| [@contextai/provider-openai](./packages/provider-openai) | OpenAI GPT provider adapter | [![npm](https://img.shields.io/npm/v/@contextai/provider-openai.svg?style=flat-square)](https://www.npmjs.com/package/@contextai/provider-openai) |
-| [@contextai/provider-anthropic](./packages/provider-anthropic) | Anthropic Claude provider adapter | [![npm](https://img.shields.io/npm/v/@contextai/provider-anthropic.svg?style=flat-square)](https://www.npmjs.com/package/@contextai/provider-anthropic) |
-| [@contextai/provider-ollama](./packages/provider-ollama) | Ollama local LLM provider | [![npm](https://img.shields.io/npm/v/@contextai/provider-ollama.svg?style=flat-square)](https://www.npmjs.com/package/@contextai/provider-ollama) |
-| [@contextai/react](./packages/react) | React hooks and components | [![npm](https://img.shields.io/npm/v/@contextai/react.svg?style=flat-square)](https://www.npmjs.com/package/@contextai/react) |
+| [@contextaisdk/core](./packages/core) | Agent runtime with ReAct loop and tool framework | [![npm](https://img.shields.io/npm/v/@contextaisdk/core.svg?style=flat-square)](https://www.npmjs.com/package/@contextaisdk/core) |
+| [@contextaisdk/rag](./packages/rag) | 9-stage RAG pipeline with hybrid retrieval | [![npm](https://img.shields.io/npm/v/@contextaisdk/rag.svg?style=flat-square)](https://www.npmjs.com/package/@contextaisdk/rag) |
+| [@contextaisdk/cli](./packages/cli) | CLI tool for scaffolding new packages | [![npm](https://img.shields.io/npm/v/@contextaisdk/cli.svg?style=flat-square)](https://www.npmjs.com/package/@contextaisdk/cli) |
+| [@contextaisdk/provider-openai](./packages/provider-openai) | OpenAI GPT provider adapter | [![npm](https://img.shields.io/npm/v/@contextaisdk/provider-openai.svg?style=flat-square)](https://www.npmjs.com/package/@contextaisdk/provider-openai) |
+| [@contextaisdk/provider-anthropic](./packages/provider-anthropic) | Anthropic Claude provider adapter | [![npm](https://img.shields.io/npm/v/@contextaisdk/provider-anthropic.svg?style=flat-square)](https://www.npmjs.com/package/@contextaisdk/provider-anthropic) |
+| [@contextaisdk/provider-ollama](./packages/provider-ollama) | Ollama local LLM provider | [![npm](https://img.shields.io/npm/v/@contextaisdk/provider-ollama.svg?style=flat-square)](https://www.npmjs.com/package/@contextaisdk/provider-ollama) |
+| [@contextaisdk/react](./packages/react) | React hooks and components | [![npm](https://img.shields.io/npm/v/@contextaisdk/react.svg?style=flat-square)](https://www.npmjs.com/package/@contextaisdk/react) |
 
 ## Quick Start
 
 ```bash
-npm install @contextai/core @contextai/rag zod
+npm install @contextaisdk/core @contextaisdk/rag zod
 ```
 
 ### Create an Agent with Tools
 
 ```typescript
-import { Agent, defineTool } from '@contextai/core';
+import { Agent, defineTool } from '@contextaisdk/core';
 import { z } from 'zod';
 
 // Define a tool with Zod validation
@@ -116,7 +116,7 @@ console.log(response.trace); // See the agent's thinking process
 ### Add RAG for Knowledge-Grounded Responses
 
 ```typescript
-import { RAGEngineImpl, InMemoryVectorStore, HuggingFaceEmbeddingProvider } from '@contextai/rag';
+import { RAGEngineImpl, InMemoryVectorStore, HuggingFaceEmbeddingProvider } from '@contextaisdk/rag';
 
 // Set up embeddings and vector store
 const embeddings = new HuggingFaceEmbeddingProvider({
@@ -147,7 +147,7 @@ const results = await rag.search('How does authentication work?');
 ### Use Different LLM Providers
 
 ```typescript
-import { OpenAIProvider } from '@contextai/provider-openai';
+import { OpenAIProvider } from '@contextaisdk/provider-openai';
 
 // OpenAI
 const openai = new OpenAIProvider({
@@ -165,7 +165,7 @@ const agent = new Agent({
 
 ## RAG Pipeline Stages
 
-The `@contextai/rag` package implements a production-grade 9-stage pipeline:
+The `@contextaisdk/rag` package implements a production-grade 9-stage pipeline:
 
 | Stage | Component | Description |
 |-------|-----------|-------------|

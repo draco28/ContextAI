@@ -10,7 +10,7 @@
  * - Token usage estimation (Ollama provides eval_count)
  */
 
-import type { ChatResponse, StreamChunk, ToolCall, TokenUsage } from '@contextai/core';
+import type { ChatResponse, StreamChunk, ToolCall, TokenUsage } from '@contextaisdk/core';
 import type { OllamaChatResponse, OllamaStreamChunk, OllamaToolCall } from './types.js';
 
 // ============================================================================

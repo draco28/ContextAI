@@ -1,7 +1,7 @@
 import { renderHook, act, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { useAgent } from '../../src/hooks/useAgent.js';
-import type { Agent, AgentResponse } from '@contextai/core';
+import type { Agent, AgentResponse } from '@contextaisdk/core';
 
 /**
  * Create a mock Agent for testing

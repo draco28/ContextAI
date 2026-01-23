@@ -9,7 +9,7 @@
  *
  * @example
  * ```typescript
- * import { redactObject, createSafeLogger, consoleLogger } from '@contextai/core';
+ * import { redactObject, createSafeLogger, consoleLogger } from '@contextaisdk/core';
  *
  * // Redact secrets from an object
  * const result = redactObject({
@@ -412,7 +412,7 @@ const redactObjectInternal = (
  *
  * @example
  * ```typescript
- * import { createSafeLogger, consoleLogger } from '@contextai/core';
+ * import { createSafeLogger, consoleLogger } from '@contextaisdk/core';
  *
  * const safeLogger = createSafeLogger(consoleLogger);
  *

@@ -7,8 +7,8 @@ export default defineConfig({
 
     // Sub-entry points for selective imports
     // Users can import specifically what they need:
-    //   import { Agent } from '@contextai/core/agent'
-    //   import { redactSecrets } from '@contextai/core/security'
+    //   import { Agent } from '@contextaisdk/core/agent'
+    //   import { redactSecrets } from '@contextaisdk/core/security'
     'agent/index': 'src/agent/index.ts',
     'tool/index': 'src/tool/index.ts',
     'provider/index': 'src/provider/index.ts',

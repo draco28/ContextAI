@@ -1,7 +1,19 @@
 {
-  "name": "@contextai/provider-ollama",
+  "name": "@contextaisdk/provider-ollama",
   "version": "0.0.1",
   "description": "Ollama local LLM provider for ContextAI SDK",
+  "license": "MIT",
+  "author": "ContextAI Team",
+  "homepage": "https://github.com/draco28/contextai#readme",
+  "bugs": {
+    "url": "https://github.com/draco28/contextai/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/draco28/contextai.git",
+    "directory": "packages/provider-ollama"
+  },
+  "sideEffects": false,
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
@@ -35,10 +47,10 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@contextai/core": "workspace:*"
+    "@contextaisdk/core": "workspace:*"
   },
   "devDependencies": {
-    "@contextai/tsconfig": "workspace:*",
+    "@contextaisdk/tsconfig": "workspace:*",
     "tsup": "^8.0.0",
     "typescript": "^5.5.0",
     "vitest": "^2.1.0"
@@ -51,5 +63,7 @@
     "provider",
     "local"
   ],
-  "license": "MIT"
+  "publishConfig": {
+    "access": "public"
+  }
 }

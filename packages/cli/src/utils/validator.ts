@@ -76,15 +76,15 @@ export function toCamelCase(kebab: string): string {
 export function getFullPackageName(name: string, type: PackageType): string {
   switch (type) {
     case 'provider':
-      return `@contextai/provider-${name}`;
+      return `@contextaisdk/provider-${name}`;
     case 'agent':
-      return `@contextai/${name}`;
+      return `@contextaisdk/${name}`;
     case 'component':
-      return `@contextai/${name}`;
+      return `@contextaisdk/${name}`;
     case 'library':
-      return `@contextai/${name}`;
+      return `@contextaisdk/${name}`;
     default:
-      return `@contextai/${name}`;
+      return `@contextaisdk/${name}`;
   }
 }
 

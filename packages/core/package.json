@@ -1,12 +1,16 @@
 {
-  "name": "@contextai/core",
+  "name": "@contextaisdk/core",
   "version": "0.0.1",
   "description": "ContextAI Agent SDK - TypeScript-first AI Agent runtime with ReAct reasoning",
   "license": "MIT",
   "author": "ContextAI Team",
+  "homepage": "https://github.com/draco28/contextai#readme",
+  "bugs": {
+    "url": "https://github.com/draco28/contextai/issues"
+  },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/draco28/ContextAI.git",
+    "url": "git+https://github.com/draco28/contextai.git",
     "directory": "packages/core"
   },
   "keywords": [
@@ -122,7 +126,7 @@
     "zod": "^3.23.0"
   },
   "devDependencies": {
-    "@contextai/tsconfig": "workspace:*",
+    "@contextaisdk/tsconfig": "workspace:*",
     "@types/node": "^20.11.0",
     "@typescript-eslint/eslint-plugin": "^7.0.0",
     "@typescript-eslint/parser": "^7.0.0",

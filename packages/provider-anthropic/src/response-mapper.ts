@@ -16,7 +16,7 @@ import type {
   ToolCall,
   TokenUsage,
   ResponseMetadata,
-} from '@contextai/core';
+} from '@contextaisdk/core';
 import type Anthropic from '@anthropic-ai/sdk';
 
 // ============================================================================

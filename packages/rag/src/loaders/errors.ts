@@ -2,7 +2,7 @@
  * Document Loader Errors
  */
 
-import { ContextAIError } from '@contextai/core';
+import { ContextAIError } from '@contextaisdk/core';
 import type { LoaderErrorCode, LoaderErrorDetails } from './types.js';
 
 /**

@@ -46,7 +46,7 @@ interface LLMProvider {
 ### OpenAI
 
 ```typescript
-import { OpenAIProvider } from '@contextai/provider-openai';
+import { OpenAIProvider } from '@contextaisdk/provider-openai';
 
 const provider = new OpenAIProvider({
   apiKey: process.env.OPENAI_API_KEY!,
@@ -62,7 +62,7 @@ const provider = new OpenAIProvider({
 ### Anthropic Claude
 
 ```typescript
-import { AnthropicProvider, AnthropicModels } from '@contextai/provider-anthropic';
+import { AnthropicProvider, AnthropicModels } from '@contextaisdk/provider-anthropic';
 
 const provider = new AnthropicProvider({
   apiKey: process.env.ANTHROPIC_API_KEY!,
@@ -77,7 +77,7 @@ const provider = new AnthropicProvider({
 ### Ollama (Local)
 
 ```typescript
-import { OllamaProvider, OllamaModels } from '@contextai/provider-ollama';
+import { OllamaProvider, OllamaModels } from '@contextaisdk/provider-ollama';
 
 const provider = new OllamaProvider({
   model: OllamaModels.LLAMA_3_2,
@@ -93,7 +93,7 @@ const provider = new OllamaProvider({
 ### With an Agent
 
 ```typescript
-import { Agent } from '@contextai/core';
+import { Agent } from '@contextaisdk/core';
 
 const agent = new Agent({
   name: 'Assistant',
@@ -289,10 +289,10 @@ if (await provider.isAvailable()) {
 Each provider has typed errors:
 
 ```typescript
-import { ProviderError } from '@contextai/core';
-import { OpenAIProviderError } from '@contextai/provider-openai';
-import { AnthropicProviderError } from '@contextai/provider-anthropic';
-import { OllamaProviderError } from '@contextai/provider-ollama';
+import { ProviderError } from '@contextaisdk/core';
+import { OpenAIProviderError } from '@contextaisdk/provider-openai';
+import { AnthropicProviderError } from '@contextaisdk/provider-anthropic';
+import { OllamaProviderError } from '@contextaisdk/provider-ollama';
 
 try {
   await provider.chat(messages);
@@ -309,7 +309,7 @@ try {
 ## Implementing a Custom Provider
 
 ```typescript
-import { LLMProvider, ChatMessage, ChatResponse, StreamChunk } from '@contextai/core';
+import { LLMProvider, ChatMessage, ChatResponse, StreamChunk } from '@contextaisdk/core';
 
 class MyCustomProvider implements LLMProvider {
   readonly name = 'my-custom';

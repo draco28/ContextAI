@@ -18,7 +18,7 @@
  *   MMRReranker,
  *   LLMReranker,
  *   applyPositionBias,
- * } from '@contextai/rag';
+ * } from '@contextaisdk/rag';
  *
  * // Cross-encoder reranking (best balance of quality/speed)
  * const bgeReranker = new BGEReranker({

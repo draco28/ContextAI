@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { OpenAIProvider } from '../src/openai-provider.js';
 import { OpenAIProviderError } from '../src/errors.js';
-import type { ChatMessage } from '@contextai/core';
+import type { ChatMessage } from '@contextaisdk/core';
 
 // Mock the openai module
 vi.mock('openai', () => {

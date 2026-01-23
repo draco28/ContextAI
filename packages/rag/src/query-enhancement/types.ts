@@ -10,7 +10,7 @@
  * - Multi-query: Expand single query into multiple perspectives
  */
 
-import type { LLMProvider } from '@contextai/core';
+import type { LLMProvider } from '@contextaisdk/core';
 import type { EmbeddingProvider } from '../embeddings/types.js';
 
 // ============================================================================

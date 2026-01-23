@@ -13,8 +13,8 @@
  *
  * @example
  * ```typescript
- * import { createRetrieveKnowledgeTool } from '@contextai/core';
- * import { RAGEngineImpl } from '@contextai/rag';
+ * import { createRetrieveKnowledgeTool } from '@contextaisdk/core';
+ * import { RAGEngineImpl } from '@contextaisdk/rag';
  *
  * const ragEngine = new RAGEngineImpl({ retriever, assembler });
  * const tool = createRetrieveKnowledgeTool(ragEngine);
@@ -38,7 +38,7 @@ import type { Tool, ToolExecuteContext, ToolResult } from '../tool/types.js';
 /**
  * Interface for the RAG engine that this tool uses.
  *
- * This is a minimal interface to avoid tight coupling with @contextai/rag.
+ * This is a minimal interface to avoid tight coupling with @contextaisdk/rag.
  * Any object implementing this interface can be used.
  */
 export interface RAGEngineInterface {

@@ -5,7 +5,7 @@
  * Includes configuration errors, provider requirements, and LLM parsing failures.
  */
 
-import { ContextAIError } from '@contextai/core';
+import { ContextAIError } from '@contextaisdk/core';
 import type { ChunkerErrorCode, ChunkerErrorDetails } from './types.js';
 
 /**

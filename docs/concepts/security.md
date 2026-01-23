@@ -39,7 +39,7 @@ logger.info('Config loaded', {
 ### The Solution
 
 ```typescript
-import { createSafeLogger, consoleLogger } from '@contextai/core';
+import { createSafeLogger, consoleLogger } from '@contextaisdk/core';
 
 const logger = createSafeLogger(consoleLogger);
 
@@ -66,7 +66,7 @@ Secret redaction uses two detection strategies:
 ### When to Use
 
 ```typescript
-import { createSafeLogger, redactObject } from '@contextai/core';
+import { createSafeLogger, redactObject } from '@contextaisdk/core';
 
 // 1. Wrap all loggers in production
 const logger = createSafeLogger(productionLogger);
@@ -97,7 +97,7 @@ await fs.readFile(path);            // Reads /etc/passwd!
 ### The Solution
 
 ```typescript
-import { PathValidator } from '@contextai/core';
+import { PathValidator } from '@contextaisdk/core';
 
 const validator = new PathValidator({
   allowedPaths: ['/data/uploads'],
@@ -152,7 +152,7 @@ const query = `SELECT * FROM users WHERE name = '${userInput}'`;
 ### The Solution
 
 ```typescript
-import { SafeQueryBuilder, isValidIdentifier } from '@contextai/core';
+import { SafeQueryBuilder, isValidIdentifier } from '@contextaisdk/core';
 
 // Safe: Parameterized queries
 const builder = new SafeQueryBuilder('users');
@@ -215,7 +215,7 @@ const tool = {
 ### The Solution
 
 ```typescript
-import { defineTool } from '@contextai/core';
+import { defineTool } from '@contextaisdk/core';
 import { z } from 'zod';
 
 const tool = defineTool({
@@ -274,7 +274,7 @@ catch (error) {
 ### The Solution
 
 ```typescript
-import { ContextAIError, redactObject } from '@contextai/core';
+import { ContextAIError, redactObject } from '@contextaisdk/core';
 
 catch (error) {
   if (error instanceof ContextAIError) {

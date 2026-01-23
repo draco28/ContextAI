@@ -76,7 +76,7 @@ console.log(response.reasoning); // See the thinking process
 | **TypeScript-first** | Strict mode, full type safety, no `any` |
 | **Minimal bundle** | <50KB core package |
 | **Tree-shakeable** | Import only what you use |
-| **React components** | Optional `@contextai/react` with hooks |
+| **React components** | Optional `@contextaisdk/react` with hooks |
 | **Debuggability** | Reasoning traces, timing breakdowns, token usage |
 
 ---
@@ -132,13 +132,13 @@ console.log(response.reasoning); // See the thinking process
 ### 5.1 Package Structure
 
 ```
-@contextai/core           # Agent loop, interfaces (<50KB)
-@contextai/rag            # RAG pipeline, chunking, retrieval
-@contextai/react          # Optional React hooks + components
-@contextai/providers      # LLM/embedding adapters
-@contextai/loader-*       # Document loaders (PDF, DOCX, etc.)
-@contextai/vectorstore-*  # Vector store adapters
-@contextai/reranker-*     # Reranking adapters
+@contextaisdk/core           # Agent loop, interfaces (<50KB)
+@contextaisdk/rag            # RAG pipeline, chunking, retrieval
+@contextaisdk/react          # Optional React hooks + components
+@contextaisdk/providers      # LLM/embedding adapters
+@contextaisdk/loader-*       # Document loaders (PDF, DOCX, etc.)
+@contextaisdk/vectorstore-*  # Vector store adapters
+@contextaisdk/reranker-*     # Reranking adapters
 ```
 
 ### 5.2 Performance Targets
@@ -251,9 +251,9 @@ Agent decides: Skip RAG | Full Pipeline | Retrieve as Tool
 ## 9. Quick Start (What 100 Lines Looks Like)
 
 ```typescript
-import { Agent } from '@contextai/core';
-import { RAGPipeline, PgVectorStore } from '@contextai/rag';
-import { AnthropicProvider, HuggingFaceEmbedding } from '@contextai/providers';
+import { Agent } from '@contextaisdk/core';
+import { RAGPipeline, PgVectorStore } from '@contextaisdk/rag';
+import { AnthropicProvider, HuggingFaceEmbedding } from '@contextaisdk/providers';
 
 // 1. Initialize providers
 const llm = new AnthropicProvider({

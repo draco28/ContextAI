@@ -14,8 +14,8 @@ import type {
   ChatMessage,
   GenerateOptions,
   ToolDefinition,
-} from '@contextai/core';
-import { isImageContent, isTextContent } from '@contextai/core';
+} from '@contextaisdk/core';
+import { isImageContent, isTextContent } from '@contextaisdk/core';
 import type {
   OllamaMessage,
   OllamaTool,

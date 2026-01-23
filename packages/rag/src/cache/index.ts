@@ -6,7 +6,7 @@
  *
  * @example
  * ```typescript
- * import { LRUCacheProvider, NoCacheProvider, type CacheProvider } from '@contextai/rag';
+ * import { LRUCacheProvider, NoCacheProvider, type CacheProvider } from '@contextaisdk/rag';
  *
  * // Type-safe embedding cache
  * const embeddingCache: CacheProvider<number[]> = new LRUCacheProvider({

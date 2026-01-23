@@ -1,7 +1,7 @@
 import { renderHook, act, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { useAgentStream } from '../../src/hooks/useAgentStream.js';
-import type { Agent, AgentResponse, StreamingAgentEvent } from '@contextai/core';
+import type { Agent, AgentResponse, StreamingAgentEvent } from '@contextaisdk/core';
 
 /**
  * Create a mock async generator for streaming

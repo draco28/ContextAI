@@ -12,5 +12,5 @@ export default defineConfig({
   treeshake: true,
   minify: true,
   // Don't bundle these - they're external dependencies
-  external: ['@contextai/core', '@anthropic-ai/sdk'],
+  external: ['@contextaisdk/core', '@anthropic-ai/sdk'],
 });

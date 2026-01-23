@@ -15,7 +15,7 @@ Streaming provides immediate feedback:
 ### Using agent.stream()
 
 ```typescript
-import { Agent } from '@contextai/core';
+import { Agent } from '@contextaisdk/core';
 
 const agent = new Agent({
   name: 'Assistant',
@@ -265,7 +265,7 @@ function streamChat(input: string) {
 ### useAgentStream Hook
 
 ```tsx
-import { useAgentStream } from '@contextai/react';
+import { useAgentStream } from '@contextaisdk/react';
 
 function StreamingChat() {
   const {
@@ -303,7 +303,7 @@ function StreamingChat() {
 ### useChat Hook
 
 ```tsx
-import { useChat } from '@contextai/react';
+import { useChat } from '@contextaisdk/react';
 
 function Chat() {
   const {

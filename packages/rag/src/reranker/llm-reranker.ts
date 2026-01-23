@@ -22,7 +22,7 @@
  * ```
  */
 
-import type { LLMProvider, ChatMessage } from '@contextai/core';
+import type { LLMProvider, ChatMessage } from '@contextaisdk/core';
 import type { RetrievalResult } from '../retrieval/types.js';
 import type { LLMRerankerConfig, LLMRerankerOptions } from './types.js';
 import { BaseReranker, type InternalRerankerResult } from './base-reranker.js';
@@ -80,7 +80,7 @@ const DEFAULT_TEMPERATURE = 0;
  *
  * @example
  * ```typescript
- * import { OpenAIProvider } from '@contextai/provider-openai';
+ * import { OpenAIProvider } from '@contextaisdk/provider-openai';
  *
  * const reranker = new LLMReranker({
  *   llmProvider: new OpenAIProvider({

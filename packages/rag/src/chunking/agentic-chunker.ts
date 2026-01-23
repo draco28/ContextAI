@@ -14,7 +14,7 @@
  */
 
 import type { Chunk, ChunkingOptions, ChunkingStrategy, Document } from './types.js';
-import type { LLMProvider, ChatMessage } from '@contextai/core';
+import type { LLMProvider, ChatMessage } from '@contextaisdk/core';
 import { BaseChunker } from './base-chunker.js';
 import { ChunkerError } from './errors.js';
 import { RecursiveChunker } from './recursive-chunker.js';

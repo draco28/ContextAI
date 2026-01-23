@@ -1,5 +1,5 @@
 /**
- * @contextai/react - React Components for ContextAI Agent SDK
+ * @contextaisdk/react - React Components for ContextAI Agent SDK
  *
  * Headless UI components for building AI chat interfaces.
  *

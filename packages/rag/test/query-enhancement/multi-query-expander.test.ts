@@ -11,7 +11,7 @@ import type {
   ChatResponse,
   GenerateOptions,
   StreamChunk,
-} from '@contextai/core';
+} from '@contextaisdk/core';
 import { MultiQueryExpander } from '../../src/query-enhancement/multi-query-expander.js';
 import { QueryEnhancementError } from '../../src/query-enhancement/errors.js';
 

@@ -1,15 +1,15 @@
-# @contextai/cli
+# @contextaisdk/cli
 
 CLI for scaffolding ContextAI projects and packages.
 
 ## Installation
 
 ```bash
-npm install -g @contextai/cli
+npm install -g @contextaisdk/cli
 # or
-pnpm add -g @contextai/cli
+pnpm add -g @contextaisdk/cli
 # or use directly with npx
-npx @contextai/cli
+npx @contextaisdk/cli
 ```
 
 ## Commands
@@ -106,14 +106,14 @@ Creates a utility library with:
 
 ```bash
 # Build the CLI
-pnpm build --filter=@contextai/cli
+pnpm build --filter=@contextaisdk/cli
 
 # Test locally
 node packages/cli/dist/index.cjs --help
 node packages/cli/dist/index.cjs new provider test
 
 # Run tests
-pnpm test --filter=@contextai/cli
+pnpm test --filter=@contextaisdk/cli
 ```
 
 ## License
