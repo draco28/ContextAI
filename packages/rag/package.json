@@ -217,7 +217,8 @@
     "@contextaisdk/core": "workspace:*",
     "gray-matter": "^4.0.3",
     "mammoth": "^1.8.0",
-    "pdf-parse": "^1.1.1"
+    "pdf-parse": "^1.1.1",
+    "zod": "^3.23.0"
   },
   "devDependencies": {
     "@contextaisdk/tsconfig": "workspace:*",

@@ -324,3 +324,45 @@ export {
   type SizeEstimationOptions,
   type EmbeddingStorageFormat,
 } from './memory/index.js';
+
+// Knowledge Graph (Graph-based knowledge storage and traversal)
+export {
+  // Error class
+  GraphStoreError,
+  // Zod Schemas
+  GraphNodeTypeSchema,
+  GraphNodePropertiesSchema,
+  GraphNodeInputSchema,
+  GraphNodeSchema,
+  GraphEdgeTypeSchema,
+  GraphEdgePropertiesSchema,
+  GraphEdgeInputSchema,
+  GraphEdgeSchema,
+  TraversalDirectionSchema,
+  GetNeighborsOptionsSchema,
+  GraphQueryOptionsSchema,
+  GraphStoreConfigSchema,
+  // Types
+  type GraphNodeType,
+  type GraphNodeProperties,
+  type GraphNode,
+  type GraphNodeInput,
+  type GraphEdgeType,
+  type GraphEdgeProperties,
+  type GraphEdge,
+  type GraphEdgeInput,
+  type TraversalDirection,
+  type GetNeighborsOptions,
+  type NeighborResult,
+  type GraphQueryOptions,
+  type GraphQueryResult,
+  type GraphStoreConfig,
+  type GraphStore,
+  type GraphStoreErrorCode,
+  type GraphStoreErrorDetails,
+  type ValidatedGraphNodeInput,
+  type ValidatedGraphEdgeInput,
+  type ValidatedGetNeighborsOptions,
+  type ValidatedGraphQueryOptions,
+  type ValidatedGraphStoreConfig,
+} from './knowledge-graph/index.js';
