@@ -327,6 +327,8 @@ export {
 
 // Knowledge Graph (Graph-based knowledge storage and traversal)
 export {
+  // Implementations
+  InMemoryGraphStore,
   // Error class
   GraphStoreError,
   // Zod Schemas

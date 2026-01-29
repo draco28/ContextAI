@@ -81,3 +81,6 @@ export {
 
 // Error class
 export { GraphStoreError } from './errors.js';
+
+// Implementations
+export { InMemoryGraphStore } from './memory-store.js';
