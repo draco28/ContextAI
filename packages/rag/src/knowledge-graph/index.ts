@@ -84,3 +84,5 @@ export { GraphStoreError } from './errors.js';
 
 // Implementations
 export { InMemoryGraphStore } from './memory-store.js';
+export { Neo4jGraphStore, Neo4jGraphStoreConfigSchema } from './neo4j-store.js';
+export type { Neo4jGraphStoreConfig } from './neo4j-store.js';
