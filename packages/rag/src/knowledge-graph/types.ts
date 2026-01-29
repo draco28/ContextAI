@@ -168,6 +168,12 @@ export interface GraphEdge {
 
 /**
  * Input for creating a new edge (without auto-generated fields).
+ *
+ * @remarks
+ * Self-loops (where source === target) are allowed by default.
+ * Implementations may choose to reject self-loops by throwing
+ * `GraphStoreError.invalidEdge()` if self-referencing edges
+ * don't make sense for the use case.
  */
 export interface GraphEdgeInput {
   /** Optional custom ID (auto-generated if not provided) */
@@ -201,9 +207,9 @@ export interface GetNeighborsOptions {
   depth?: number;
   /** Direction to traverse (default: 'both') */
   direction?: TraversalDirection;
-  /** Filter by edge types */
+  /** Filter by edge types (undefined = all types, empty array = no matches) */
   edgeTypes?: GraphEdgeType[];
-  /** Filter by node types */
+  /** Filter by node types (undefined = all types, empty array = no matches) */
   nodeTypes?: GraphNodeType[];
   /** Minimum edge weight threshold */
   minWeight?: number;
@@ -227,9 +233,9 @@ export interface NeighborResult {
  * Options for pattern-based graph queries.
  */
 export interface GraphQueryOptions {
-  /** Filter nodes by type */
+  /** Filter nodes by type (undefined = all types, empty array = no matches) */
   nodeTypes?: GraphNodeType[];
-  /** Filter edges by type */
+  /** Filter edges by type (undefined = all types, empty array = no matches) */
   edgeTypes?: GraphEdgeType[];
   /** Filter by node properties */
   nodeFilter?: Record<string, unknown>;

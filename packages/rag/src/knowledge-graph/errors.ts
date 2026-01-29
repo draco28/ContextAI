@@ -221,4 +221,15 @@ export class GraphStoreError extends ContextAIError {
       cause
     );
   }
+
+  /**
+   * Create a generic store error.
+   */
+  static storeError(
+    storeName: string,
+    message: string,
+    cause?: Error
+  ): GraphStoreError {
+    return new GraphStoreError(message, 'STORE_ERROR', storeName, cause);
+  }
 }
