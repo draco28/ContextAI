@@ -951,8 +951,10 @@ export class Neo4jGraphStore implements GraphStore {
         const relProps = lastRel.properties as Record<string, unknown>;
 
         // Determine source/target based on direction
+        // If the relationship's start node is NOT the neighbor, then central node is the start
+        // meaning this edge is outgoing FROM central TO neighbor
         const startNodeId = toNumber(lastRel.start);
-        const isOutgoing = startNodeId === toNumber(neighborNode.identity);
+        const isOutgoing = startNodeId !== toNumber(neighborNode.identity);
 
         let parsedNodeProps: Record<string, unknown> = {};
         if (typeof neighborProps.properties === 'string') {
