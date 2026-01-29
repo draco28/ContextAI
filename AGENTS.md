@@ -1,4 +1,4 @@
-# ContextAI - AI Agent Resources
+# ChatBot_Lang - OpenCode Workflow Guide
 
 **Project ID**: 7
 **MCP Server**: https://projectpulsemcp.dracodev.dev/mcp
@@ -6,245 +6,113 @@
 
 ---
 
-## Overview
+## Quick Start
 
-This document catalogs all AI agent resources available for ContextAI via ProjectPulse MCP.
+Initialize the project session:
 
-Resources are loaded on-demand to save tokens. Use `list` tools to discover what's available, then `get` tools to load specific resources when needed.
+```bash
+/init
+```
+
+Chat with the agent:
+
+```
+"Implement the user authentication feature"
+"Fix the bug in the search API"
+```
 
 ---
 
-## Available Personas
+## 🚀 Daily Workflow
 
-Personas define expert behaviors and domain knowledge. Load one to adopt its expertise.
+### 1. Load Context (Crucial)
 
-### How to Use Personas
+Start every session by loading the project context from ProjectPulse:
 
-```
-# List all available personas
-projectpulse_persona_list(projectId: 7)
-
-# Load a specific persona
-projectpulse_persona_get(projectId: 7, slug: "<persona-slug>")
-→ Returns: name, systemPrompt, expertise, rules, skills, tools
+```javascript
+projectpulse_context_load({ projectId: 7 });
 ```
 
-### Persona Catalog
+This loads the project brief, tech stack, and active tasks into memory.
 
-### Agent Runtime Developer 🤖
+### 2. Manage Tasks
 
-**Slug**: `agent-runtime`
-**Expertise**: ReAct Loop, Tool Execution, Agent Orchestration, Streaming, Debugging
+Use the ProjectPulse ticket system to track work:
 
-Expert in ReAct reasoning loops, tool execution, and agent orchestration
+```javascript
+// Find your tickets
+projectpulse_ticket_search({ sprintNumber: 1, status: ['todo'] });
 
-### Provider Integration Specialist 🔌
-
-**Slug**: `provider-specialist`
-**Expertise**: Anthropic, OpenAI, Ollama, HuggingFace, API Integration
-
-Expert in LLM provider APIs, embedding services, and adapter patterns
-
-### RAG Pipeline Engineer 🔍
-
-**Slug**: `rag-engineer`
-**Expertise**: RAG, Embeddings, Vector Search, Chunking, Re-ranking
-
-Specialist in retrieval-augmented generation, embeddings, and vector search
-
-### React Components Developer ⚛️
-
-**Slug**: `react-developer`
-**Expertise**: React Hooks, Headless UI, Accessibility, TypeScript React, Streaming UI
-
-Specialist in React hooks, headless components, and SDK UI patterns
-
-### SDK Architect 🏗️
-
-**Slug**: `sdk-architect`
-**Expertise**: TypeScript, SDK Design, API Ergonomics, Monorepo, Package Architecture
-
-Expert in TypeScript SDK design, API ergonomics, and package architecture
-
-### Test Engineer 🧪
-
-**Slug**: `test-engineer`
-**Expertise**: Vitest, Unit Testing, Integration Testing, Mocking, Coverage
-
-Expert in Vitest, testing strategies, and SDK quality assurance
-
----
-
-## Available Skills
-
-Skills contain reusable coding patterns, templates, and conventions for the project.
-
-### How to Use Skills
-
-```
-# List all skills
-projectpulse_skill_list(projectId: 7)
-
-# Filter by category
-projectpulse_skill_list(projectId: 7, category: "framework")
-
-# Load a specific skill
-projectpulse_skill_get(projectId: 7, slug: "<skill-slug>")
-→ Returns: Full content with code examples
-```
-
-### Skills by Category
-
-#### framework
-
-| Title | Slug | Description |
-|-------|------|-------------|
-| TypeScript SDK Design Patterns | `typescript-sdk-patterns` | Core patterns for building type-safe, tree-shakeable SDK packages |
-| RAG Chunking Strategies | `rag-chunking-strategies` | Implementation patterns for different chunking approaches in RAG pipelines |
-| React Hooks for Async Agent State | `react-hooks-async-state` | Patterns for managing async agent state in React with proper cleanup and error handling |
-
-#### testing
-
-| Title | Slug | Description |
-|-------|------|-------------|
-| Vitest Mocking Patterns for SDK Testing | `vitest-mocking-patterns` | Patterns for mocking LLM providers, embeddings, and async operations in Vitest |
-
-#### workflow
-
-| Title | Slug | Description |
-|-------|------|-------------|
-| SDK Error Handling Patterns | `error-handling-patterns` | Consistent error handling patterns with typed errors, recovery hints, and logging |
-
----
-
-## Standard Operating Procedures (SOPs)
-
-SOPs provide step-by-step procedures for common tasks.
-
-### How to Use SOPs
-
-```
-# List all SOPs
-projectpulse_sop_list(projectId: 7)
-
-# Filter by category
-projectpulse_sop_list(projectId: 7, category: "Development")
-
-# Load a specific SOP
-projectpulse_sop_get(projectId: 7, slug: "<sop-slug>")
-→ Returns: Full procedure with steps and checklists
-```
-
-### SOPs by Category
-
-#### Development
-
-| Title | Slug | Description |
-|-------|------|-------------|
-| Code Review Guidelines | `code-review-guidelines` | Standards and checklist for reviewing SDK pull requests |
-| Adding New Package to Monorepo | `adding-new-package` | Steps for creating a new package in the Turborepo monorepo |
-| Security Review Checklist | `security-review-checklist` | Security considerations when reviewing SDK code changes |
-
-#### Troubleshooting
-
-| Title | Slug | Description |
-|-------|------|-------------|
-| Debugging Agent Issues | `debugging-agent-issues` | Step-by-step guide for debugging agent behavior problems |
-| RAG Pipeline Tuning | `rag-pipeline-tuning` | Guide for optimizing RAG retrieval quality and performance |
-
----
-
-## Workflow Templates
-
-Workflow templates define multi-step processes for common tasks.
-
-### How to Use Workflows
-
-```
-# List available workflows
-projectpulse_workflow_list(projectId: 7)
-
-# Start a workflow
-projectpulse_workflow_start({
-  templateId: 1,
+// Start a session for a ticket
+projectpulse_agent_session_start({
   projectId: 7,
-  initialContext: { featureName: "auth" }
-})
-
-# Execute current step
-projectpulse_workflow_executeStep({ runId: 123, stepResult: {...} })
-
-# Check status
-projectpulse_workflow_getStatus({ runId: 123 })
+  name: 'Implement Feature X',
+  activeTicketIds: [123],
+});
 ```
 
 ---
 
-## Knowledge Base
+## 🤖 Specialized Agents
 
-Project knowledge items store decisions, discoveries, and solutions.
+We have specialized agents available as subagents. Invoke them with `@` or let the main agent delegate to them.
 
-### How to Access Knowledge
+| Agent                  | Mention               | Expertise                            |
+| ---------------------- | --------------------- | ------------------------------------ |
+| **Python Backend**     | `@python-backend`     | FastAPI, Pydantic, Async, SQLAlchemy |
+| **LangChain Engineer** | `@langchain-engineer` | LangChain, Agents, Tools, Memory     |
+| **RAG Specialist**     | `@rag-specialist`     | Qdrant, Embeddings, Chunking         |
+| **DevOps Engineer**    | `@devops-engineer`    | Docker, CI/CD, Deployment            |
+| **QA Engineer**        | `@qa-engineer`        | Pytest, Integration Tests            |
+| **Security Engineer**  | `@security-engineer`  | Auth, OWASP, Input Validation        |
 
-```
-# Search knowledge
-projectpulse_knowledge_search({
-  projectId: 7,
-  query: "authentication",
-  mode: "hybrid"
-})
+Example:
 
-# Get full item
-projectpulse_knowledge_get({
-  projectId: 7,
-  itemId: 123
-})
-```
+> `@python-backend` Refactor the auth middleware to use async/await.
 
 ---
 
-## Wiki
+## 🧠 Skills & SOPs
 
-Project documentation in wiki format.
+Reusable patterns and procedures are available via the `skill` tool.
 
-### How to Access Wiki
+**Usage:**
 
+```javascript
+skill({ name: 'docker-deployment' });
+skill({ name: 'git-workflow-sop' });
 ```
-# Search wiki
-projectpulse_wiki_search({ query: "API reference" })
 
-# Get page by path
-projectpulse_wiki_get({ path: "/guides/api-reference" })
-```
+**Available Skills:**
+
+- `docker-deployment`: Containerization patterns
+- `fastapi-websocket`: WebSocket implementation
+- `pydantic-validation`: Data validation patterns
+- `qdrant-rag`: RAG system implementation
+- `langchain-tool-creation`: Creating custom tools
+
+**Standard Operating Procedures (SOPs):**
+
+- `git-workflow-sop`: Branching and committing
+- `deployment-sop`: Deploying to production
+- `incident-response-sop`: Handling emergencies
+- `code-review-sop`: Review guidelines
 
 ---
 
-## Token-Efficient Loading Pattern
+## 🛠 ProjectPulse MCP Tools
 
-To minimize token usage, follow this pattern:
+Full access to the ProjectPulse ecosystem is available via MCP tools:
 
-```
-1. Start with context_load (all memory banks)
-   → Get project brief, patterns, tech context
-
-2. List resources when needed
-   → persona_list, skill_list, sop_list return metadata only (~100 tokens each)
-
-3. Load full content on-demand
-   → persona_get, skill_get, sop_get return full content
-
-4. Search before creating
-   → knowledge_search, wiki_search to find existing info
-```
+- **Knowledge Base**: `projectpulse_knowledge_search`
+- **Wiki**: `projectpulse_wiki_search`
+- **Roadmap**: `projectpulse_sprint_getCurrentPosition`
+- **Kanban**: `projectpulse_kanban_getBoard`
 
 ---
 
-## Dashboard
+## Token Efficiency
 
-View and manage all resources:
-
-- **Overview**: https://projectpulse.dracodev.dev/projects/7
-- **Personas**: https://projectpulse.dracodev.dev/projects/7/personas
-- **Skills**: https://projectpulse.dracodev.dev/projects/7/skills
-- **SOPs**: https://projectpulse.dracodev.dev/projects/7/sops
-- **Knowledge**: https://projectpulse.dracodev.dev/projects/7/knowledge
+1. **Load Context First**: Use `projectpulse_context_load`.
+2. **Use Specialized Agents**: They have focused system prompts.
+3. **Load Skills On-Demand**: Don't ask for "all skills", ask for specific ones using `skill()`.

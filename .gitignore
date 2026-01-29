@@ -34,5 +34,15 @@ coverage/
 
 # Internal/sensitive files (not for public repo)
 .mcp.json
+opencode.json
 .claude/
+
+# OpenCode agent scaffolding (ignore everything except AGENTS.md which will be committed)
+.opencode/
+!.opencode/AGENTS.md
+
 RAG_Guide_Part1_Learning_Journey.docx
+
+# Personal/marketing content (not for public repo)
+docs/assets/linkedin-post-ready.md
+docs/assets/architecture-diagrams.md
