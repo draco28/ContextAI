@@ -2,7 +2,7 @@
  * RAG Engine Implementation
  *
  * High-level orchestrator that coordinates the full RAG pipeline:
- * Query Enhancement → Retrieval → Reranking → Context Assembly
+ * Query Enhancement → Retrieval → Reranking → Verification → Context Assembly
  *
  * This is the primary integration point for agents and tools.
  */
@@ -10,6 +10,7 @@
 import type { QueryEnhancer, EnhancementResult } from '../query-enhancement/types.js';
 import type { Retriever, RetrievalResult } from '../retrieval/types.js';
 import type { Reranker, RerankerResult } from '../reranker/types.js';
+import type { Verifier, VerifiedRetrievalResult } from '../verifier/types.js';
 import type { ContextAssembler, AssembledContext } from '../assembly/types.js';
 import type { CacheProvider } from '../cache/types.js';
 import type {
@@ -88,9 +89,10 @@ export class RAGEngineImpl implements RAGEngine {
   private readonly enhancer?: QueryEnhancer;
   private readonly retriever: Retriever;
   private readonly reranker?: Reranker;
+  private readonly verifier?: Verifier;
   private readonly assembler: ContextAssembler;
   private readonly cache?: CacheProvider<RAGResult>;
-  private readonly defaults: Required<NonNullable<RAGEngineConfig['defaults']>>;
+  private readonly defaults: Required<NonNullable<RAGEngineConfig['defaults']>> & { verify: boolean };
 
   constructor(config: RAGEngineConfig) {
     // Validate required components
@@ -111,6 +113,7 @@ export class RAGEngineImpl implements RAGEngine {
     this.enhancer = config.enhancer;
     this.retriever = config.retriever;
     this.reranker = config.reranker;
+    this.verifier = config.verifier;
     this.assembler = config.assembler;
     this.cache = config.cache;
 
@@ -121,6 +124,7 @@ export class RAGEngineImpl implements RAGEngine {
       ordering: config.defaults?.ordering ?? 'relevance',
       enhance: config.defaults?.enhance ?? true,
       rerank: config.defaults?.rerank ?? true,
+      verify: config.defaults?.verify ?? true,
       useCache: config.defaults?.useCache ?? true,
       cacheTtl: config.defaults?.cacheTtl ?? 5 * 60 * 1000, // 5 minutes
     };
@@ -129,7 +133,7 @@ export class RAGEngineImpl implements RAGEngine {
   /**
    * Search the knowledge base for relevant information.
    *
-   * Pipeline: enhance → retrieve → rerank → assemble
+   * Pipeline: enhance → retrieve → rerank → verify → assemble
    */
   search = async (
     query: string,
@@ -153,9 +157,11 @@ export class RAGEngineImpl implements RAGEngine {
       minScore: options.minScore ?? this.defaults.minScore,
       enhance: options.enhance ?? (this.enhancer ? this.defaults.enhance : false),
       rerank: options.rerank ?? (this.reranker ? this.defaults.rerank : false),
+      verify: options.verify ?? (this.verifier ? this.defaults.verify : false),
       ordering: options.ordering ?? this.defaults.ordering,
       maxTokens: options.maxTokens,
       retrieval: options.retrieval,
+      verificationOptions: options.verificationOptions,
       useCache: options.useCache ?? (this.cache ? this.defaults.useCache : false),
       cacheTtl: options.cacheTtl ?? this.defaults.cacheTtl,
       signal: options.signal,
@@ -299,7 +305,48 @@ export class RAGEngineImpl implements RAGEngine {
     }
 
     // =========================================================================
-    // Stage 4: Context Assembly
+    // Stage 4: Verification (Optional)
+    // =========================================================================
+    let verificationResults: VerifiedRetrievalResult[] | undefined;
+
+    if (effectiveOptions.verify && this.verifier && retrievalResults.length > 0) {
+      this.checkAborted(effectiveOptions.signal, 'verification');
+
+      const verifyStart = Date.now();
+      try {
+        // Prepare results for verification
+        // Transfer confidence scores from retrieval results
+        const resultsToVerify = rerankerResults
+          ? rerankerResults.map((r) => {
+              // Find original retrieval result to get confidence
+              const original = retrievalResults.find((rr) => rr.id === r.id);
+              return {
+                id: r.id,
+                chunk: r.chunk,
+                score: r.score,
+                confidence: original?.confidence,
+              };
+            })
+          : retrievalResults;
+
+        verificationResults = await this.verifier.verify(
+          effectiveQuery,
+          resultsToVerify,
+          effectiveOptions.verificationOptions
+        );
+
+        timings.verificationMs = Date.now() - verifyStart;
+      } catch (error) {
+        throw RAGEngineError.verificationFailed(
+          this.name,
+          error instanceof Error ? error.message : String(error),
+          error instanceof Error ? error : undefined
+        );
+      }
+    }
+
+    // =========================================================================
+    // Stage 5: Context Assembly
     // =========================================================================
     this.checkAborted(effectiveOptions.signal, 'assembly');
 
@@ -307,9 +354,30 @@ export class RAGEngineImpl implements RAGEngine {
     let assembly: AssembledContext;
 
     try {
-      // Use reranker results if available, otherwise convert retrieval results
-      const resultsToAssemble: RerankerResult[] = rerankerResults ??
-        retrievalResults.map((r, idx) => ({
+      // Determine which results to assemble
+      // Priority: verified > reranked > retrieval
+      let resultsToAssemble: RerankerResult[];
+
+      if (verificationResults) {
+        // Filter to only verified results, then convert to RerankerResult format
+        const verified = verificationResults.filter(
+          (r) => r.verification?.verified
+        );
+        resultsToAssemble = verified.map((r, idx) => ({
+          id: r.id,
+          chunk: r.chunk,
+          score: r.score,
+          originalRank: idx + 1,
+          newRank: idx + 1,
+          scores: {
+            originalScore: r.score,
+            rerankerScore: r.verification?.verificationScore ?? r.score,
+          },
+        }));
+      } else if (rerankerResults) {
+        resultsToAssemble = rerankerResults;
+      } else {
+        resultsToAssemble = retrievalResults.map((r, idx) => ({
           id: r.id,
           chunk: r.chunk,
           score: r.score,
@@ -320,6 +388,7 @@ export class RAGEngineImpl implements RAGEngine {
             rerankerScore: r.score,
           },
         }));
+      }
 
       assembly = await this.assembler.assemble(resultsToAssemble, {
         topK: effectiveOptions.topK,
@@ -347,6 +416,9 @@ export class RAGEngineImpl implements RAGEngine {
       enhancement,
       retrievedCount: retrievalResults.length,
       rerankedCount: rerankerResults?.length,
+      verifiedCount: verificationResults
+        ? verificationResults.filter((r) => r.verification?.verified).length
+        : undefined,
       assembledCount: assembly.chunkCount,
       deduplicatedCount: assembly.deduplicatedCount,
       droppedCount: assembly.droppedCount,
@@ -361,6 +433,7 @@ export class RAGEngineImpl implements RAGEngine {
       assembly,
       retrievalResults,
       rerankerResults,
+      verificationResults,
       metadata,
     };
 
@@ -429,7 +502,7 @@ export class RAGEngineImpl implements RAGEngine {
    */
   private checkAborted(
     signal: AbortSignal | undefined,
-    stage: 'enhancement' | 'retrieval' | 'reranking' | 'assembly'
+    stage: 'enhancement' | 'retrieval' | 'reranking' | 'verification' | 'assembly'
   ): void {
     if (signal?.aborted) {
       throw RAGEngineError.aborted(this.name, stage);

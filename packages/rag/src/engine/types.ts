@@ -18,6 +18,7 @@ import type {
   OrderingStrategy,
 } from '../assembly/types.js';
 import type { CacheProvider } from '../cache/types.js';
+import type { Verifier, VerifierOptions, VerifiedRetrievalResult } from '../verifier/types.js';
 
 // ============================================================================
 // RAG Engine Configuration
@@ -65,6 +66,13 @@ export interface RAGEngineConfig {
   assembler: ContextAssembler;
 
   /**
+   * Optional verifier for post-retrieval relevance verification.
+   * Uses LLM to judge if documents are truly relevant to the query.
+   * If not provided, verification is skipped.
+   */
+  verifier?: Verifier;
+
+  /**
    * Optional cache for storing search results.
    * Key is the query + options hash, value is RAGResult.
    */
@@ -97,6 +105,8 @@ export interface RAGSearchDefaults {
   enhance?: boolean;
   /** Default: whether to rerank results */
   rerank?: boolean;
+  /** Default: whether to verify results */
+  verify?: boolean;
   /** Default: whether to use cache */
   useCache?: boolean;
   /** Default cache TTL in milliseconds */
@@ -136,6 +146,17 @@ export interface RAGSearchOptions {
    * Default: true if reranker is configured
    */
   rerank?: boolean;
+
+  /**
+   * Whether to verify results after reranking.
+   * Default: true if verifier is configured
+   */
+  verify?: boolean;
+
+  /**
+   * Verification options (thresholds, concurrency, etc.)
+   */
+  verificationOptions?: VerifierOptions;
 
   /**
    * Ordering strategy for assembled context.
@@ -186,6 +207,8 @@ export interface RAGTimings {
   retrievalMs: number;
   /** Time spent on reranking (ms) */
   rerankingMs?: number;
+  /** Time spent on verification (ms) */
+  verificationMs?: number;
   /** Time spent on assembly (ms) */
   assemblyMs: number;
   /** Total pipeline time (ms) */
@@ -208,6 +231,8 @@ export interface RAGSearchMetadata {
   retrievedCount: number;
   /** Number of results after reranking */
   rerankedCount?: number;
+  /** Number of results after verification */
+  verifiedCount?: number;
   /** Number of chunks included in assembled context */
   assembledCount: number;
   /** Number of chunks deduplicated */
@@ -257,6 +282,11 @@ export interface RAGResult {
    * Reranked results (if reranking was performed).
    */
   rerankerResults?: RerankerResult[];
+
+  /**
+   * Verified results (if verification was performed).
+   */
+  verificationResults?: VerifiedRetrievalResult[];
 
   /**
    * Search metadata for debugging and observability.
@@ -339,6 +369,7 @@ export type RAGEngineErrorCode =
   | 'ENHANCEMENT_FAILED'
   | 'RETRIEVAL_FAILED'
   | 'RERANKING_FAILED'
+  | 'VERIFICATION_FAILED'
   | 'ASSEMBLY_FAILED'
   | 'CACHE_ERROR'
   | 'CONFIG_ERROR'
@@ -353,7 +384,7 @@ export interface RAGEngineErrorDetails {
   /** Name of the engine that failed */
   engineName: string;
   /** Which pipeline stage failed */
-  stage?: 'enhancement' | 'retrieval' | 'reranking' | 'assembly' | 'cache';
+  stage?: 'enhancement' | 'retrieval' | 'reranking' | 'verification' | 'assembly' | 'cache';
   /** Underlying cause, if any */
   cause?: Error;
 }

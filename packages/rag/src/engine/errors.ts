@@ -36,6 +36,7 @@ export class RAGEngineError extends ContextAIError {
     | 'enhancement'
     | 'retrieval'
     | 'reranking'
+    | 'verification'
     | 'assembly'
     | 'cache';
   /** Underlying cause, if any */
@@ -45,7 +46,7 @@ export class RAGEngineError extends ContextAIError {
     message: string,
     code: RAGEngineErrorCode,
     engineName: string,
-    stage?: 'enhancement' | 'retrieval' | 'reranking' | 'assembly' | 'cache',
+    stage?: 'enhancement' | 'retrieval' | 'reranking' | 'verification' | 'assembly' | 'cache',
     cause?: Error
   ) {
     super(message, `RAG_ENGINE_${code}`);
@@ -135,6 +136,23 @@ export class RAGEngineError extends ContextAIError {
   }
 
   /**
+   * Create an error for verification failures.
+   */
+  static verificationFailed(
+    engineName: string,
+    reason: string,
+    cause?: Error
+  ): RAGEngineError {
+    return new RAGEngineError(
+      `Verification failed: ${reason}`,
+      'VERIFICATION_FAILED',
+      engineName,
+      'verification',
+      cause
+    );
+  }
+
+  /**
    * Create an error for assembly failures.
    */
   static assemblyFailed(
@@ -184,7 +202,7 @@ export class RAGEngineError extends ContextAIError {
    */
   static aborted(
     engineName: string,
-    stage: 'enhancement' | 'retrieval' | 'reranking' | 'assembly'
+    stage: 'enhancement' | 'retrieval' | 'reranking' | 'verification' | 'assembly'
   ): RAGEngineError {
     return new RAGEngineError(
       `Operation aborted during ${stage}`,

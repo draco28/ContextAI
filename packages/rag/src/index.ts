@@ -373,3 +373,18 @@ export {
   type ValidatedGraphQueryOptions,
   type ValidatedGraphStoreConfig,
 } from './knowledge-graph/index.js';
+
+// Verification (Post-reranking relevance verification)
+export {
+  // Classes
+  LLMVerifier,
+  VerifierError,
+  // Types
+  type Verifier,
+  type VerifierOptions,
+  type VerificationResult,
+  type VerifiedRetrievalResult,
+  type LLMVerifierConfig,
+  type VerifierErrorCode,
+  type VerifierErrorDetails,
+} from './verifier/index.js';
