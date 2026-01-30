@@ -1263,12 +1263,15 @@ export class InMemoryGraphStore implements GraphStore {
         // Filter by node types for intermediate nodes
         // (source and target are allowed regardless of type)
         const neighborNode = this.nodes.get(neighborId)!;
-        if (
-          opts.nodeTypes &&
-          neighborId !== targetId &&
-          !opts.nodeTypes.includes(neighborNode.type)
-        ) {
-          continue;
+        if (opts.nodeTypes && neighborId !== targetId) {
+          // Empty nodeTypes array means "no intermediate nodes allowed" (direct paths only)
+          // Non-empty array means "only allow nodes of these types as intermediates"
+          if (
+            opts.nodeTypes.length === 0 ||
+            !opts.nodeTypes.includes(neighborNode.type)
+          ) {
+            continue;
+          }
         }
 
         // Calculate edge cost:

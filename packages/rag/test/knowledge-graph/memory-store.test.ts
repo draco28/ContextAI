@@ -1084,17 +1084,40 @@ describe('InMemoryGraphStore', () => {
           expect(path).toBeNull();
         });
 
-        it('should return null with empty nodeTypes array', async () => {
-          // Need to go through n2 to reach n3 via non-references edges
-          // But empty nodeTypes means no intermediate nodes allowed
+        it('should return null with empty nodeTypes array for direct path', async () => {
+          // n1 to n2 is direct, no intermediate nodes needed
+          // So this should still work even with nodeTypes: []
           const path = await store.findShortestPath('n1', 'n2', {
             nodeTypes: [],
-            // Still need a non-adjacent path test
           });
 
-          // n1 to n2 is direct, no intermediate nodes needed
-          // So this should still work
           expect(path).not.toBeNull();
+          expect(path!.length).toBe(1);
+        });
+
+        it('should find direct path but not indirect when nodeTypes is empty array', async () => {
+          // n1→n3 has both direct (e3) and indirect (via n2) paths
+          // With nodeTypes: [], should only use direct path
+          const path = await store.findShortestPath('n1', 'n3', {
+            nodeTypes: [],
+          });
+
+          expect(path).not.toBeNull();
+          expect(path!.length).toBe(1); // Only direct path allowed
+          expect(path!.edges[0]!.id).toBe('e3'); // The direct edge
+        });
+
+        it('should return null when no direct path and nodeTypes is empty', async () => {
+          // Add node n4 only reachable via n2
+          await store.addNode(createTestNode({ id: 'n4', type: 'chunk' }));
+          await store.addEdge(createTestEdge('n2', 'n4', { id: 'e4' }));
+
+          // n1→n4 requires going through n2 (intermediate node)
+          const path = await store.findShortestPath('n1', 'n4', {
+            nodeTypes: [],
+          });
+
+          expect(path).toBeNull(); // No direct path exists
         });
       });
 

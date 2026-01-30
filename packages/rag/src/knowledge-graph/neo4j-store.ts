@@ -2017,11 +2017,17 @@ export class Neo4jGraphStore implements GraphStore {
 
     // Build node type filter for intermediate nodes
     let nodeTypeFilter = '';
-    if (opts.nodeTypes && opts.nodeTypes.length > 0) {
-      params.nodeTypes = opts.nodeTypes;
-      nodeTypeFilter = `
-        AND ALL(n IN nodes(p)[1..-1] WHERE n.type IN $nodeTypes)
-      `;
+    if (opts.nodeTypes) {
+      if (opts.nodeTypes.length === 0) {
+        // Empty array = no intermediate nodes allowed (direct paths only)
+        nodeTypeFilter = 'AND length(p) = 1';
+      } else {
+        // Non-empty array = only allow these types as intermediates
+        params.nodeTypes = opts.nodeTypes;
+        nodeTypeFilter = `
+          AND ALL(n IN nodes(p)[1..-1] WHERE n.type IN $nodeTypes)
+        `;
+      }
     }
 
     // Calculate cost expression
