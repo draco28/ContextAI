@@ -117,12 +117,13 @@ export {
   type SizeUnit,
 } from './chunking/index.js';
 
-// Retrieval (Dense, Sparse, Hybrid)
+// Retrieval (Dense, Sparse, Hybrid, Graph-Enhanced)
 export {
   // Classes
   BM25Retriever,
   DenseRetriever,
   HybridRetriever,
+  GraphHybridRetriever,
   RetrieverError,
   // RRF Utilities
   reciprocalRankFusion,
@@ -136,6 +137,10 @@ export {
   type RetrievalOptions,
   type HybridRetrievalOptions,
   type HybridScore,
+  type GraphHybridScore,
+  type GraphContextConfig,
+  type GraphHybridRetrievalOptions,
+  type GraphHybridRetrieverConfig,
   type BM25Config,
   type BM25Document,
   type DenseRetrieverConfig,

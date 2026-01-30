@@ -29,6 +29,11 @@ export type {
   RetrievalOptions,
   HybridRetrievalOptions,
   HybridScore,
+  // Graph hybrid types
+  GraphHybridScore,
+  GraphContextConfig,
+  GraphHybridRetrievalOptions,
+  GraphHybridRetrieverConfig,
   // Configuration types
   BM25Config,
   BM25Document,
@@ -49,6 +54,7 @@ export { RetrieverError } from './errors.js';
 export { BM25Retriever } from './bm25.js';
 export { DenseRetriever } from './dense-retriever.js';
 export { HybridRetriever } from './hybrid-retriever.js';
+export { GraphHybridRetriever } from './graph-hybrid-retriever.js';
 
 // RRF utilities
 export {
