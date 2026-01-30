@@ -45,6 +45,7 @@ import type {
   GraphNodeType,
   GraphEdgeType,
   BulkNodeUpdate,
+  BulkEdgeUpdate,
   BulkUpdateOptions,
   BulkDeleteOptions,
   BulkOperationResult,
@@ -56,7 +57,9 @@ import {
   GetNeighborsOptionsSchema,
   GraphQueryOptionsSchema,
   UpsertNodeInputSchema,
+  UpsertEdgeInputSchema,
   BulkNodeUpdateSchema,
+  BulkEdgeUpdateSchema,
   BulkUpdateOptionsSchema,
   BulkDeleteOptionsSchema,
 } from './schemas.js';
@@ -1343,6 +1346,356 @@ export class Neo4jGraphStore implements GraphStore {
     `;
 
     await this.runQuery(cypher, { id }, () => null);
+  };
+
+  // ==========================================================================
+  // Bulk Edge Operations
+  // ==========================================================================
+
+  /**
+   * Check if an edge exists by ID.
+   */
+  hasEdge = async (id: string): Promise<boolean> => {
+    const cypher = `
+      MATCH ()-[r {id: $id}]->()
+      RETURN COUNT(r) > 0 AS exists
+    `;
+
+    return this.runQuery(cypher, { id }, (records) => {
+      const first = records[0];
+      if (!first) return false;
+      return first.get('exists') as boolean;
+    });
+  };
+
+  /**
+   * Check if multiple edges exist by IDs.
+   */
+  hasEdges = async (ids: string[]): Promise<Map<string, boolean>> => {
+    if (ids.length === 0) {
+      return new Map();
+    }
+
+    const cypher = `
+      UNWIND $ids AS edgeId
+      OPTIONAL MATCH ()-[r {id: edgeId}]->()
+      RETURN edgeId, r IS NOT NULL AS exists
+    `;
+
+    return this.runQuery(cypher, { ids }, (records) => {
+      const result = new Map<string, boolean>();
+      for (const record of records) {
+        const edgeId = record.get('edgeId') as string;
+        const exists = record.get('exists') as boolean;
+        result.set(edgeId, exists);
+      }
+      return result;
+    });
+  };
+
+  /**
+   * Get multiple edges by their IDs.
+   */
+  getEdges = async (ids: string[]): Promise<(GraphEdge | null)[]> => {
+    if (ids.length === 0) {
+      return [];
+    }
+
+    const cypher = `
+      UNWIND $ids AS edgeId
+      OPTIONAL MATCH (s)-[r {id: edgeId}]->(t)
+      RETURN edgeId, r, s.id AS source, t.id AS target
+    `;
+
+    const edgeMap = await this.runQuery(cypher, { ids }, (records) => {
+      const map = new Map<string, GraphEdge | null>();
+      for (const record of records) {
+        const edgeId = record.get('edgeId') as string;
+        const rel = record.get('r') as Neo4jRelationship | null;
+        if (rel) {
+          const source = record.get('source') as string;
+          const target = record.get('target') as string;
+          const props = rel.properties as Record<string, unknown>;
+
+          // Parse properties JSON
+          let parsedProps: Record<string, unknown> = {};
+          if (typeof props.properties === 'string') {
+            try {
+              parsedProps = JSON.parse(props.properties);
+            } catch {
+              parsedProps = {};
+            }
+          }
+
+          const edge: GraphEdge = {
+            id: props.id as string,
+            source,
+            target,
+            type: props.type as GraphEdgeType,
+            weight: props.weight as number | undefined,
+            properties: parsedProps,
+            createdAt: new Date(props.createdAt as string),
+            updatedAt: props.updatedAt
+              ? new Date(props.updatedAt as string)
+              : undefined,
+          };
+          map.set(edgeId, edge);
+        } else {
+          map.set(edgeId, null);
+        }
+      }
+      return map;
+    });
+
+    // Return in same order as input
+    return ids.map((id) => edgeMap.get(id) ?? null);
+  };
+
+  /**
+   * Create or update an edge based on ID.
+   *
+   * If the edge exists, updates type/weight/properties (source/target are immutable).
+   * If the edge doesn't exist, creates a new edge.
+   */
+  upsertEdge = async (
+    input: GraphEdgeInput & { id: string }
+  ): Promise<GraphEdge> => {
+    // Validate with schema that requires ID
+    const validated = UpsertEdgeInputSchema.parse(input);
+
+    const existing = await this.getEdge(validated.id);
+    if (existing) {
+      // Update existing edge (source/target preserved from existing)
+      return this.updateEdge(validated.id, {
+        type: validated.type,
+        weight: validated.weight,
+        properties: validated.properties,
+      });
+    } else {
+      // Create new edge
+      await this.addEdge(validated);
+      const created = await this.getEdge(validated.id);
+      if (!created) {
+        throw GraphStoreError.insertFailed(
+          this.name,
+          `Failed to create edge: ${validated.id}`
+        );
+      }
+      return created;
+    }
+  };
+
+  /**
+   * Create or update multiple edges based on IDs.
+   */
+  upsertEdges = async (
+    inputs: (GraphEdgeInput & { id: string })[]
+  ): Promise<GraphEdge[]> => {
+    const results: GraphEdge[] = [];
+    for (const input of inputs) {
+      const edge = await this.upsertEdge(input);
+      results.push(edge);
+    }
+    return results;
+  };
+
+  /**
+   * Update multiple edges atomically.
+   *
+   * Uses Neo4j transactions for atomicity.
+   * Edge source/target are immutable - only type, weight, properties can be updated.
+   */
+  bulkUpdateEdges = async (
+    updates: BulkEdgeUpdate[],
+    options?: BulkUpdateOptions
+  ): Promise<BulkOperationResult> => {
+    const opts = BulkUpdateOptionsSchema.parse(options ?? {});
+
+    if (updates.length === 0) {
+      return { successCount: 0, successIds: [], failedCount: 0, failedIds: [] };
+    }
+
+    // Validate all updates
+    for (const update of updates) {
+      BulkEdgeUpdateSchema.parse(update);
+    }
+
+    if (!opts.continueOnError) {
+      // ATOMIC: Use transaction
+      const session = this.getSession();
+      try {
+        const tx = session.beginTransaction();
+        try {
+          const now = new Date().toISOString();
+          const successIds: string[] = [];
+
+          for (const update of updates) {
+            // Check edge exists
+            const checkResult = await tx.run(
+              'MATCH ()-[r {id: $id}]->() RETURN r',
+              { id: update.id }
+            );
+            if (checkResult.records.length === 0) {
+              throw new Error(`Edge not found: ${update.id}`);
+            }
+
+            // Build dynamic SET clauses
+            const setClauses = ['r.updatedAt = $updatedAt'];
+            const params: Record<string, unknown> = {
+              id: update.id,
+              updatedAt: now,
+            };
+
+            if (update.updates.type !== undefined) {
+              setClauses.push('r.type = $type');
+              params.type = update.updates.type;
+            }
+            if (update.updates.weight !== undefined) {
+              setClauses.push('r.weight = $weight');
+              params.weight = update.updates.weight;
+            }
+            if (update.updates.properties !== undefined) {
+              setClauses.push('r.properties = $properties');
+              params.properties = JSON.stringify(update.updates.properties);
+            }
+
+            await tx.run(
+              `MATCH ()-[r {id: $id}]->() SET ${setClauses.join(', ')}`,
+              params
+            );
+            successIds.push(update.id);
+          }
+
+          await tx.commit();
+          return {
+            successCount: successIds.length,
+            successIds,
+            failedCount: 0,
+            failedIds: [],
+          };
+        } catch (error) {
+          await tx.rollback();
+          throw GraphStoreError.transactionFailed(
+            this.name,
+            error instanceof Error ? error.message : String(error),
+            error instanceof Error ? error : undefined
+          );
+        }
+      } finally {
+        await session.close();
+      }
+    } else {
+      // NON-ATOMIC: Continue on errors
+      const successIds: string[] = [];
+      const failedIds: string[] = [];
+
+      for (const update of updates) {
+        try {
+          await this.updateEdge(update.id, update.updates);
+          successIds.push(update.id);
+        } catch {
+          failedIds.push(update.id);
+        }
+      }
+
+      return {
+        successCount: successIds.length,
+        successIds,
+        failedCount: failedIds.length,
+        failedIds,
+      };
+    }
+  };
+
+  /**
+   * Delete multiple edges atomically.
+   *
+   * Uses Neo4j transactions for atomicity.
+   */
+  bulkDeleteEdges = async (
+    ids: string[],
+    options?: BulkDeleteOptions
+  ): Promise<BulkOperationResult> => {
+    const opts = BulkDeleteOptionsSchema.parse(options ?? {});
+
+    if (ids.length === 0) {
+      return { successCount: 0, successIds: [], failedCount: 0, failedIds: [] };
+    }
+
+    if (!opts.continueOnError) {
+      // ATOMIC: Use transaction
+      const session = this.getSession();
+      try {
+        const tx = session.beginTransaction();
+        try {
+          const successIds: string[] = [];
+
+          for (const id of ids) {
+            // Check edge exists
+            const checkResult = await tx.run(
+              'MATCH ()-[r {id: $id}]->() RETURN r',
+              { id }
+            );
+
+            if (checkResult.records.length === 0) {
+              if (!opts.skipMissing) {
+                throw new Error(`Edge not found: ${id}`);
+              }
+              // Skip missing edges but don't count as success
+              continue;
+            }
+
+            // Delete the edge
+            await tx.run('MATCH ()-[r {id: $id}]->() DELETE r', { id });
+            successIds.push(id);
+          }
+
+          await tx.commit();
+          return {
+            successCount: successIds.length,
+            successIds,
+            failedCount: 0,
+            failedIds: [],
+          };
+        } catch (error) {
+          await tx.rollback();
+          throw GraphStoreError.transactionFailed(
+            this.name,
+            error instanceof Error ? error.message : String(error),
+            error instanceof Error ? error : undefined
+          );
+        }
+      } finally {
+        await session.close();
+      }
+    } else {
+      // NON-ATOMIC: Continue on errors
+      const successIds: string[] = [];
+      const failedIds: string[] = [];
+
+      for (const id of ids) {
+        try {
+          const existing = await this.getEdge(id);
+          if (existing) {
+            await this.deleteEdge(id);
+            successIds.push(id);
+          } else if (!opts.skipMissing) {
+            // Only count as failure if we're NOT skipping missing
+            failedIds.push(id);
+          }
+          // With skipMissing, silently skip
+        } catch {
+          failedIds.push(id);
+        }
+      }
+
+      return {
+        successCount: successIds.length,
+        successIds,
+        failedCount: failedIds.length,
+        failedIds,
+      };
+    }
   };
 
   // ==========================================================================

@@ -332,6 +332,23 @@ export interface BulkDeleteOptions {
   skipMissing?: boolean;
 }
 
+/**
+ * Input for bulk edge updates.
+ *
+ * Each entry specifies an edge ID and the updates to apply.
+ * The updates are partial - only specified fields are changed.
+ *
+ * @remarks
+ * Unlike nodes, edges have immutable `source` and `target` fields.
+ * You can only update `type`, `weight`, and `properties`.
+ */
+export interface BulkEdgeUpdate {
+  /** Edge ID to update */
+  id: string;
+  /** Partial updates to apply to the edge (source/target are immutable) */
+  updates: Partial<Omit<GraphEdgeInput, 'id' | 'source' | 'target'>>;
+}
+
 // ============================================================================
 // Store Configuration
 // ============================================================================
@@ -627,6 +644,147 @@ export interface GraphStore {
    * @throws {GraphStoreError} If delete fails
    */
   deleteEdge(id: string): Promise<void>;
+
+  // ==========================================================================
+  // Bulk Edge Operations
+  // ==========================================================================
+
+  /**
+   * Check if an edge exists by ID.
+   *
+   * More efficient than `getEdge()` when you only need to check existence
+   * without retrieving the full edge data.
+   *
+   * @param id - Edge ID to check
+   * @returns True if edge exists, false otherwise
+   */
+  hasEdge(id: string): Promise<boolean>;
+
+  /**
+   * Check if multiple edges exist by IDs.
+   *
+   * Returns a Map for O(1) lookup of existence status by ID.
+   *
+   * @param ids - Array of edge IDs to check
+   * @returns Map of edge ID to existence boolean
+   *
+   * @example
+   * ```typescript
+   * const exists = await store.hasEdges(['e1', 'e2', 'e3']);
+   * if (exists.get('e1')) {
+   *   // Edge 'e1' exists
+   * }
+   * ```
+   */
+  hasEdges(ids: string[]): Promise<Map<string, boolean>>;
+
+  /**
+   * Get multiple edges by their IDs.
+   *
+   * Returns edges in the same order as input IDs. Non-existent edges
+   * are represented as null in the result array.
+   *
+   * @param ids - Array of edge IDs
+   * @returns Array of edges (null for non-existent IDs)
+   *
+   * @example
+   * ```typescript
+   * const edges = await store.getEdges(['e1', 'e2', 'missing']);
+   * // edges[0] = GraphEdge for 'e1'
+   * // edges[1] = GraphEdge for 'e2'
+   * // edges[2] = null (not found)
+   * ```
+   */
+  getEdges(ids: string[]): Promise<(GraphEdge | null)[]>;
+
+  /**
+   * Create or update an edge based on ID.
+   *
+   * If an edge with the given ID exists, it will be updated.
+   * If no edge exists, a new one will be created.
+   *
+   * @param edge - Edge data (ID is required for upsert)
+   * @returns The upserted edge
+   * @throws {GraphStoreError} If ID not provided, source/target nodes don't exist, or operation fails
+   *
+   * @example
+   * ```typescript
+   * // First call creates the edge
+   * const edge1 = await store.upsertEdge({
+   *   id: 'e1', source: 'n1', target: 'n2', type: 'relatedTo'
+   * });
+   *
+   * // Second call updates it (cannot change source/target)
+   * const edge2 = await store.upsertEdge({
+   *   id: 'e1', source: 'n1', target: 'n2', type: 'references', weight: 0.9
+   * });
+   * ```
+   */
+  upsertEdge(edge: GraphEdgeInput & { id: string }): Promise<GraphEdge>;
+
+  /**
+   * Create or update multiple edges based on IDs.
+   *
+   * @param edges - Array of edges (each must have ID)
+   * @returns Array of upserted edges in same order
+   * @throws {GraphStoreError} If any edge lacks ID or operation fails
+   */
+  upsertEdges(edges: (GraphEdgeInput & { id: string })[]): Promise<GraphEdge[]>;
+
+  /**
+   * Update multiple edges atomically.
+   *
+   * By default, this is an atomic operation - either all updates succeed
+   * or all fail with rollback. Use `options.continueOnError` for non-atomic
+   * behavior where each update is attempted independently.
+   *
+   * @remarks
+   * Edge source and target are immutable. Only `type`, `weight`, and
+   * `properties` can be updated.
+   *
+   * @param updates - Array of {id, updates} pairs
+   * @param options - Bulk operation options
+   * @returns Result with success/failure counts
+   * @throws {GraphStoreError} If atomic operation fails (rolls back all changes)
+   *
+   * @example
+   * ```typescript
+   * // Atomic: all succeed or all rollback
+   * const result = await store.bulkUpdateEdges([
+   *   { id: 'e1', updates: { weight: 0.9 } },
+   *   { id: 'e2', updates: { type: 'references' } },
+   * ]);
+   * ```
+   */
+  bulkUpdateEdges(
+    updates: BulkEdgeUpdate[],
+    options?: BulkUpdateOptions
+  ): Promise<BulkOperationResult>;
+
+  /**
+   * Delete multiple edges atomically.
+   *
+   * By default, this is an atomic operation - either all deletes succeed
+   * or all fail with rollback.
+   *
+   * @param ids - Array of edge IDs to delete
+   * @param options - Bulk operation options
+   * @returns Result with success/failure counts
+   * @throws {GraphStoreError} If atomic operation fails (rolls back all changes)
+   *
+   * @example
+   * ```typescript
+   * // Atomic delete
+   * await store.bulkDeleteEdges(['e1', 'e2', 'e3']);
+   *
+   * // Idempotent delete (skip missing edges)
+   * await store.bulkDeleteEdges(['x', 'y'], { skipMissing: true });
+   * ```
+   */
+  bulkDeleteEdges(
+    ids: string[],
+    options?: BulkDeleteOptions
+  ): Promise<BulkOperationResult>;
 
   // ==========================================================================
   // Traversal Operations

@@ -946,6 +946,382 @@ describe('InMemoryGraphStore', () => {
   });
 
   // ===========================================================================
+  // Bulk Edge Operations Tests
+  // ===========================================================================
+
+  describe('Bulk Edge Operations', () => {
+    let store: InMemoryGraphStore;
+
+    beforeEach(async () => {
+      store = new InMemoryGraphStore();
+      // Create nodes to support edges
+      await store.addNode(createTestNode({ id: 'n1', label: 'Node 1' }));
+      await store.addNode(createTestNode({ id: 'n2', label: 'Node 2' }));
+      await store.addNode(createTestNode({ id: 'n3', label: 'Node 3' }));
+    });
+
+    describe('hasEdge', () => {
+      it('should return true for existing edge', async () => {
+        await store.addEdge(createTestEdge('n1', 'n2', { id: 'e1' }));
+        expect(await store.hasEdge('e1')).toBe(true);
+      });
+
+      it('should return false for non-existent edge', async () => {
+        expect(await store.hasEdge('nonexistent')).toBe(false);
+      });
+    });
+
+    describe('hasEdges', () => {
+      beforeEach(async () => {
+        await store.addEdge(createTestEdge('n1', 'n2', { id: 'e1' }));
+        await store.addEdge(createTestEdge('n2', 'n3', { id: 'e2' }));
+      });
+
+      it('should return Map with correct existence flags', async () => {
+        const result = await store.hasEdges(['e1', 'e2', 'missing']);
+
+        expect(result.get('e1')).toBe(true);
+        expect(result.get('e2')).toBe(true);
+        expect(result.get('missing')).toBe(false);
+      });
+
+      it('should return empty Map for empty input', async () => {
+        const result = await store.hasEdges([]);
+        expect(result.size).toBe(0);
+      });
+    });
+
+    describe('getEdges', () => {
+      beforeEach(async () => {
+        await store.addEdge(createTestEdge('n1', 'n2', { id: 'e1' }));
+        await store.addEdge(createTestEdge('n2', 'n3', { id: 'e2' }));
+      });
+
+      it('should return edges in order with nulls for missing', async () => {
+        const result = await store.getEdges(['e1', 'missing', 'e2']);
+
+        expect(result).toHaveLength(3);
+        expect(result[0]?.id).toBe('e1');
+        expect(result[1]).toBeNull();
+        expect(result[2]?.id).toBe('e2');
+      });
+
+      it('should return empty array for empty input', async () => {
+        const result = await store.getEdges([]);
+        expect(result).toEqual([]);
+      });
+    });
+
+    describe('upsertEdge', () => {
+      it('should create edge if not exists', async () => {
+        const edge = await store.upsertEdge({
+          id: 'new-edge',
+          source: 'n1',
+          target: 'n2',
+          type: 'relatedTo',
+          weight: 0.5,
+        });
+
+        expect(edge.id).toBe('new-edge');
+        expect(edge.source).toBe('n1');
+        expect(edge.target).toBe('n2');
+        expect(edge.weight).toBe(0.5);
+      });
+
+      it('should update edge if exists', async () => {
+        // Create initial edge
+        await store.addEdge(
+          createTestEdge('n1', 'n2', {
+            id: 'e1',
+            type: 'relatedTo',
+            weight: 0.3,
+          })
+        );
+
+        // Upsert with updates
+        const updated = await store.upsertEdge({
+          id: 'e1',
+          source: 'n1',
+          target: 'n2',
+          type: 'references',
+          weight: 0.9,
+        });
+
+        expect(updated.id).toBe('e1');
+        expect(updated.type).toBe('references');
+        expect(updated.weight).toBe(0.9);
+        expect(updated.updatedAt).toBeDefined();
+      });
+
+      it('should preserve source/target on update', async () => {
+        await store.addEdge(createTestEdge('n1', 'n2', { id: 'e1' }));
+
+        // Even if we pass different source/target, existing values are preserved
+        const updated = await store.upsertEdge({
+          id: 'e1',
+          source: 'n1', // Must match existing for upsert
+          target: 'n2',
+          type: 'mentions',
+        });
+
+        expect(updated.source).toBe('n1');
+        expect(updated.target).toBe('n2');
+      });
+
+      it('should throw if ID not provided', async () => {
+        await expect(
+          // @ts-expect-error - testing runtime validation
+          store.upsertEdge({
+            source: 'n1',
+            target: 'n2',
+            type: 'relatedTo',
+          })
+        ).rejects.toThrow();
+      });
+    });
+
+    describe('upsertEdges', () => {
+      it('should create multiple new edges', async () => {
+        const edges = await store.upsertEdges([
+          { id: 'e1', source: 'n1', target: 'n2', type: 'relatedTo' },
+          { id: 'e2', source: 'n2', target: 'n3', type: 'references' },
+        ]);
+
+        expect(edges).toHaveLength(2);
+        expect(edges[0].id).toBe('e1');
+        expect(edges[1].id).toBe('e2');
+      });
+
+      it('should mix creates and updates', async () => {
+        await store.addEdge(createTestEdge('n1', 'n2', { id: 'existing' }));
+
+        const edges = await store.upsertEdges([
+          { id: 'existing', source: 'n1', target: 'n2', type: 'mentions' },
+          { id: 'new', source: 'n2', target: 'n3', type: 'references' },
+        ]);
+
+        expect(edges).toHaveLength(2);
+        expect(edges[0].type).toBe('mentions'); // Updated
+        expect(edges[1].id).toBe('new'); // Created
+      });
+    });
+
+    describe('bulkUpdateEdges', () => {
+      beforeEach(async () => {
+        await store.addEdge(createTestEdge('n1', 'n2', { id: 'e1' }));
+        await store.addEdge(createTestEdge('n2', 'n3', { id: 'e2' }));
+        await store.addEdge(createTestEdge('n1', 'n3', { id: 'e3' }));
+      });
+
+      describe('atomic mode (default)', () => {
+        it('should update all edges successfully', async () => {
+          const result = await store.bulkUpdateEdges([
+            { id: 'e1', updates: { weight: 0.9 } },
+            { id: 'e2', updates: { type: 'references' } },
+          ]);
+
+          expect(result.successCount).toBe(2);
+          expect(result.successIds).toEqual(['e1', 'e2']);
+          expect(result.failedCount).toBe(0);
+          expect(result.failedIds).toEqual([]);
+
+          expect((await store.getEdge('e1'))?.weight).toBe(0.9);
+          expect((await store.getEdge('e2'))?.type).toBe('references');
+        });
+
+        it('should rollback all on any failure', async () => {
+          const originalWeight = (await store.getEdge('e1'))?.weight;
+
+          await expect(
+            store.bulkUpdateEdges([
+              { id: 'e1', updates: { weight: 0.9 } },
+              { id: 'missing', updates: { weight: 0.5 } },
+              { id: 'e3', updates: { type: 'mentions' } },
+            ])
+          ).rejects.toThrow('Transaction failed');
+
+          // All edges should be unchanged
+          expect((await store.getEdge('e1'))?.weight).toBe(originalWeight);
+          expect((await store.getEdge('e3'))?.type).toBe('relatedTo');
+        });
+
+        it('should throw TRANSACTION_FAILED error on failure', async () => {
+          try {
+            await store.bulkUpdateEdges([
+              { id: 'e1', updates: { weight: 0.5 } },
+              { id: 'nonexistent', updates: { weight: 0.5 } },
+            ]);
+            expect.fail('Should have thrown');
+          } catch (error) {
+            expect(error).toBeInstanceOf(GraphStoreError);
+            expect((error as GraphStoreError).code).toBe('TRANSACTION_FAILED');
+          }
+        });
+
+        it('should merge properties on update', async () => {
+          await store.updateEdge('e1', { properties: { key1: 'value1' } });
+
+          await store.bulkUpdateEdges([
+            { id: 'e1', updates: { properties: { key2: 'value2' } } },
+          ]);
+
+          const edge = await store.getEdge('e1');
+          expect(edge?.properties.key1).toBe('value1');
+          expect(edge?.properties.key2).toBe('value2');
+        });
+      });
+
+      describe('non-atomic mode (continueOnError)', () => {
+        it('should continue on individual failures', async () => {
+          const result = await store.bulkUpdateEdges(
+            [
+              { id: 'e1', updates: { weight: 0.8 } },
+              { id: 'missing', updates: { weight: 0.5 } },
+              { id: 'e3', updates: { type: 'mentions' } },
+            ],
+            { continueOnError: true }
+          );
+
+          expect(result.successCount).toBe(2);
+          expect(result.successIds).toEqual(['e1', 'e3']);
+          expect(result.failedCount).toBe(1);
+          expect(result.failedIds).toEqual(['missing']);
+
+          // Successful updates should persist
+          expect((await store.getEdge('e1'))?.weight).toBe(0.8);
+          expect((await store.getEdge('e3'))?.type).toBe('mentions');
+        });
+      });
+
+      it('should return empty result for empty input', async () => {
+        const result = await store.bulkUpdateEdges([]);
+        expect(result.successCount).toBe(0);
+        expect(result.successIds).toEqual([]);
+        expect(result.failedCount).toBe(0);
+        expect(result.failedIds).toEqual([]);
+      });
+    });
+
+    describe('bulkDeleteEdges', () => {
+      beforeEach(async () => {
+        await store.addEdge(createTestEdge('n1', 'n2', { id: 'e1' }));
+        await store.addEdge(createTestEdge('n2', 'n3', { id: 'e2' }));
+        await store.addEdge(createTestEdge('n1', 'n3', { id: 'e3' }));
+      });
+
+      describe('atomic mode (default)', () => {
+        it('should delete all edges successfully', async () => {
+          const result = await store.bulkDeleteEdges(['e1', 'e2']);
+
+          expect(result.successCount).toBe(2);
+          expect(result.successIds).toEqual(['e1', 'e2']);
+          expect(await store.getEdge('e1')).toBeNull();
+          expect(await store.getEdge('e2')).toBeNull();
+          expect(await store.getEdge('e3')).not.toBeNull();
+        });
+
+        it('should rollback all on any failure', async () => {
+          await expect(
+            store.bulkDeleteEdges(['e1', 'missing', 'e3'])
+          ).rejects.toThrow('Transaction failed');
+
+          // All edges should still exist
+          expect(await store.getEdge('e1')).not.toBeNull();
+          expect(await store.getEdge('e3')).not.toBeNull();
+        });
+
+        it('should skip missing edges with skipMissing option', async () => {
+          const result = await store.bulkDeleteEdges(['e1', 'missing', 'e3'], {
+            skipMissing: true,
+          });
+
+          expect(result.successCount).toBe(2);
+          expect(result.successIds).toEqual(['e1', 'e3']);
+          expect(result.failedCount).toBe(0);
+          expect(await store.getEdge('e1')).toBeNull();
+          expect(await store.getEdge('e3')).toBeNull();
+        });
+
+        it('should update adjacency indexes correctly', async () => {
+          // Before deletion, n1 should have outgoing edges
+          const beforeEdges = await store.getEdgesForNode('n1', 'outgoing');
+          expect(beforeEdges.length).toBe(2); // e1 and e3
+
+          await store.bulkDeleteEdges(['e1']);
+
+          // After deletion, n1 should have only one outgoing edge
+          const afterEdges = await store.getEdgesForNode('n1', 'outgoing');
+          expect(afterEdges.length).toBe(1);
+          expect(afterEdges[0].id).toBe('e3');
+        });
+
+        it('should restore adjacency indexes on rollback', async () => {
+          // Spy on deleteEdge to throw on second call
+          let callCount = 0;
+          const originalDeleteEdge = store.deleteEdge;
+          vi.spyOn(store, 'deleteEdge').mockImplementation(
+            async (id: string) => {
+              callCount++;
+              if (callCount === 2) {
+                throw new Error('Simulated failure on second deletion');
+              }
+              return originalDeleteEdge.call(store, id);
+            }
+          );
+
+          // Attempt to delete two edges - should fail and rollback
+          await expect(
+            store.bulkDeleteEdges(['e1', 'e2'])
+          ).rejects.toThrow('Transaction failed');
+
+          vi.restoreAllMocks();
+
+          // Both edges should still be accessible via adjacency indexes
+          const n1Edges = await store.getEdgesForNode('n1', 'outgoing');
+          expect(n1Edges.some((e) => e.id === 'e1')).toBe(true);
+
+          const n2Edges = await store.getEdgesForNode('n2', 'outgoing');
+          expect(n2Edges.some((e) => e.id === 'e2')).toBe(true);
+        });
+      });
+
+      describe('non-atomic mode (continueOnError)', () => {
+        it('should continue on individual failures', async () => {
+          const result = await store.bulkDeleteEdges(
+            ['e1', 'missing', 'e3'],
+            { continueOnError: true }
+          );
+
+          expect(result.successCount).toBe(2);
+          expect(result.successIds).toEqual(['e1', 'e3']);
+          expect(result.failedCount).toBe(1);
+          expect(result.failedIds).toEqual(['missing']);
+        });
+
+        it('should not count missing as failure with skipMissing', async () => {
+          const result = await store.bulkDeleteEdges(
+            ['e1', 'missing'],
+            { continueOnError: true, skipMissing: true }
+          );
+
+          expect(result.successCount).toBe(1);
+          expect(result.successIds).toEqual(['e1']);
+          expect(result.failedCount).toBe(0);
+          expect(result.failedIds).toEqual([]);
+        });
+      });
+
+      it('should return empty result for empty input', async () => {
+        const result = await store.bulkDeleteEdges([]);
+        expect(result.successCount).toBe(0);
+        expect(result.successIds).toEqual([]);
+        expect(result.failedCount).toBe(0);
+        expect(result.failedIds).toEqual([]);
+      });
+    });
+  });
+
+  // ===========================================================================
   // Query Operations Tests
   // ===========================================================================
 

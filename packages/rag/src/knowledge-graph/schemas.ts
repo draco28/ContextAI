@@ -251,6 +251,56 @@ export const BulkDeleteOptionsSchema = z.object({
   skipMissing: z.boolean().optional().default(false),
 });
 
+/**
+ * Schema for upsert edge input (ID is required).
+ *
+ * Unlike `GraphEdgeInputSchema` where ID is optional, upsert requires
+ * an ID to determine whether to create or update.
+ *
+ * @example
+ * ```typescript
+ * const result = UpsertEdgeInputSchema.safeParse({
+ *   id: 'edge-123',  // Required for upsert
+ *   source: 'node-1',
+ *   target: 'node-2',
+ *   type: 'relatedTo'
+ * });
+ * ```
+ */
+export const UpsertEdgeInputSchema = GraphEdgeInputSchema.extend({
+  id: z.string().min(1, 'Edge ID is required for upsert'),
+});
+
+/**
+ * Schema for partial edge updates (used in bulk operations).
+ *
+ * Note: source and target are excluded because they are immutable
+ * after edge creation. Changing endpoints requires deleting and
+ * recreating the edge.
+ */
+const PartialEdgeUpdatesSchema = z.object({
+  type: GraphEdgeTypeSchema.optional(),
+  weight: z.number().min(0).max(1).optional(),
+  properties: GraphEdgePropertiesSchema.optional(),
+});
+
+/**
+ * Schema for a single bulk edge update entry.
+ *
+ * @example
+ * ```typescript
+ * const update = {
+ *   id: 'edge-123',
+ *   updates: { weight: 0.9, properties: { verified: true } }
+ * };
+ * BulkEdgeUpdateSchema.parse(update);
+ * ```
+ */
+export const BulkEdgeUpdateSchema = z.object({
+  id: z.string().min(1, 'Edge ID is required for bulk update'),
+  updates: PartialEdgeUpdatesSchema,
+});
+
 // ============================================================================
 // Inferred Types
 // ============================================================================
@@ -301,3 +351,13 @@ export type ValidatedBulkUpdateOptions = z.infer<typeof BulkUpdateOptionsSchema>
  * Validated bulk delete options type (inferred from schema).
  */
 export type ValidatedBulkDeleteOptions = z.infer<typeof BulkDeleteOptionsSchema>;
+
+/**
+ * Validated upsert edge input type (inferred from schema).
+ */
+export type ValidatedUpsertEdgeInput = z.infer<typeof UpsertEdgeInputSchema>;
+
+/**
+ * Validated bulk edge update type (inferred from schema).
+ */
+export type ValidatedBulkEdgeUpdate = z.infer<typeof BulkEdgeUpdateSchema>;
