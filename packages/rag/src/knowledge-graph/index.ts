@@ -111,3 +111,6 @@ export { GraphStoreError } from './errors.js';
 export { InMemoryGraphStore } from './memory-store.js';
 export { Neo4jGraphStore, Neo4jGraphStoreConfigSchema } from './neo4j-store.js';
 export type { Neo4jGraphStoreConfig } from './neo4j-store.js';
+
+// Extraction module
+export * from './extraction/index.js';
