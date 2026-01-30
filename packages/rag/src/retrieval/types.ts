@@ -28,6 +28,95 @@ export interface HybridScore {
   fused: number;
 }
 
+// ============================================================================
+// Confidence Score Types
+// ============================================================================
+
+/**
+ * Confidence score breakdown for a retrieval result.
+ *
+ * Provides transparency into how confident the system is that this result
+ * is truly relevant to the query. Higher scores indicate stronger signals
+ * from multiple retrieval methods agreeing on the result's relevance.
+ *
+ * @example
+ * ```typescript
+ * // High confidence result (ranked highly by multiple methods)
+ * {
+ *   overall: 0.92,
+ *   signals: { vectorSimilarity: 0.95, keywordMatch: 0.88 },
+ *   factors: {
+ *     rankAgreement: 0.95,
+ *     scoreConsistency: 0.90,
+ *     signalCount: 2,
+ *     multiSignalPresence: true
+ *   }
+ * }
+ *
+ * // Lower confidence (only one method found it)
+ * {
+ *   overall: 0.45,
+ *   signals: { vectorSimilarity: 0.75 },
+ *   factors: {
+ *     rankAgreement: 0.70,
+ *     scoreConsistency: 1.0, // Single signal = consistent
+ *     signalCount: 1,
+ *     multiSignalPresence: false
+ *   }
+ * }
+ * ```
+ */
+export interface ConfidenceScore {
+  /**
+   * Overall confidence in this result (0-1, higher = more confident).
+   *
+   * Computed as weighted combination of rank agreement, score consistency,
+   * and multi-signal presence.
+   */
+  overall: number;
+
+  /**
+   * Component signal strengths that contributed to this result.
+   * Only signals that actually contributed will have values.
+   */
+  signals: {
+    /** Normalized dense (vector) similarity score */
+    vectorSimilarity?: number;
+    /** Normalized sparse (BM25) match score */
+    keywordMatch?: number;
+    /** Normalized graph context score (if using GraphHybridRetriever) */
+    graphContext?: number;
+  };
+
+  /**
+   * Factors that influenced the overall confidence calculation.
+   * Provides transparency into why confidence is high or low.
+   */
+  factors: {
+    /**
+     * Agreement between rankers on this result's position (0-1).
+     * Higher when result is ranked similarly across methods.
+     */
+    rankAgreement: number;
+    /**
+     * Consistency of scores across signals (0-1).
+     * Higher when scores from different methods are similar.
+     * Single-signal results default to 1.0 (consistent by definition).
+     */
+    scoreConsistency: number;
+    /**
+     * Number of signals/rankers that contributed to this result.
+     * Range: 1-3 (dense, sparse, graph)
+     */
+    signalCount: number;
+    /**
+     * Whether this result appeared in ALL ranker lists.
+     * True indicates strong multi-signal support.
+     */
+    multiSignalPresence: boolean;
+  };
+}
+
 /**
  * A single retrieval result with scoring transparency.
  *
@@ -50,6 +139,12 @@ export interface RetrievalResult {
   denseRank?: number;
   /** Original rank in sparse results (1-indexed, undefined if not in sparse results) */
   sparseRank?: number;
+  /**
+   * Confidence score indicating reliability of this result.
+   * Present when using hybrid retrieval with confidence calculation enabled.
+   * Higher values indicate multiple retrieval signals agree on relevance.
+   */
+  confidence?: ConfidenceScore;
 }
 
 // ============================================================================

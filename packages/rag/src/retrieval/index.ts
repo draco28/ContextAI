@@ -29,6 +29,8 @@ export type {
   RetrievalOptions,
   HybridRetrievalOptions,
   HybridScore,
+  // Confidence scoring
+  ConfidenceScore,
   // Graph hybrid types
   GraphHybridScore,
   GraphContextConfig,
@@ -65,3 +67,13 @@ export {
   DEFAULT_RRF_K,
   type RankingList,
 } from './rrf.js';
+
+// Confidence scoring
+export {
+  calculateConfidence,
+  calculateConfidenceForResults,
+  calculateRankAgreement,
+  calculateScoreConsistency,
+  calculateMultiSignalPresence,
+  CONFIDENCE_WEIGHTS,
+} from './confidence.js';

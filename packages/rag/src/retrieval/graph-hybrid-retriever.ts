@@ -29,6 +29,7 @@ import {
   DEFAULT_RRF_K,
   type RankingList,
 } from './rrf.js';
+import { calculateConfidence } from './confidence.js';
 
 // ============================================================================
 // Constants
@@ -272,7 +273,10 @@ export class GraphHybridRetriever implements Retriever {
       .filter((r) => minScore === undefined || r.score >= minScore)
       .slice(0, topK);
 
-    // Step 8: Convert to RetrievalResult with full score transparency
+    // Calculate total candidates for confidence normalization
+    const totalCandidates = hybridResults.length;
+
+    // Step 8: Convert to RetrievalResult with full score transparency and confidence
     return filteredResults.map((r) => {
       const denseContrib = r.contributions.find((c) => c.name === 'dense');
       const sparseContrib = r.contributions.find((c) => c.name === 'sparse');
@@ -285,6 +289,9 @@ export class GraphHybridRetriever implements Retriever {
         fused: r.score,
       };
 
+      // Calculate confidence based on RRF contributions (3-way fusion)
+      const confidence = calculateConfidence(r, 3, totalCandidates);
+
       return {
         id: r.id,
         chunk: r.chunk,
@@ -292,6 +299,7 @@ export class GraphHybridRetriever implements Retriever {
         scores,
         denseRank: denseContrib?.rank,
         sparseRank: sparseContrib?.rank,
+        confidence,
       };
     });
   };
