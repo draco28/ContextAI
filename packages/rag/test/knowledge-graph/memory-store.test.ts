@@ -246,6 +246,305 @@ describe('InMemoryGraphStore', () => {
   });
 
   // ===========================================================================
+  // Bulk Node Operations Tests
+  // ===========================================================================
+
+  describe('Bulk Node Operations', () => {
+    let store: InMemoryGraphStore;
+
+    beforeEach(() => {
+      store = new InMemoryGraphStore();
+    });
+
+    describe('hasNode', () => {
+      it('should return true for existing node', async () => {
+        await store.addNode(createTestNode({ id: 'n1' }));
+        expect(await store.hasNode('n1')).toBe(true);
+      });
+
+      it('should return false for non-existing node', async () => {
+        expect(await store.hasNode('nonexistent')).toBe(false);
+      });
+    });
+
+    describe('hasNodes', () => {
+      it('should return map of existence for all IDs', async () => {
+        await store.addNode(createTestNode({ id: 'a' }));
+        await store.addNode(createTestNode({ id: 'b' }));
+
+        const result = await store.hasNodes(['a', 'b', 'c']);
+
+        expect(result.get('a')).toBe(true);
+        expect(result.get('b')).toBe(true);
+        expect(result.get('c')).toBe(false);
+      });
+
+      it('should handle empty array', async () => {
+        const result = await store.hasNodes([]);
+        expect(result.size).toBe(0);
+      });
+    });
+
+    describe('getNodes', () => {
+      it('should return nodes in same order as input IDs', async () => {
+        await store.addNode(createTestNode({ id: 'a', label: 'A' }));
+        await store.addNode(createTestNode({ id: 'b', label: 'B' }));
+        await store.addNode(createTestNode({ id: 'c', label: 'C' }));
+
+        const nodes = await store.getNodes(['c', 'a', 'b']);
+
+        expect(nodes[0]?.label).toBe('C');
+        expect(nodes[1]?.label).toBe('A');
+        expect(nodes[2]?.label).toBe('B');
+      });
+
+      it('should return null for non-existing IDs', async () => {
+        await store.addNode(createTestNode({ id: 'a' }));
+
+        const nodes = await store.getNodes(['a', 'missing', 'b']);
+
+        expect(nodes[0]).not.toBeNull();
+        expect(nodes[1]).toBeNull();
+        expect(nodes[2]).toBeNull();
+      });
+
+      it('should handle empty array', async () => {
+        const nodes = await store.getNodes([]);
+        expect(nodes).toHaveLength(0);
+      });
+    });
+
+    describe('upsertNode', () => {
+      it('should create node if not exists', async () => {
+        const node = await store.upsertNode({
+          id: 'new-node',
+          type: 'concept',
+          label: 'New Node',
+        });
+
+        expect(node.id).toBe('new-node');
+        expect(node.label).toBe('New Node');
+        expect(node.createdAt).toBeInstanceOf(Date);
+        expect(node.updatedAt).toBeUndefined();
+      });
+
+      it('should update node if exists', async () => {
+        // First create
+        await store.upsertNode({
+          id: 'x',
+          type: 'concept',
+          label: 'Original',
+        });
+
+        // Then upsert (update)
+        const node = await store.upsertNode({
+          id: 'x',
+          type: 'entity',
+          label: 'Updated',
+        });
+
+        expect(node.label).toBe('Updated');
+        expect(node.type).toBe('entity');
+        expect(node.updatedAt).toBeInstanceOf(Date);
+      });
+
+      it('should require ID', async () => {
+        await expect(
+          // @ts-expect-error - Testing invalid input
+          store.upsertNode({ type: 'concept', label: 'No ID' })
+        ).rejects.toThrow();
+      });
+
+      it('should respect maxNodes capacity on create', async () => {
+        const limitedStore = new InMemoryGraphStore({ maxNodes: 1 });
+        await limitedStore.upsertNode({ id: 'a', type: 'concept', label: 'A' });
+
+        // Update should work (not creating)
+        await expect(
+          limitedStore.upsertNode({ id: 'a', type: 'concept', label: 'A Updated' })
+        ).resolves.toBeDefined();
+
+        // New node should fail
+        await expect(
+          limitedStore.upsertNode({ id: 'b', type: 'concept', label: 'B' })
+        ).rejects.toThrow('Capacity exceeded');
+      });
+    });
+
+    describe('upsertNodes', () => {
+      it('should create and update multiple nodes', async () => {
+        await store.addNode(createTestNode({ id: 'existing', label: 'Old' }));
+
+        const results = await store.upsertNodes([
+          { id: 'existing', type: 'concept', label: 'Updated' },
+          { id: 'new1', type: 'entity', label: 'New 1' },
+          { id: 'new2', type: 'document', label: 'New 2' },
+        ]);
+
+        expect(results).toHaveLength(3);
+        expect(results[0].label).toBe('Updated');
+        expect(results[1].label).toBe('New 1');
+        expect(results[2].label).toBe('New 2');
+      });
+    });
+
+    describe('bulkUpdateNodes', () => {
+      beforeEach(async () => {
+        await store.addNode(createTestNode({ id: 'a', label: 'A' }));
+        await store.addNode(createTestNode({ id: 'b', label: 'B' }));
+        await store.addNode(createTestNode({ id: 'c', label: 'C' }));
+      });
+
+      describe('atomic mode (default)', () => {
+        it('should update all nodes successfully', async () => {
+          const result = await store.bulkUpdateNodes([
+            { id: 'a', updates: { label: 'A Updated' } },
+            { id: 'b', updates: { label: 'B Updated' } },
+          ]);
+
+          expect(result.successCount).toBe(2);
+          expect(result.successIds).toEqual(['a', 'b']);
+          expect(result.failedCount).toBe(0);
+          expect(result.failedIds).toEqual([]);
+
+          expect((await store.getNode('a'))?.label).toBe('A Updated');
+          expect((await store.getNode('b'))?.label).toBe('B Updated');
+        });
+
+        it('should rollback all on any failure', async () => {
+          await expect(
+            store.bulkUpdateNodes([
+              { id: 'a', updates: { label: 'A Updated' } },
+              { id: 'missing', updates: { label: 'Will Fail' } },
+              { id: 'c', updates: { label: 'C Updated' } },
+            ])
+          ).rejects.toThrow('Transaction failed');
+
+          // All nodes should be unchanged
+          expect((await store.getNode('a'))?.label).toBe('A');
+          expect((await store.getNode('c'))?.label).toBe('C');
+        });
+
+        it('should throw TRANSACTION_FAILED error on failure', async () => {
+          try {
+            await store.bulkUpdateNodes([
+              { id: 'a', updates: { label: 'Updated' } },
+              { id: 'nonexistent', updates: { label: 'Fail' } },
+            ]);
+            expect.fail('Should have thrown');
+          } catch (error) {
+            expect(error).toBeInstanceOf(GraphStoreError);
+            expect((error as GraphStoreError).code).toBe('TRANSACTION_FAILED');
+          }
+        });
+      });
+
+      describe('non-atomic mode (continueOnError)', () => {
+        it('should continue on individual failures', async () => {
+          const result = await store.bulkUpdateNodes(
+            [
+              { id: 'a', updates: { label: 'A Updated' } },
+              { id: 'missing', updates: { label: 'Will Fail' } },
+              { id: 'c', updates: { label: 'C Updated' } },
+            ],
+            { continueOnError: true }
+          );
+
+          expect(result.successCount).toBe(2);
+          expect(result.successIds).toEqual(['a', 'c']);
+          expect(result.failedCount).toBe(1);
+          expect(result.failedIds).toEqual(['missing']);
+
+          // Successful updates should persist
+          expect((await store.getNode('a'))?.label).toBe('A Updated');
+          expect((await store.getNode('c'))?.label).toBe('C Updated');
+        });
+      });
+    });
+
+    describe('bulkDeleteNodes', () => {
+      beforeEach(async () => {
+        await store.addNode(createTestNode({ id: 'a' }));
+        await store.addNode(createTestNode({ id: 'b' }));
+        await store.addNode(createTestNode({ id: 'c' }));
+        await store.addEdge(createTestEdge('a', 'b', { id: 'e1' }));
+        await store.addEdge(createTestEdge('b', 'c', { id: 'e2' }));
+      });
+
+      describe('atomic mode (default)', () => {
+        it('should delete all nodes successfully', async () => {
+          const result = await store.bulkDeleteNodes(['a', 'b']);
+
+          expect(result.successCount).toBe(2);
+          expect(result.successIds).toEqual(['a', 'b']);
+          expect(await store.getNode('a')).toBeNull();
+          expect(await store.getNode('b')).toBeNull();
+          expect(await store.getNode('c')).not.toBeNull();
+        });
+
+        it('should cascade delete connected edges', async () => {
+          await store.bulkDeleteNodes(['b']);
+
+          expect(await store.getEdge('e1')).toBeNull();
+          expect(await store.getEdge('e2')).toBeNull();
+        });
+
+        it('should rollback all on any failure', async () => {
+          await expect(
+            store.bulkDeleteNodes(['a', 'missing', 'c'])
+          ).rejects.toThrow('Transaction failed');
+
+          // All nodes should still exist
+          expect(await store.getNode('a')).not.toBeNull();
+          expect(await store.getNode('c')).not.toBeNull();
+        });
+
+        it('should skip missing nodes with skipMissing option', async () => {
+          const result = await store.bulkDeleteNodes(['a', 'missing', 'c'], {
+            skipMissing: true,
+          });
+
+          // With skipMissing, missing nodes don't cause failure
+          // Only actually deleted nodes are counted as success
+          expect(result.successCount).toBe(2);
+          expect(result.successIds).toEqual(['a', 'c']);
+          expect(result.failedCount).toBe(0);
+          expect(await store.getNode('a')).toBeNull();
+          expect(await store.getNode('c')).toBeNull();
+        });
+      });
+
+      describe('non-atomic mode (continueOnError)', () => {
+        it('should continue on individual failures', async () => {
+          const result = await store.bulkDeleteNodes(
+            ['a', 'missing', 'c'],
+            { continueOnError: true }
+          );
+
+          expect(result.successCount).toBe(2);
+          expect(result.successIds).toEqual(['a', 'c']);
+          expect(result.failedCount).toBe(1);
+          expect(result.failedIds).toEqual(['missing']);
+        });
+
+        it('should not count missing as failure with skipMissing', async () => {
+          const result = await store.bulkDeleteNodes(
+            ['a', 'missing'],
+            { continueOnError: true, skipMissing: true }
+          );
+
+          // Only actually deleted nodes are counted as success
+          // Missing nodes are silently skipped (not failed, not success)
+          expect(result.successCount).toBe(1);
+          expect(result.successIds).toEqual(['a']);
+          expect(result.failedCount).toBe(0);
+          expect(result.failedIds).toEqual([]);
+        });
+      });
+    });
+  });
+
+  // ===========================================================================
   // Edge Operations Tests
   // ===========================================================================
 

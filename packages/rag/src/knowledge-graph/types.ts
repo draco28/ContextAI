@@ -260,6 +260,79 @@ export interface GraphQueryResult {
 }
 
 // ============================================================================
+// Bulk Operation Types
+// ============================================================================
+
+/**
+ * Result from a bulk operation (update or delete).
+ *
+ * For atomic operations (default), failedCount is always 0 because any
+ * failure triggers a full rollback. For non-atomic operations (continueOnError),
+ * you'll see which specific IDs succeeded or failed.
+ *
+ * @example
+ * ```typescript
+ * // Atomic operation - all or nothing
+ * const result = await store.bulkDeleteNodes(['a', 'b', 'c']);
+ * // result: { successCount: 3, successIds: ['a','b','c'], failedCount: 0, failedIds: [] }
+ *
+ * // Non-atomic operation - continue on errors
+ * const result = await store.bulkDeleteNodes(['a', 'missing'], { continueOnError: true });
+ * // result: { successCount: 1, successIds: ['a'], failedCount: 1, failedIds: ['missing'] }
+ * ```
+ */
+export interface BulkOperationResult {
+  /** Number of successfully processed items */
+  successCount: number;
+  /** IDs that were processed successfully */
+  successIds: string[];
+  /** Number of failed items (always 0 for atomic operations) */
+  failedCount: number;
+  /** IDs that failed (empty for atomic operations - they roll back) */
+  failedIds: string[];
+}
+
+/**
+ * Input for bulk node updates.
+ *
+ * Each entry specifies a node ID and the updates to apply.
+ * The updates are partial - only specified fields are changed.
+ */
+export interface BulkNodeUpdate {
+  /** Node ID to update */
+  id: string;
+  /** Partial updates to apply to the node */
+  updates: Partial<Omit<GraphNodeInput, 'id'>>;
+}
+
+/**
+ * Options for bulk update operations.
+ */
+export interface BulkUpdateOptions {
+  /**
+   * If true, continue processing on individual failures (non-atomic).
+   * If false (default), any failure triggers rollback of all changes.
+   */
+  continueOnError?: boolean;
+}
+
+/**
+ * Options for bulk delete operations.
+ */
+export interface BulkDeleteOptions {
+  /**
+   * If true, continue processing on individual failures (non-atomic).
+   * If false (default), any failure triggers rollback of all changes.
+   */
+  continueOnError?: boolean;
+  /**
+   * If true, silently skip non-existent nodes instead of treating as failure.
+   * Useful for idempotent "ensure deleted" operations.
+   */
+  skipMissing?: boolean;
+}
+
+// ============================================================================
 // Store Configuration
 // ============================================================================
 
@@ -369,6 +442,140 @@ export interface GraphStore {
    * @throws {GraphStoreError} If delete fails
    */
   deleteNode(id: string): Promise<void>;
+
+  // ==========================================================================
+  // Bulk Node Operations
+  // ==========================================================================
+
+  /**
+   * Check if a node exists by ID.
+   *
+   * More efficient than `getNode()` when you only need to check existence
+   * without retrieving the full node data.
+   *
+   * @param id - Node ID to check
+   * @returns True if node exists, false otherwise
+   */
+  hasNode(id: string): Promise<boolean>;
+
+  /**
+   * Check if multiple nodes exist by IDs.
+   *
+   * Returns a Map for O(1) lookup of existence status by ID.
+   *
+   * @param ids - Array of node IDs to check
+   * @returns Map of node ID to existence boolean
+   *
+   * @example
+   * ```typescript
+   * const exists = await store.hasNodes(['a', 'b', 'c']);
+   * if (exists.get('a')) {
+   *   // Node 'a' exists
+   * }
+   * ```
+   */
+  hasNodes(ids: string[]): Promise<Map<string, boolean>>;
+
+  /**
+   * Get multiple nodes by their IDs.
+   *
+   * Returns nodes in the same order as input IDs. Non-existent nodes
+   * are represented as null in the result array.
+   *
+   * @param ids - Array of node IDs
+   * @returns Array of nodes (null for non-existent IDs)
+   *
+   * @example
+   * ```typescript
+   * const nodes = await store.getNodes(['a', 'b', 'missing']);
+   * // nodes[0] = GraphNode for 'a'
+   * // nodes[1] = GraphNode for 'b'
+   * // nodes[2] = null (not found)
+   * ```
+   */
+  getNodes(ids: string[]): Promise<(GraphNode | null)[]>;
+
+  /**
+   * Create or update a node based on ID.
+   *
+   * If a node with the given ID exists, it will be updated.
+   * If no node exists, a new one will be created.
+   *
+   * @param node - Node data (ID is required for upsert)
+   * @returns The upserted node
+   * @throws {GraphStoreError} If ID not provided or operation fails
+   *
+   * @example
+   * ```typescript
+   * // First call creates the node
+   * const node1 = await store.upsertNode({ id: 'x', type: 'concept', label: 'A' });
+   *
+   * // Second call updates it
+   * const node2 = await store.upsertNode({ id: 'x', type: 'concept', label: 'B' });
+   * // node2.label === 'B', node2.updatedAt is set
+   * ```
+   */
+  upsertNode(node: GraphNodeInput & { id: string }): Promise<GraphNode>;
+
+  /**
+   * Create or update multiple nodes based on IDs.
+   *
+   * @param nodes - Array of nodes (each must have ID)
+   * @returns Array of upserted nodes in same order
+   * @throws {GraphStoreError} If any node lacks ID or operation fails
+   */
+  upsertNodes(nodes: (GraphNodeInput & { id: string })[]): Promise<GraphNode[]>;
+
+  /**
+   * Update multiple nodes atomically.
+   *
+   * By default, this is an atomic operation - either all updates succeed
+   * or all fail with rollback. Use `options.continueOnError` for non-atomic
+   * behavior where each update is attempted independently.
+   *
+   * @param updates - Array of {id, updates} pairs
+   * @param options - Bulk operation options
+   * @returns Result with success/failure counts
+   * @throws {GraphStoreError} If atomic operation fails (rolls back all changes)
+   *
+   * @example
+   * ```typescript
+   * // Atomic: all succeed or all rollback
+   * const result = await store.bulkUpdateNodes([
+   *   { id: 'a', updates: { label: 'Updated A' } },
+   *   { id: 'b', updates: { label: 'Updated B' } },
+   * ]);
+   * ```
+   */
+  bulkUpdateNodes(
+    updates: BulkNodeUpdate[],
+    options?: BulkUpdateOptions
+  ): Promise<BulkOperationResult>;
+
+  /**
+   * Delete multiple nodes atomically.
+   *
+   * By default, this is an atomic operation - either all deletes succeed
+   * or all fail with rollback. Connected edges are cascade-deleted.
+   *
+   * @param ids - Array of node IDs to delete
+   * @param options - Bulk operation options
+   * @returns Result with success/failure counts
+   * @throws {GraphStoreError} If atomic operation fails (rolls back all changes)
+   *
+   * @example
+   * ```typescript
+   * // Atomic delete with cascade
+   * await store.bulkDeleteNodes(['a', 'b', 'c']);
+   *
+   * // Idempotent delete (skip missing nodes)
+   * await store.bulkDeleteNodes(['x', 'y'], { skipMissing: true });
+   * ```
+   */
+  bulkDeleteNodes(
+    ids: string[],
+    options?: BulkDeleteOptions
+  ): Promise<BulkOperationResult>;
 
   // ==========================================================================
   // Edge Operations
@@ -516,6 +723,7 @@ export type GraphStoreErrorCode =
   | 'UPDATE_FAILED'
   | 'DELETE_FAILED'
   | 'QUERY_FAILED'
+  | 'TRANSACTION_FAILED'
   | 'STORE_ERROR';
 
 /**

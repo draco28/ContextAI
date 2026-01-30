@@ -187,6 +187,71 @@ export const GraphStoreConfigSchema = z.object({
 });
 
 // ============================================================================
+// Bulk Operation Schemas
+// ============================================================================
+
+/**
+ * Schema for upsert node input (ID is required).
+ *
+ * Unlike `GraphNodeInputSchema` where ID is optional, upsert requires
+ * an ID to determine whether to create or update.
+ *
+ * @example
+ * ```typescript
+ * const result = UpsertNodeInputSchema.safeParse({
+ *   id: 'node-123',  // Required for upsert
+ *   type: 'concept',
+ *   label: 'Machine Learning'
+ * });
+ * ```
+ */
+export const UpsertNodeInputSchema = GraphNodeInputSchema.extend({
+  id: z.string().min(1, 'Node ID is required for upsert'),
+});
+
+/**
+ * Schema for partial node updates (used in bulk operations).
+ */
+const PartialNodeUpdatesSchema = z.object({
+  type: GraphNodeTypeSchema.optional(),
+  label: z.string().min(1).optional(),
+  properties: GraphNodePropertiesSchema.optional(),
+  embedding: z.array(z.number()).optional(),
+});
+
+/**
+ * Schema for a single bulk node update entry.
+ *
+ * @example
+ * ```typescript
+ * const update = {
+ *   id: 'node-123',
+ *   updates: { label: 'New Label', properties: { updated: true } }
+ * };
+ * BulkNodeUpdateSchema.parse(update);
+ * ```
+ */
+export const BulkNodeUpdateSchema = z.object({
+  id: z.string().min(1, 'Node ID is required for bulk update'),
+  updates: PartialNodeUpdatesSchema,
+});
+
+/**
+ * Schema for bulk update operation options.
+ */
+export const BulkUpdateOptionsSchema = z.object({
+  continueOnError: z.boolean().optional().default(false),
+});
+
+/**
+ * Schema for bulk delete operation options.
+ */
+export const BulkDeleteOptionsSchema = z.object({
+  continueOnError: z.boolean().optional().default(false),
+  skipMissing: z.boolean().optional().default(false),
+});
+
+// ============================================================================
 // Inferred Types
 // ============================================================================
 
@@ -216,3 +281,23 @@ export type ValidatedGraphQueryOptions = z.infer<typeof GraphQueryOptionsSchema>
  * Validated store config type (inferred from schema).
  */
 export type ValidatedGraphStoreConfig = z.infer<typeof GraphStoreConfigSchema>;
+
+/**
+ * Validated upsert node input type (inferred from schema).
+ */
+export type ValidatedUpsertNodeInput = z.infer<typeof UpsertNodeInputSchema>;
+
+/**
+ * Validated bulk node update type (inferred from schema).
+ */
+export type ValidatedBulkNodeUpdate = z.infer<typeof BulkNodeUpdateSchema>;
+
+/**
+ * Validated bulk update options type (inferred from schema).
+ */
+export type ValidatedBulkUpdateOptions = z.infer<typeof BulkUpdateOptionsSchema>;
+
+/**
+ * Validated bulk delete options type (inferred from schema).
+ */
+export type ValidatedBulkDeleteOptions = z.infer<typeof BulkDeleteOptionsSchema>;

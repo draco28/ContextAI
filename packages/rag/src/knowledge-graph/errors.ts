@@ -223,6 +223,36 @@ export class GraphStoreError extends ContextAIError {
   }
 
   /**
+   * Create an error for transaction failure.
+   *
+   * Used when a bulk operation fails and changes are rolled back.
+   * The `cause` parameter captures the underlying error that triggered
+   * the rollback.
+   *
+   * @example
+   * ```typescript
+   * // When atomic bulk update fails
+   * throw GraphStoreError.transactionFailed(
+   *   'MyStore',
+   *   'Node x not found - rolling back all changes',
+   *   originalError
+   * );
+   * ```
+   */
+  static transactionFailed(
+    storeName: string,
+    reason: string,
+    cause?: Error
+  ): GraphStoreError {
+    return new GraphStoreError(
+      `Transaction failed: ${reason}`,
+      'TRANSACTION_FAILED',
+      storeName,
+      cause
+    );
+  }
+
+  /**
    * Create a generic store error.
    */
   static storeError(

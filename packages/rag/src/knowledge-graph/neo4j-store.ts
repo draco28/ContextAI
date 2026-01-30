@@ -44,6 +44,10 @@ import type {
   TraversalDirection,
   GraphNodeType,
   GraphEdgeType,
+  BulkNodeUpdate,
+  BulkUpdateOptions,
+  BulkDeleteOptions,
+  BulkOperationResult,
 } from './types.js';
 
 import {
@@ -51,6 +55,10 @@ import {
   GraphEdgeInputSchema,
   GetNeighborsOptionsSchema,
   GraphQueryOptionsSchema,
+  UpsertNodeInputSchema,
+  BulkNodeUpdateSchema,
+  BulkUpdateOptionsSchema,
+  BulkDeleteOptionsSchema,
 } from './schemas.js';
 
 import { GraphStoreError } from './errors.js';
@@ -540,6 +548,492 @@ export class Neo4jGraphStore implements GraphStore {
     `;
 
     await this.runQuery(cypher, { id }, () => null);
+  };
+
+  // ==========================================================================
+  // Bulk Node Operations
+  // ==========================================================================
+
+  /**
+   * Check if a node exists by ID.
+   *
+   * Uses COUNT to avoid fetching full node data.
+   */
+  hasNode = async (id: string): Promise<boolean> => {
+    const cypher = `
+      MATCH (n {id: $id})
+      RETURN count(n) > 0 AS exists
+    `;
+    return this.runQuery(cypher, { id }, (records) => {
+      return records[0]?.get('exists') ?? false;
+    });
+  };
+
+  /**
+   * Check if multiple nodes exist by IDs.
+   *
+   * Uses UNWIND for efficient batch querying.
+   */
+  hasNodes = async (ids: string[]): Promise<Map<string, boolean>> => {
+    if (ids.length === 0) return new Map();
+
+    const cypher = `
+      UNWIND $ids AS nodeId
+      OPTIONAL MATCH (n {id: nodeId})
+      RETURN nodeId, n IS NOT NULL AS exists
+    `;
+
+    return this.runQuery(cypher, { ids }, (records) => {
+      const result = new Map<string, boolean>();
+      for (const record of records) {
+        result.set(record.get('nodeId') as string, record.get('exists') as boolean);
+      }
+      return result;
+    });
+  };
+
+  /**
+   * Get multiple nodes by IDs.
+   *
+   * Returns nodes in the same order as input IDs.
+   */
+  getNodes = async (ids: string[]): Promise<(GraphNode | null)[]> => {
+    if (ids.length === 0) return [];
+
+    // Query all nodes, preserving order via UNWIND
+    const cypher = `
+      UNWIND $ids AS nodeId
+      OPTIONAL MATCH (n {id: nodeId})
+      RETURN nodeId, n
+    `;
+
+    const nodeMap = await this.runQuery(cypher, { ids }, (records) => {
+      const map = new Map<string, GraphNode | null>();
+
+      for (const record of records) {
+        const nodeId = record.get('nodeId') as string;
+        const node = record.get('n') as Neo4jNode | null;
+
+        if (!node) {
+          map.set(nodeId, null);
+          continue;
+        }
+
+        const props = node.properties as Record<string, unknown>;
+        let parsedProps: Record<string, unknown> = {};
+        if (typeof props.properties === 'string') {
+          try {
+            parsedProps = JSON.parse(props.properties);
+          } catch {
+            parsedProps = {};
+          }
+        }
+
+        map.set(nodeId, {
+          id: props.id as string,
+          type: props.type as GraphNodeType,
+          label: props.label as string,
+          properties: parsedProps,
+          embedding: props.embedding as number[] | undefined,
+          createdAt: new Date(props.createdAt as string),
+          updatedAt: props.updatedAt
+            ? new Date(props.updatedAt as string)
+            : undefined,
+        });
+      }
+
+      return map;
+    });
+
+    // Return in original order
+    return ids.map((id) => nodeMap.get(id) ?? null);
+  };
+
+  /**
+   * Create or update a node based on ID.
+   *
+   * Uses Neo4j MERGE with ON CREATE/ON MATCH for atomic upsert.
+   */
+  upsertNode = async (
+    node: GraphNodeInput & { id: string }
+  ): Promise<GraphNode> => {
+    const validated = UpsertNodeInputSchema.parse(node);
+    const now = new Date().toISOString();
+    const label = nodeTypeToLabel(validated.type);
+
+    // Check capacity for potential new node
+    if (this.maxNodes > 0) {
+      const existing = await this.getNode(validated.id);
+      if (!existing) {
+        const { nodes } = await this.count();
+        if (nodes >= this.maxNodes) {
+          throw GraphStoreError.capacityExceeded(this.name, 'nodes', this.maxNodes);
+        }
+      }
+    }
+
+    // MERGE: create if not exists, update if exists
+    const cypher = `
+      MERGE (n {id: $id})
+      ON CREATE SET
+        n:${label},
+        n.type = $type,
+        n.label = $nodeLabel,
+        n.properties = $properties,
+        n.embedding = $embedding,
+        n.createdAt = $now
+      ON MATCH SET
+        n.type = $type,
+        n.label = $nodeLabel,
+        n.properties = $properties,
+        n.embedding = $embedding,
+        n.updatedAt = $now
+      RETURN n
+    `;
+
+    return this.runQuery(
+      cypher,
+      {
+        id: validated.id,
+        type: validated.type,
+        nodeLabel: validated.label,
+        properties: JSON.stringify(validated.properties ?? {}),
+        embedding: validated.embedding ?? null,
+        now,
+      },
+      (records) => {
+        const record = records[0];
+        if (!record) {
+          throw GraphStoreError.insertFailed(this.name, 'No record returned from upsert');
+        }
+
+        const n = record.get('n') as Neo4jNode;
+        const props = n.properties as Record<string, unknown>;
+
+        let parsedProps: Record<string, unknown> = {};
+        if (typeof props.properties === 'string') {
+          try {
+            parsedProps = JSON.parse(props.properties);
+          } catch {
+            parsedProps = {};
+          }
+        }
+
+        return {
+          id: props.id as string,
+          type: props.type as GraphNodeType,
+          label: props.label as string,
+          properties: parsedProps,
+          embedding: props.embedding as number[] | undefined,
+          createdAt: new Date(props.createdAt as string),
+          updatedAt: props.updatedAt
+            ? new Date(props.updatedAt as string)
+            : undefined,
+        };
+      }
+    );
+  };
+
+  /**
+   * Create or update multiple nodes.
+   *
+   * Uses a transaction for atomicity.
+   */
+  upsertNodes = async (
+    nodes: (GraphNodeInput & { id: string })[]
+  ): Promise<GraphNode[]> => {
+    if (nodes.length === 0) return [];
+
+    // Validate all nodes first
+    const validatedNodes = nodes.map((node, index) => {
+      const validated = UpsertNodeInputSchema.safeParse(node);
+      if (!validated.success) {
+        throw GraphStoreError.invalidNode(
+          this.name,
+          `Node at index ${index}: ${validated.error.message}`
+        );
+      }
+      return validated.data;
+    });
+
+    const session = this.getSession();
+    try {
+      const tx = session.beginTransaction();
+      const results: GraphNode[] = [];
+
+      try {
+        const now = new Date().toISOString();
+
+        for (const node of validatedNodes) {
+          const label = nodeTypeToLabel(node.type);
+          const cypher = `
+            MERGE (n {id: $id})
+            ON CREATE SET
+              n:${label},
+              n.type = $type,
+              n.label = $nodeLabel,
+              n.properties = $properties,
+              n.embedding = $embedding,
+              n.createdAt = $now
+            ON MATCH SET
+              n.type = $type,
+              n.label = $nodeLabel,
+              n.properties = $properties,
+              n.embedding = $embedding,
+              n.updatedAt = $now
+            RETURN n
+          `;
+
+          const result = await tx.run(cypher, {
+            id: node.id,
+            type: node.type,
+            nodeLabel: node.label,
+            properties: JSON.stringify(node.properties ?? {}),
+            embedding: node.embedding ?? null,
+            now,
+          });
+
+          const record = result.records[0];
+          if (!record) {
+            throw GraphStoreError.insertFailed(this.name, 'No record returned from upsert');
+          }
+          const n = record.get('n') as Neo4jNode;
+          const props = n.properties as Record<string, unknown>;
+
+          let parsedProps: Record<string, unknown> = {};
+          if (typeof props.properties === 'string') {
+            try {
+              parsedProps = JSON.parse(props.properties);
+            } catch {
+              parsedProps = {};
+            }
+          }
+
+          results.push({
+            id: props.id as string,
+            type: props.type as GraphNodeType,
+            label: props.label as string,
+            properties: parsedProps,
+            embedding: props.embedding as number[] | undefined,
+            createdAt: new Date(props.createdAt as string),
+            updatedAt: props.updatedAt
+              ? new Date(props.updatedAt as string)
+              : undefined,
+          });
+        }
+
+        await tx.commit();
+        return results;
+      } catch (error) {
+        await tx.rollback();
+        throw error;
+      }
+    } finally {
+      await session.close();
+    }
+  };
+
+  /**
+   * Update multiple nodes atomically.
+   *
+   * Uses Neo4j transactions for atomicity.
+   */
+  bulkUpdateNodes = async (
+    updates: BulkNodeUpdate[],
+    options?: BulkUpdateOptions
+  ): Promise<BulkOperationResult> => {
+    const opts = BulkUpdateOptionsSchema.parse(options ?? {});
+
+    if (updates.length === 0) {
+      return { successCount: 0, successIds: [], failedCount: 0, failedIds: [] };
+    }
+
+    // Validate all updates
+    for (const update of updates) {
+      BulkNodeUpdateSchema.parse(update);
+    }
+
+    if (!opts.continueOnError) {
+      // ATOMIC: Use transaction
+      const session = this.getSession();
+      try {
+        const tx = session.beginTransaction();
+        try {
+          const now = new Date().toISOString();
+          const successIds: string[] = [];
+
+          for (const update of updates) {
+            // Check node exists
+            const checkResult = await tx.run(
+              'MATCH (n {id: $id}) RETURN n',
+              { id: update.id }
+            );
+            if (checkResult.records.length === 0) {
+              throw new Error(`Node not found: ${update.id}`);
+            }
+
+            // Build dynamic SET clauses
+            const setClauses = ['n.updatedAt = $updatedAt'];
+            const params: Record<string, unknown> = {
+              id: update.id,
+              updatedAt: now,
+            };
+
+            if (update.updates.type !== undefined) {
+              setClauses.push('n.type = $type');
+              params.type = update.updates.type;
+            }
+            if (update.updates.label !== undefined) {
+              setClauses.push('n.label = $nodeLabel');
+              params.nodeLabel = update.updates.label;
+            }
+            if (update.updates.properties !== undefined) {
+              setClauses.push('n.properties = $properties');
+              params.properties = JSON.stringify(update.updates.properties);
+            }
+            if (update.updates.embedding !== undefined) {
+              setClauses.push('n.embedding = $embedding');
+              params.embedding = update.updates.embedding;
+            }
+
+            await tx.run(
+              `MATCH (n {id: $id}) SET ${setClauses.join(', ')}`,
+              params
+            );
+            successIds.push(update.id);
+          }
+
+          await tx.commit();
+          return {
+            successCount: successIds.length,
+            successIds,
+            failedCount: 0,
+            failedIds: [],
+          };
+        } catch (error) {
+          await tx.rollback();
+          throw GraphStoreError.transactionFailed(
+            this.name,
+            error instanceof Error ? error.message : String(error),
+            error instanceof Error ? error : undefined
+          );
+        }
+      } finally {
+        await session.close();
+      }
+    } else {
+      // NON-ATOMIC: Continue on errors
+      const successIds: string[] = [];
+      const failedIds: string[] = [];
+
+      for (const update of updates) {
+        try {
+          await this.updateNode(update.id, update.updates);
+          successIds.push(update.id);
+        } catch {
+          failedIds.push(update.id);
+        }
+      }
+
+      return {
+        successCount: successIds.length,
+        successIds,
+        failedCount: failedIds.length,
+        failedIds,
+      };
+    }
+  };
+
+  /**
+   * Delete multiple nodes atomically.
+   *
+   * Uses Neo4j transactions. DETACH DELETE cascades to edges.
+   */
+  bulkDeleteNodes = async (
+    ids: string[],
+    options?: BulkDeleteOptions
+  ): Promise<BulkOperationResult> => {
+    const opts = BulkDeleteOptionsSchema.parse(options ?? {});
+
+    if (ids.length === 0) {
+      return { successCount: 0, successIds: [], failedCount: 0, failedIds: [] };
+    }
+
+    if (!opts.continueOnError) {
+      // ATOMIC: Use transaction
+      const session = this.getSession();
+      try {
+        const tx = session.beginTransaction();
+        try {
+          const successIds: string[] = [];
+
+          for (const id of ids) {
+            // Check node exists
+            const checkResult = await tx.run(
+              'MATCH (n {id: $id}) RETURN n',
+              { id }
+            );
+
+            if (checkResult.records.length === 0) {
+              if (!opts.skipMissing) {
+                throw new Error(`Node not found: ${id}`);
+              }
+              // Skip missing nodes but don't count as success
+              continue;
+            }
+
+            // DETACH DELETE removes node and all relationships
+            await tx.run('MATCH (n {id: $id}) DETACH DELETE n', { id });
+            successIds.push(id);
+          }
+
+          await tx.commit();
+          return {
+            successCount: successIds.length,
+            successIds,
+            failedCount: 0,
+            failedIds: [],
+          };
+        } catch (error) {
+          await tx.rollback();
+          throw GraphStoreError.transactionFailed(
+            this.name,
+            error instanceof Error ? error.message : String(error),
+            error instanceof Error ? error : undefined
+          );
+        }
+      } finally {
+        await session.close();
+      }
+    } else {
+      // NON-ATOMIC: Continue on errors
+      const successIds: string[] = [];
+      const failedIds: string[] = [];
+
+      for (const id of ids) {
+        try {
+          const existing = await this.getNode(id);
+          if (!existing) {
+            // With skipMissing, silently skip - don't count as success or failure
+            if (!opts.skipMissing) {
+              failedIds.push(id);
+            }
+            continue;
+          }
+          await this.deleteNode(id);
+          successIds.push(id);
+        } catch {
+          failedIds.push(id);
+        }
+      }
+
+      return {
+        successCount: successIds.length,
+        successIds,
+        failedCount: failedIds.length,
+        failedIds,
+      };
+    }
   };
 
   // ==========================================================================

@@ -24,6 +24,10 @@ import type {
   TraversalDirection,
   GraphQueryOptions,
   GraphQueryResult,
+  BulkNodeUpdate,
+  BulkUpdateOptions,
+  BulkDeleteOptions,
+  BulkOperationResult,
 } from './types.js';
 import {
   GraphStoreConfigSchema,
@@ -31,6 +35,10 @@ import {
   GraphEdgeInputSchema,
   GetNeighborsOptionsSchema,
   GraphQueryOptionsSchema,
+  UpsertNodeInputSchema,
+  BulkNodeUpdateSchema,
+  BulkUpdateOptionsSchema,
+  BulkDeleteOptionsSchema,
 } from './schemas.js';
 import { GraphStoreError } from './errors.js';
 
@@ -246,6 +254,331 @@ export class InMemoryGraphStore implements GraphStore {
 
     // Delete the node
     this.nodes.delete(id);
+  };
+
+  // ==========================================================================
+  // Bulk Node Operations
+  // ==========================================================================
+
+  /**
+   * Check if a node exists by ID.
+   *
+   * O(1) lookup using Map.has().
+   */
+  hasNode = async (id: string): Promise<boolean> => {
+    return this.nodes.has(id);
+  };
+
+  /**
+   * Check if multiple nodes exist by IDs.
+   *
+   * Returns a Map for O(1) lookup of results by ID.
+   */
+  hasNodes = async (ids: string[]): Promise<Map<string, boolean>> => {
+    const result = new Map<string, boolean>();
+    for (const id of ids) {
+      result.set(id, this.nodes.has(id));
+    }
+    return result;
+  };
+
+  /**
+   * Get multiple nodes by IDs.
+   *
+   * Returns nodes in the same order as input IDs, with null for missing nodes.
+   */
+  getNodes = async (ids: string[]): Promise<(GraphNode | null)[]> => {
+    return ids.map((id) => this.nodes.get(id) ?? null);
+  };
+
+  /**
+   * Create or update a node based on ID.
+   *
+   * If node exists, updates it. Otherwise, creates it.
+   * ID is required for upsert operations.
+   */
+  upsertNode = async (
+    node: GraphNodeInput & { id: string }
+  ): Promise<GraphNode> => {
+    // Validate input - ID is required for upsert
+    const validated = UpsertNodeInputSchema.parse(node);
+
+    const existing = this.nodes.get(validated.id);
+
+    if (existing) {
+      // Update existing node
+      return this.updateNode(validated.id, {
+        type: validated.type,
+        label: validated.label,
+        properties: validated.properties,
+        embedding: validated.embedding,
+      });
+    } else {
+      // Check capacity before creating
+      if (this.maxNodes > 0 && this.nodes.size >= this.maxNodes) {
+        throw GraphStoreError.capacityExceeded(this.name, 'nodes', this.maxNodes);
+      }
+
+      // Create new node
+      const newNode: GraphNode = {
+        id: validated.id,
+        type: validated.type,
+        label: validated.label,
+        properties: validated.properties ?? {},
+        embedding: validated.embedding,
+        createdAt: new Date(),
+      };
+
+      this.nodes.set(validated.id, newNode);
+      this.initAdjacencyForNode(validated.id);
+
+      return newNode;
+    }
+  };
+
+  /**
+   * Create or update multiple nodes.
+   */
+  upsertNodes = async (
+    nodes: (GraphNodeInput & { id: string })[]
+  ): Promise<GraphNode[]> => {
+    const results: GraphNode[] = [];
+    for (const node of nodes) {
+      const result = await this.upsertNode(node);
+      results.push(result);
+    }
+    return results;
+  };
+
+  /**
+   * Update multiple nodes atomically.
+   *
+   * Default behavior (atomic): Either all updates succeed or all are rolled back.
+   * With continueOnError: Attempts all updates, returns success/failure counts.
+   */
+  bulkUpdateNodes = async (
+    updates: BulkNodeUpdate[],
+    options?: BulkUpdateOptions
+  ): Promise<BulkOperationResult> => {
+    const opts = BulkUpdateOptionsSchema.parse(options ?? {});
+
+    if (updates.length === 0) {
+      return { successCount: 0, successIds: [], failedCount: 0, failedIds: [] };
+    }
+
+    // Validate all update entries
+    for (const update of updates) {
+      BulkNodeUpdateSchema.parse(update);
+    }
+
+    if (!opts.continueOnError) {
+      // ATOMIC MODE: Validate all exist, take snapshot, apply, rollback on error
+
+      // Step 1: Verify all nodes exist BEFORE making any changes
+      for (const update of updates) {
+        if (!this.nodes.has(update.id)) {
+          throw GraphStoreError.transactionFailed(
+            this.name,
+            `Node not found: ${update.id} - rolling back all changes`
+          );
+        }
+      }
+
+      // Step 2: Create snapshot for potential rollback
+      const snapshot = new Map<string, GraphNode>();
+      for (const update of updates) {
+        const node = this.nodes.get(update.id)!;
+        // Deep clone to avoid reference issues
+        snapshot.set(update.id, { ...node, properties: { ...node.properties } });
+      }
+
+      // Step 3: Apply all updates
+      try {
+        const successIds: string[] = [];
+        for (const update of updates) {
+          await this.updateNode(update.id, update.updates);
+          successIds.push(update.id);
+        }
+        return {
+          successCount: successIds.length,
+          successIds,
+          failedCount: 0,
+          failedIds: [],
+        };
+      } catch (error) {
+        // Step 4: Rollback on any failure
+        for (const [id, node] of snapshot) {
+          this.nodes.set(id, node);
+        }
+        throw GraphStoreError.transactionFailed(
+          this.name,
+          error instanceof Error ? error.message : String(error),
+          error instanceof Error ? error : undefined
+        );
+      }
+    } else {
+      // NON-ATOMIC MODE: Continue on individual failures
+      const successIds: string[] = [];
+      const failedIds: string[] = [];
+
+      for (const update of updates) {
+        try {
+          await this.updateNode(update.id, update.updates);
+          successIds.push(update.id);
+        } catch {
+          failedIds.push(update.id);
+        }
+      }
+
+      return {
+        successCount: successIds.length,
+        successIds,
+        failedCount: failedIds.length,
+        failedIds,
+      };
+    }
+  };
+
+  /**
+   * Delete multiple nodes atomically.
+   *
+   * Default behavior (atomic): Either all deletes succeed or all are rolled back.
+   * Connected edges are cascade-deleted.
+   */
+  bulkDeleteNodes = async (
+    ids: string[],
+    options?: BulkDeleteOptions
+  ): Promise<BulkOperationResult> => {
+    const opts = BulkDeleteOptionsSchema.parse(options ?? {});
+
+    if (ids.length === 0) {
+      return { successCount: 0, successIds: [], failedCount: 0, failedIds: [] };
+    }
+
+    if (!opts.continueOnError) {
+      // ATOMIC MODE: Validate, snapshot all state, delete, rollback on error
+
+      // Step 1: Verify all nodes exist (unless skipMissing)
+      if (!opts.skipMissing) {
+        for (const id of ids) {
+          if (!this.nodes.has(id)) {
+            throw GraphStoreError.transactionFailed(
+              this.name,
+              `Node not found: ${id} - rolling back all changes`
+            );
+          }
+        }
+      }
+
+      // Step 2: Create full state snapshot for rollback
+      // We need to snapshot everything that might be affected:
+      // - The nodes being deleted
+      // - All edges connected to these nodes
+      // - Adjacency indexes for these nodes
+      const nodeSnapshot = new Map<string, GraphNode>();
+      const edgeSnapshot = new Map<string, GraphEdge>();
+      const outgoingSnapshot = new Map<string, Set<string>>();
+      const incomingSnapshot = new Map<string, Set<string>>();
+
+      // Collect all nodes and their connected edges
+      const affectedEdgeIds = new Set<string>();
+      for (const id of ids) {
+        const node = this.nodes.get(id);
+        if (node) {
+          nodeSnapshot.set(id, { ...node, properties: { ...node.properties } });
+
+          // Snapshot adjacency indexes
+          const outgoing = this.outgoingEdges.get(id);
+          const incoming = this.incomingEdges.get(id);
+          if (outgoing) {
+            outgoingSnapshot.set(id, new Set(outgoing));
+            outgoing.forEach((edgeId) => affectedEdgeIds.add(edgeId));
+          }
+          if (incoming) {
+            incomingSnapshot.set(id, new Set(incoming));
+            incoming.forEach((edgeId) => affectedEdgeIds.add(edgeId));
+          }
+        }
+      }
+
+      // Snapshot affected edges
+      for (const edgeId of affectedEdgeIds) {
+        const edge = this.edges.get(edgeId);
+        if (edge) {
+          edgeSnapshot.set(edgeId, {
+            ...edge,
+            properties: { ...edge.properties },
+          });
+        }
+      }
+
+      // Step 3: Delete all nodes (cascade deletes edges)
+      try {
+        const successIds: string[] = [];
+        for (const id of ids) {
+          if (this.nodes.has(id)) {
+            await this.deleteNode(id);
+            successIds.push(id);
+          }
+          // With skipMissing, we just silently skip - don't count as success
+        }
+        return {
+          successCount: successIds.length,
+          successIds,
+          failedCount: 0,
+          failedIds: [],
+        };
+      } catch (error) {
+        // Step 4: Rollback ALL state on failure
+        // Restore nodes
+        for (const [id, node] of nodeSnapshot) {
+          this.nodes.set(id, node);
+        }
+        // Restore edges
+        for (const [id, edge] of edgeSnapshot) {
+          this.edges.set(id, edge);
+        }
+        // Restore adjacency indexes
+        for (const [id, set] of outgoingSnapshot) {
+          this.outgoingEdges.set(id, set);
+        }
+        for (const [id, set] of incomingSnapshot) {
+          this.incomingEdges.set(id, set);
+        }
+
+        throw GraphStoreError.transactionFailed(
+          this.name,
+          error instanceof Error ? error.message : String(error),
+          error instanceof Error ? error : undefined
+        );
+      }
+    } else {
+      // NON-ATOMIC MODE: Continue on individual failures
+      const successIds: string[] = [];
+      const failedIds: string[] = [];
+
+      for (const id of ids) {
+        try {
+          if (this.nodes.has(id)) {
+            await this.deleteNode(id);
+            successIds.push(id);
+          } else if (!opts.skipMissing) {
+            // Only count as failure if we're NOT skipping missing
+            failedIds.push(id);
+          }
+          // With skipMissing, silently skip - not success, not failure
+        } catch {
+          failedIds.push(id);
+        }
+      }
+
+      return {
+        successCount: successIds.length,
+        successIds,
+        failedCount: failedIds.length,
+        failedIds,
+      };
+    }
   };
 
   // ==========================================================================

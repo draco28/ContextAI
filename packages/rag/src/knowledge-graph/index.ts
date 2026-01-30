@@ -45,6 +45,11 @@ export type {
   NeighborResult,
   GraphQueryOptions,
   GraphQueryResult,
+  // Bulk operation types
+  BulkOperationResult,
+  BulkNodeUpdate,
+  BulkUpdateOptions,
+  BulkDeleteOptions,
   // Store types
   GraphStoreConfig,
   GraphStore,
@@ -71,12 +76,21 @@ export {
   GraphQueryOptionsSchema,
   // Config schema
   GraphStoreConfigSchema,
+  // Bulk operation schemas
+  UpsertNodeInputSchema,
+  BulkNodeUpdateSchema,
+  BulkUpdateOptionsSchema,
+  BulkDeleteOptionsSchema,
   // Validated types (from z.infer)
   type ValidatedGraphNodeInput,
   type ValidatedGraphEdgeInput,
   type ValidatedGetNeighborsOptions,
   type ValidatedGraphQueryOptions,
   type ValidatedGraphStoreConfig,
+  type ValidatedUpsertNodeInput,
+  type ValidatedBulkNodeUpdate,
+  type ValidatedBulkUpdateOptions,
+  type ValidatedBulkDeleteOptions,
 } from './schemas.js';
 
 // Error class
