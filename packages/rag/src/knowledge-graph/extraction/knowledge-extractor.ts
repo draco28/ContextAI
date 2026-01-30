@@ -18,6 +18,7 @@ import type {
   KnowledgeExtractorConfig,
   KnowledgeExtractionResult,
   ExtractedEntity,
+  ExtractedEntityType,
   ExtractedRelation,
   ExtractionOptions,
 } from './types.js';
@@ -74,7 +75,7 @@ export class LLMKnowledgeExtractor implements KnowledgeExtractor {
   readonly name = 'LLMKnowledgeExtractor';
 
   private readonly llmProvider: LLMProvider;
-  private readonly entityTypes?: string[];
+  private readonly entityTypes?: ExtractedEntityType[];
   private readonly relationTypes?: GraphEdgeType[];
   private readonly minEntityConfidence: number;
   private readonly minRelationConfidence: number;
@@ -377,7 +378,7 @@ export class LLMKnowledgeExtractor implements KnowledgeExtractor {
     if (!this.entityExtractor) {
       this.entityExtractor = new LLMEntityExtractor({
         llmProvider: this.llmProvider,
-        entityTypes: this.entityTypes as never,
+        entityTypes: this.entityTypes,
         minConfidence: this.minEntityConfidence,
         temperature: this.temperature,
         maxInputTokens: this.maxInputTokens,
