@@ -178,6 +178,25 @@ export const GraphQueryOptionsSchema = z.object({
 });
 
 /**
+ * Schema for shortest path options.
+ *
+ * Validates options for findShortestPath():
+ * - direction: Which way to traverse edges (default: 'both')
+ * - edgeTypes/nodeTypes: Filter traversable edges/nodes
+ * - defaultWeight: Weight for edges without explicit weight (default: 0.5)
+ * - ignoreWeights: Use hop count instead of weighted cost (default: false)
+ * - maxDepth: Maximum path length in edges
+ */
+export const ShortestPathOptionsSchema = z.object({
+  direction: TraversalDirectionSchema.optional().default('both'),
+  edgeTypes: z.array(GraphEdgeTypeSchema).optional(),
+  nodeTypes: z.array(GraphNodeTypeSchema).optional(),
+  defaultWeight: z.number().min(0).max(1).optional().default(0.5),
+  ignoreWeights: z.boolean().optional().default(false),
+  maxDepth: z.number().int().positive().optional(),
+});
+
+/**
  * Schema for graph store configuration.
  */
 export const GraphStoreConfigSchema = z.object({
@@ -326,6 +345,13 @@ export type ValidatedGetNeighborsOptions = z.infer<
  * Validated query options type (inferred from schema).
  */
 export type ValidatedGraphQueryOptions = z.infer<typeof GraphQueryOptionsSchema>;
+
+/**
+ * Validated shortest path options type (inferred from schema).
+ */
+export type ValidatedShortestPathOptions = z.infer<
+  typeof ShortestPathOptionsSchema
+>;
 
 /**
  * Validated store config type (inferred from schema).

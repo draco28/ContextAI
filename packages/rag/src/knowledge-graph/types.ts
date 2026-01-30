@@ -259,6 +259,91 @@ export interface GraphQueryResult {
   totalCount: number;
 }
 
+/**
+ * Options for finding the shortest path between two nodes.
+ *
+ * Uses Dijkstra's algorithm where edge weights represent relationship strength
+ * (0-1, higher = stronger). Stronger relationships have lower traversal cost.
+ */
+export interface ShortestPathOptions {
+  /**
+   * Direction of traversal.
+   * - 'outgoing': Only follow edges from source toward target
+   * - 'incoming': Only follow edges from target toward source
+   * - 'both': Follow edges in either direction (treats graph as undirected)
+   * @default 'both'
+   */
+  direction?: TraversalDirection;
+
+  /**
+   * Filter by edge types. Only edges of these types will be traversed.
+   * - undefined: All edge types allowed
+   * - empty array: No edges allowed (always returns null)
+   */
+  edgeTypes?: GraphEdgeType[];
+
+  /**
+   * Filter by node types. Only nodes of these types can be visited
+   * (intermediate nodes, not source/target).
+   * - undefined: All node types allowed
+   * - empty array: No intermediate nodes allowed
+   */
+  nodeTypes?: GraphNodeType[];
+
+  /**
+   * Default weight for edges without explicit weight.
+   * Higher values = stronger relationship = lower traversal cost.
+   * @default 0.5
+   */
+  defaultWeight?: number;
+
+  /**
+   * If true, treat all edges as having uniform cost (1).
+   * Effectively finds path with minimum hops instead of minimum weight.
+   * @default false
+   */
+  ignoreWeights?: boolean;
+
+  /**
+   * Maximum number of edges to traverse (path length limit).
+   * Useful for limiting search scope in large graphs.
+   * - undefined or 0: No limit
+   */
+  maxDepth?: number;
+}
+
+/**
+ * Result of a shortest path query.
+ */
+export interface PathResult {
+  /**
+   * Ordered array of nodes from source to target (inclusive).
+   * First element is source, last is target.
+   * For trivial path (source === target), contains single node.
+   */
+  nodes: GraphNode[];
+
+  /**
+   * Ordered array of edges connecting the nodes.
+   * edges[i] connects nodes[i] to nodes[i+1].
+   * Length is always nodes.length - 1.
+   */
+  edges: GraphEdge[];
+
+  /**
+   * Total cost of the path.
+   * - Weighted mode: Sum of (1 - edge.weight) for each edge
+   * - Unweighted mode (ignoreWeights: true): Number of edges
+   */
+  totalCost: number;
+
+  /**
+   * Number of edges in the path (hop count).
+   * Always equals edges.length.
+   */
+  length: number;
+}
+
 // ============================================================================
 // Bulk Operation Types
 // ============================================================================
@@ -817,6 +902,44 @@ export interface GraphStore {
     nodeId: string,
     direction?: TraversalDirection
   ): Promise<GraphEdge[]>;
+
+  /**
+   * Find the shortest path between two nodes.
+   *
+   * Uses Dijkstra's algorithm to find the path with minimum total cost.
+   * Edge weights represent relationship strength (0-1, higher = stronger).
+   * Stronger relationships have lower traversal cost (cost = 1 - weight).
+   *
+   * @param sourceId - Starting node ID
+   * @param targetId - Destination node ID
+   * @param options - Path finding options (direction, filters, weight handling)
+   * @returns PathResult if path exists, null if no path found
+   * @throws {GraphStoreError} If source or target node doesn't exist
+   *
+   * @example
+   * ```typescript
+   * // Find shortest weighted path
+   * const path = await store.findShortestPath('node-a', 'node-z');
+   * if (path) {
+   *   console.log(`Path: ${path.length} hops, cost ${path.totalCost}`);
+   *   path.nodes.forEach(n => console.log(n.label));
+   * }
+   *
+   * // Find shortest path by hop count only
+   * const hops = await store.findShortestPath('a', 'z', { ignoreWeights: true });
+   *
+   * // Find path only through certain edge types
+   * const path = await store.findShortestPath('a', 'z', {
+   *   edgeTypes: ['relatedTo', 'references'],
+   *   direction: 'outgoing'
+   * });
+   * ```
+   */
+  findShortestPath(
+    sourceId: string,
+    targetId: string,
+    options?: ShortestPathOptions
+  ): Promise<PathResult | null>;
 
   // ==========================================================================
   // Query Operations

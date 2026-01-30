@@ -49,6 +49,8 @@ import type {
   BulkUpdateOptions,
   BulkDeleteOptions,
   BulkOperationResult,
+  ShortestPathOptions,
+  PathResult,
 } from './types.js';
 
 import {
@@ -56,6 +58,7 @@ import {
   GraphEdgeInputSchema,
   GetNeighborsOptionsSchema,
   GraphQueryOptionsSchema,
+  ShortestPathOptionsSchema,
   UpsertNodeInputSchema,
   UpsertEdgeInputSchema,
   BulkNodeUpdateSchema,
@@ -1929,6 +1932,188 @@ export class Neo4jGraphStore implements GraphStore {
       }
 
       return edges;
+    });
+  };
+
+  /**
+   * Find the shortest path between two nodes.
+   *
+   * Uses Cypher's shortestPath for hop-based shortest path,
+   * then calculates weighted cost. For true weighted shortest path
+   * in Neo4j, consider using APOC's dijkstra algorithm.
+   *
+   * @param sourceId - Starting node ID
+   * @param targetId - Destination node ID
+   * @param options - Path finding options
+   * @returns PathResult if path exists, null if no path found
+   * @throws {GraphStoreError} If source or target node doesn't exist
+   */
+  findShortestPath = async (
+    sourceId: string,
+    targetId: string,
+    options?: ShortestPathOptions
+  ): Promise<PathResult | null> => {
+    // 1. Validate and parse options
+    const opts = ShortestPathOptionsSchema.parse(options ?? {});
+
+    // 2. Validate source node exists
+    const sourceNode = await this.getNode(sourceId);
+    if (!sourceNode) {
+      throw GraphStoreError.nodeNotFound(this.name, sourceId);
+    }
+
+    // 3. Validate target node exists
+    const targetNode = await this.getNode(targetId);
+    if (!targetNode) {
+      throw GraphStoreError.nodeNotFound(this.name, targetId);
+    }
+
+    // 4. Handle trivial case: source equals target
+    if (sourceId === targetId) {
+      return {
+        nodes: [sourceNode],
+        edges: [],
+        totalCost: 0,
+        length: 0,
+      };
+    }
+
+    // 5. Early termination for impossible filters
+    if (opts.edgeTypes && opts.edgeTypes.length === 0) {
+      return null;
+    }
+    // Note: Empty nodeTypes means "no intermediate nodes allowed",
+    // which still permits direct paths. Don't early-terminate here.
+
+    // 6. Build Cypher query for shortest path
+    const params: Record<string, unknown> = {
+      sourceId,
+      targetId,
+      defaultWeight: opts.defaultWeight,
+    };
+
+    // Build relationship type filter
+    let relTypeFilter = '';
+    if (opts.edgeTypes && opts.edgeTypes.length > 0) {
+      const relTypes = opts.edgeTypes.map((t) => edgeTypeToRelType(t));
+      relTypeFilter = `:${relTypes.join('|')}`;
+      params.edgeTypes = opts.edgeTypes;
+    }
+
+    // Build direction pattern
+    let relPattern: string;
+    switch (opts.direction) {
+      case 'outgoing':
+        relPattern = `-[r${relTypeFilter}*1..${opts.maxDepth ?? 50}]->`;
+        break;
+      case 'incoming':
+        relPattern = `<-[r${relTypeFilter}*1..${opts.maxDepth ?? 50}]-`;
+        break;
+      case 'both':
+      default:
+        relPattern = `-[r${relTypeFilter}*1..${opts.maxDepth ?? 50}]-`;
+        break;
+    }
+
+    // Build node type filter for intermediate nodes
+    let nodeTypeFilter = '';
+    if (opts.nodeTypes && opts.nodeTypes.length > 0) {
+      params.nodeTypes = opts.nodeTypes;
+      nodeTypeFilter = `
+        AND ALL(n IN nodes(p)[1..-1] WHERE n.type IN $nodeTypes)
+      `;
+    }
+
+    // Calculate cost expression
+    // In weighted mode: sum of (1 - coalesce(r.weight, defaultWeight))
+    // In unweighted mode: just count edges
+    const costExpr = opts.ignoreWeights
+      ? 'length(p)'
+      : 'reduce(cost = 0.0, rel IN relationships(p) | cost + (1.0 - coalesce(rel.weight, $defaultWeight)))';
+
+    const cypher = `
+      MATCH (source {id: $sourceId}), (target {id: $targetId})
+      MATCH p = shortestPath((source)${relPattern}(target))
+      WHERE source <> target
+      ${nodeTypeFilter}
+      WITH p, nodes(p) as pathNodes, relationships(p) as pathRels, ${costExpr} as totalCost
+      RETURN pathNodes, pathRels, totalCost, length(p) as pathLength
+      ORDER BY totalCost
+      LIMIT 1
+    `;
+
+    return this.runQuery(cypher, params, (records) => {
+      if (records.length === 0) {
+        return null;
+      }
+
+      // Safe to access [0] since we checked length above
+      const record = records[0]!;
+      const pathNodes = record.get('pathNodes') as Neo4jNode[];
+      const pathRels = record.get('pathRels') as Neo4jRelationship[];
+      const totalCost = record.get('totalCost') as number;
+      const pathLengthRaw = record.get('pathLength');
+      const pathLength =
+        typeof pathLengthRaw === 'object' && pathLengthRaw !== null && 'low' in pathLengthRaw
+          ? (pathLengthRaw as { low: number }).low
+          : (pathLengthRaw as number);
+
+      // Convert Neo4j nodes to GraphNode
+      const nodes: GraphNode[] = pathNodes.map((n) => {
+        const props = n.properties as Record<string, unknown>;
+        let parsedProps: Record<string, unknown> = {};
+        if (typeof props.properties === 'string') {
+          try {
+            parsedProps = JSON.parse(props.properties);
+          } catch {
+            parsedProps = {};
+          }
+        }
+        return {
+          id: props.id as string,
+          type: props.type as GraphNodeType,
+          label: props.label as string,
+          properties: parsedProps,
+          embedding: props.embedding as number[] | undefined,
+          createdAt: new Date(props.createdAt as string),
+          updatedAt: props.updatedAt
+            ? new Date(props.updatedAt as string)
+            : undefined,
+        };
+      });
+
+      // Convert Neo4j relationships to GraphEdge
+      const edges: GraphEdge[] = pathRels.map((rel, i) => {
+        const props = rel.properties as Record<string, unknown>;
+        let parsedProps: Record<string, unknown> = {};
+        if (typeof props.properties === 'string') {
+          try {
+            parsedProps = JSON.parse(props.properties);
+          } catch {
+            parsedProps = {};
+          }
+        }
+        // edges[i] connects nodes[i] to nodes[i+1], so i+1 is always valid
+        return {
+          id: props.id as string,
+          source: nodes[i]!.id,
+          target: nodes[i + 1]!.id,
+          type: props.type as GraphEdgeType,
+          weight: props.weight as number | undefined,
+          properties: parsedProps,
+          createdAt: new Date(props.createdAt as string),
+          updatedAt: props.updatedAt
+            ? new Date(props.updatedAt as string)
+            : undefined,
+        };
+      });
+
+      return {
+        nodes,
+        edges,
+        totalCost: typeof totalCost === 'number' ? totalCost : 0,
+        length: typeof pathLength === 'number' ? pathLength : edges.length,
+      };
     });
   };
 

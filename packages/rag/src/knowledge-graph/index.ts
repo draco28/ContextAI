@@ -45,6 +45,9 @@ export type {
   NeighborResult,
   GraphQueryOptions,
   GraphQueryResult,
+  // Path finding types
+  ShortestPathOptions,
+  PathResult,
   // Bulk operation types
   BulkOperationResult,
   BulkNodeUpdate,
@@ -75,6 +78,8 @@ export {
   TraversalDirectionSchema,
   GetNeighborsOptionsSchema,
   GraphQueryOptionsSchema,
+  // Path finding schemas
+  ShortestPathOptionsSchema,
   // Config schema
   GraphStoreConfigSchema,
   // Bulk operation schemas
@@ -89,6 +94,7 @@ export {
   type ValidatedGraphEdgeInput,
   type ValidatedGetNeighborsOptions,
   type ValidatedGraphQueryOptions,
+  type ValidatedShortestPathOptions,
   type ValidatedGraphStoreConfig,
   type ValidatedUpsertNodeInput,
   type ValidatedBulkNodeUpdate,

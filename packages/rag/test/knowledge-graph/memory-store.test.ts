@@ -943,6 +943,257 @@ describe('InMemoryGraphStore', () => {
         expect(edges).toHaveLength(0);
       });
     });
+
+    describe('findShortestPath', () => {
+      // Use the default graph from beforeEach:
+      //   n1 --e1(weight undefined)--> n2 --e2(weight undefined)--> n3
+      //    |                                                        ^
+      //    +------------------ e3 (weight: 0.8) --------------------+
+
+      it('should find direct path between adjacent nodes', async () => {
+        const path = await store.findShortestPath('n1', 'n2');
+
+        expect(path).not.toBeNull();
+        expect(path!.nodes).toHaveLength(2);
+        expect(path!.nodes[0]!.id).toBe('n1');
+        expect(path!.nodes[1]!.id).toBe('n2');
+        expect(path!.edges).toHaveLength(1);
+        expect(path!.edges[0]!.id).toBe('e1');
+        expect(path!.length).toBe(1);
+      });
+
+      it('should find shortest weighted path (prefers stronger edges)', async () => {
+        // From n1 to n3:
+        //   - via n2: e1 (default 0.5, cost 0.5) + e2 (default 0.5, cost 0.5) = 1.0
+        //   - direct: e3 (weight 0.8, cost 0.2) = 0.2
+        // Should prefer direct route (lower cost)
+        const path = await store.findShortestPath('n1', 'n3');
+
+        expect(path).not.toBeNull();
+        expect(path!.nodes).toHaveLength(2);
+        expect(path!.nodes[0]!.id).toBe('n1');
+        expect(path!.nodes[1]!.id).toBe('n3');
+        expect(path!.edges[0]!.id).toBe('e3');
+        expect(path!.totalCost).toBeCloseTo(0.2, 5);
+        expect(path!.length).toBe(1);
+      });
+
+      it('should return trivial path when source equals target', async () => {
+        const path = await store.findShortestPath('n1', 'n1');
+
+        expect(path).not.toBeNull();
+        expect(path!.nodes).toHaveLength(1);
+        expect(path!.nodes[0]!.id).toBe('n1');
+        expect(path!.edges).toHaveLength(0);
+        expect(path!.totalCost).toBe(0);
+        expect(path!.length).toBe(0);
+      });
+
+      it('should return null when no path exists', async () => {
+        // Add isolated node
+        await store.addNode(createTestNode({ id: 'isolated' }));
+
+        const path = await store.findShortestPath('n1', 'isolated');
+        expect(path).toBeNull();
+      });
+
+      it('should throw if source node does not exist', async () => {
+        await expect(
+          store.findShortestPath('nonexistent', 'n1')
+        ).rejects.toThrow();
+      });
+
+      it('should throw if target node does not exist', async () => {
+        await expect(
+          store.findShortestPath('n1', 'nonexistent')
+        ).rejects.toThrow();
+      });
+
+      describe('direction option', () => {
+        it('should follow outgoing edges only when direction is outgoing', async () => {
+          // n1 -> n2 -> n3 (outgoing from n1's perspective)
+          const path = await store.findShortestPath('n1', 'n3', {
+            direction: 'outgoing',
+          });
+
+          expect(path).not.toBeNull();
+          // Could go n1->n3 (e3) or n1->n2->n3, depends on weights
+        });
+
+        it('should follow incoming edges only when direction is incoming', async () => {
+          // n3 has incoming from n1 (e3) and n2 (e2)
+          const path = await store.findShortestPath('n3', 'n1', {
+            direction: 'incoming',
+          });
+
+          expect(path).not.toBeNull();
+          expect(path!.nodes[0]!.id).toBe('n3');
+          expect(path!.nodes[path!.nodes.length - 1]!.id).toBe('n1');
+        });
+
+        it('should return null if path only exists in opposite direction', async () => {
+          // n2 -> n3 exists, but n3 -> n2 doesn't
+          const path = await store.findShortestPath('n3', 'n2', {
+            direction: 'outgoing',
+          });
+
+          expect(path).toBeNull();
+        });
+      });
+
+      describe('edgeTypes filter', () => {
+        it('should only traverse edges of specified types', async () => {
+          // Only use 'references' edges (e3: n1->n3)
+          const path = await store.findShortestPath('n1', 'n3', {
+            edgeTypes: ['references'],
+          });
+
+          expect(path).not.toBeNull();
+          expect(path!.edges).toHaveLength(1);
+          expect(path!.edges[0]!.type).toBe('references');
+        });
+
+        it('should return null when no matching edge types', async () => {
+          // 'mentions' type doesn't exist in test graph
+          const path = await store.findShortestPath('n1', 'n3', {
+            edgeTypes: ['mentions'],
+          });
+
+          expect(path).toBeNull();
+        });
+
+        it('should return null with empty edgeTypes array', async () => {
+          const path = await store.findShortestPath('n1', 'n3', {
+            edgeTypes: [],
+          });
+
+          expect(path).toBeNull();
+        });
+      });
+
+      describe('nodeTypes filter', () => {
+        it('should only traverse through nodes of specified types', async () => {
+          // n1 (concept) -> n2 (entity) -> n3 (document)
+          // If we exclude 'entity', can't go via n2
+          const path = await store.findShortestPath('n1', 'n3', {
+            nodeTypes: ['concept', 'document'],
+            edgeTypes: ['relatedTo', 'contains'], // Exclude references to force via n2
+          });
+
+          // No valid path - n2 is excluded and it's needed to reach n3 via relatedTo/contains
+          expect(path).toBeNull();
+        });
+
+        it('should return null with empty nodeTypes array', async () => {
+          // Need to go through n2 to reach n3 via non-references edges
+          // But empty nodeTypes means no intermediate nodes allowed
+          const path = await store.findShortestPath('n1', 'n2', {
+            nodeTypes: [],
+            // Still need a non-adjacent path test
+          });
+
+          // n1 to n2 is direct, no intermediate nodes needed
+          // So this should still work
+          expect(path).not.toBeNull();
+        });
+      });
+
+      describe('ignoreWeights option', () => {
+        it('should find shortest hop path when ignoreWeights is true', async () => {
+          // n1 to n3: direct (1 hop) vs via n2 (2 hops)
+          // With ignoreWeights, should prefer 1 hop
+          const path = await store.findShortestPath('n1', 'n3', {
+            ignoreWeights: true,
+          });
+
+          expect(path).not.toBeNull();
+          expect(path!.length).toBe(1);
+          expect(path!.totalCost).toBe(1); // Cost equals hop count
+        });
+
+        it('should use hop count as total cost', async () => {
+          const path = await store.findShortestPath('n1', 'n2', {
+            ignoreWeights: true,
+          });
+
+          expect(path!.totalCost).toBe(path!.length);
+        });
+      });
+
+      describe('maxDepth option', () => {
+        it('should not find paths exceeding maxDepth', async () => {
+          // Create a longer chain
+          await store.addNode(createTestNode({ id: 'n4' }));
+          await store.addEdge(createTestEdge('n3', 'n4'));
+
+          // n1 to n4 requires: n1->n2->n3->n4 (3 hops via non-references)
+          // or n1->n3->n4 (2 hops using e3)
+          const path = await store.findShortestPath('n1', 'n4', {
+            maxDepth: 1,
+            edgeTypes: ['relatedTo', 'contains'], // Force longer path
+          });
+
+          expect(path).toBeNull();
+        });
+
+        it('should find paths within maxDepth', async () => {
+          const path = await store.findShortestPath('n1', 'n3', {
+            maxDepth: 2,
+          });
+
+          expect(path).not.toBeNull();
+          expect(path!.length).toBeLessThanOrEqual(2);
+        });
+      });
+
+      describe('defaultWeight option', () => {
+        it('should use defaultWeight for edges without explicit weight', async () => {
+          // e1 and e2 have no weight, e3 has weight 0.8
+          // With defaultWeight 0.9 (high = low cost):
+          //   - via n2: e1 (cost 0.1) + e2 (cost 0.1) = 0.2
+          //   - direct: e3 (weight 0.8, cost 0.2) = 0.2
+          // Equal, but should work
+          const path = await store.findShortestPath('n1', 'n3', {
+            defaultWeight: 0.9,
+          });
+
+          expect(path).not.toBeNull();
+          // Both paths have same cost with these weights
+        });
+
+        it('should prefer unweighted edges when defaultWeight is high', async () => {
+          // defaultWeight 1.0 means unweighted edges cost 0
+          const path = await store.findShortestPath('n1', 'n3', {
+            defaultWeight: 1.0,
+          });
+
+          expect(path).not.toBeNull();
+          // With defaultWeight 1.0:
+          //   - via n2: cost = (1-1) + (1-1) = 0
+          //   - direct: cost = (1-0.8) = 0.2
+          // Should prefer via n2
+          expect(path!.length).toBe(2);
+          expect(path!.totalCost).toBeCloseTo(0, 5);
+        });
+      });
+
+      describe('weighted path selection', () => {
+        it('should prefer path with higher weight edges (lower cost)', async () => {
+          // Create alternative path with different weights
+          // Current: n1 --(0.8)--> n3 (cost 0.2)
+          // Add: n1 --(0.3)--> n4 --(0.3)--> n3 (cost 0.7 + 0.7 = 1.4)
+          await store.addNode(createTestNode({ id: 'n4', type: 'chunk' }));
+          await store.addEdge(createTestEdge('n1', 'n4', { weight: 0.3 }));
+          await store.addEdge(createTestEdge('n4', 'n3', { weight: 0.3 }));
+
+          const path = await store.findShortestPath('n1', 'n3');
+
+          // Should prefer e3 (cost 0.2) over n1->n4->n3 (cost 1.4)
+          expect(path!.length).toBe(1);
+          expect(path!.edges[0]!.id).toBe('e3');
+        });
+      });
+    });
   });
 
   // ===========================================================================

@@ -29,6 +29,8 @@ import type {
   BulkUpdateOptions,
   BulkDeleteOptions,
   BulkOperationResult,
+  ShortestPathOptions,
+  PathResult,
 } from './types.js';
 import {
   GraphStoreConfigSchema,
@@ -36,6 +38,7 @@ import {
   GraphEdgeInputSchema,
   GetNeighborsOptionsSchema,
   GraphQueryOptionsSchema,
+  ShortestPathOptionsSchema,
   UpsertNodeInputSchema,
   UpsertEdgeInputSchema,
   BulkNodeUpdateSchema,
@@ -1143,6 +1146,193 @@ export class InMemoryGraphStore implements GraphStore {
     const edgeIds = this.getEdgeIdsForDirection(nodeId, direction);
     return edgeIds.map((id) => this.edges.get(id)!);
   };
+
+  /**
+   * Find the shortest path between two nodes using Dijkstra's algorithm.
+   *
+   * Edge weights represent relationship strength (0-1, higher = stronger).
+   * Traversal cost is calculated as (1 - weight), so stronger relationships
+   * are cheaper to traverse.
+   *
+   * @param sourceId - Starting node ID
+   * @param targetId - Destination node ID
+   * @param options - Path finding options
+   * @returns PathResult if path exists, null if no path found
+   * @throws {GraphStoreError} If source or target node doesn't exist
+   */
+  findShortestPath = async (
+    sourceId: string,
+    targetId: string,
+    options?: ShortestPathOptions
+  ): Promise<PathResult | null> => {
+    // 1. Validate and parse options (applies defaults)
+    const opts = ShortestPathOptionsSchema.parse(options ?? {});
+
+    // 2. Validate source node exists
+    if (!this.nodes.has(sourceId)) {
+      throw GraphStoreError.nodeNotFound(this.name, sourceId);
+    }
+
+    // 3. Validate target node exists
+    if (!this.nodes.has(targetId)) {
+      throw GraphStoreError.nodeNotFound(this.name, targetId);
+    }
+
+    // 4. Handle trivial case: source equals target
+    if (sourceId === targetId) {
+      const node = this.nodes.get(sourceId)!;
+      return {
+        nodes: [node],
+        edges: [],
+        totalCost: 0,
+        length: 0,
+      };
+    }
+
+    // 5. Early termination for impossible filters
+    if (opts.edgeTypes && opts.edgeTypes.length === 0) {
+      return null; // No edges allowed means no path possible
+    }
+    // Note: Empty nodeTypes means "no intermediate nodes allowed",
+    // which still permits direct paths. Don't early-terminate here.
+
+    // 6. Initialize Dijkstra's algorithm data structures
+    //    - distances: Best known cost to reach each node from source
+    //    - previous: How we reached each node (for path reconstruction)
+    //    - visited: Nodes whose shortest path is finalized
+    //    - queue: Priority queue of nodes to explore (sorted by cost)
+    const distances = new Map<string, number>();
+    const previous = new Map<string, { nodeId: string; edgeId: string } | null>();
+    const visited = new Set<string>();
+    const queue: Array<{ cost: number; nodeId: string }> = [];
+
+    // Initialize source node
+    distances.set(sourceId, 0);
+    previous.set(sourceId, null);
+    queue.push({ cost: 0, nodeId: sourceId });
+
+    // 7. Dijkstra's main loop
+    while (queue.length > 0) {
+      // Extract node with minimum cost (sort ascending by cost)
+      queue.sort((a, b) => a.cost - b.cost);
+      const current = queue.shift()!;
+
+      // Skip if already visited (stale queue entry)
+      if (visited.has(current.nodeId)) {
+        continue;
+      }
+      visited.add(current.nodeId);
+
+      // Found target - stop early (Dijkstra guarantees this is optimal)
+      if (current.nodeId === targetId) {
+        break;
+      }
+
+      // Check depth limit before exploring neighbors
+      if (opts.maxDepth) {
+        const currentDepth = this.countPathDepth(
+          sourceId,
+          current.nodeId,
+          previous
+        );
+        if (currentDepth >= opts.maxDepth) {
+          continue; // Don't explore further from this node
+        }
+      }
+
+      // 8. Explore all neighbors via edges
+      const edgeIds = this.getEdgeIdsForDirection(current.nodeId, opts.direction);
+
+      for (const edgeId of edgeIds) {
+        const edge = this.edges.get(edgeId)!;
+
+        // Filter by edge types if specified
+        if (opts.edgeTypes && !opts.edgeTypes.includes(edge.type)) {
+          continue;
+        }
+
+        // Determine neighbor (edge could go either direction)
+        const neighborId =
+          edge.source === current.nodeId ? edge.target : edge.source;
+
+        // Skip already finalized nodes
+        if (visited.has(neighborId)) {
+          continue;
+        }
+
+        // Filter by node types for intermediate nodes
+        // (source and target are allowed regardless of type)
+        const neighborNode = this.nodes.get(neighborId)!;
+        if (
+          opts.nodeTypes &&
+          neighborId !== targetId &&
+          !opts.nodeTypes.includes(neighborNode.type)
+        ) {
+          continue;
+        }
+
+        // Calculate edge cost:
+        // - ignoreWeights: all edges cost 1 (hop count mode)
+        // - weighted: cost = 1 - weight (stronger = cheaper)
+        const edgeCost = opts.ignoreWeights
+          ? 1
+          : 1 - (edge.weight ?? opts.defaultWeight);
+
+        const newDist = distances.get(current.nodeId)! + edgeCost;
+        const currentBest = distances.get(neighborId);
+
+        // Update if this path is better
+        if (currentBest === undefined || newDist < currentBest) {
+          distances.set(neighborId, newDist);
+          previous.set(neighborId, { nodeId: current.nodeId, edgeId });
+          queue.push({ cost: newDist, nodeId: neighborId });
+        }
+      }
+    }
+
+    // 9. Check if target was reached
+    if (!previous.has(targetId)) {
+      return null; // No path exists
+    }
+
+    // 10. Reconstruct path by walking backwards from target to source
+    const pathNodes: GraphNode[] = [];
+    const pathEdges: GraphEdge[] = [];
+
+    let currentId = targetId;
+    while (currentId !== sourceId) {
+      pathNodes.unshift(this.nodes.get(currentId)!);
+      const prev = previous.get(currentId)!;
+      pathEdges.unshift(this.edges.get(prev.edgeId)!);
+      currentId = prev.nodeId;
+    }
+    pathNodes.unshift(this.nodes.get(sourceId)!);
+
+    return {
+      nodes: pathNodes,
+      edges: pathEdges,
+      totalCost: distances.get(targetId)!,
+      length: pathEdges.length,
+    };
+  };
+
+  /**
+   * Helper: Count the depth (number of edges) from source to a node.
+   * Used for maxDepth checking during Dijkstra's algorithm.
+   */
+  private countPathDepth(
+    sourceId: string,
+    nodeId: string,
+    previous: Map<string, { nodeId: string; edgeId: string } | null>
+  ): number {
+    let depth = 0;
+    let current = nodeId;
+    while (current !== sourceId && previous.get(current)) {
+      depth++;
+      current = previous.get(current)!.nodeId;
+    }
+    return depth;
+  }
 
   // ==========================================================================
   // Query Operations
