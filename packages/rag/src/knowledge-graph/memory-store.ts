@@ -501,7 +501,7 @@ export class InMemoryGraphStore implements GraphStore {
         }
       }
 
-      // Snapshot affected edges
+      // Snapshot affected edges AND adjacency for connected nodes
       for (const edgeId of affectedEdgeIds) {
         const edge = this.edges.get(edgeId);
         if (edge) {
@@ -509,6 +509,23 @@ export class InMemoryGraphStore implements GraphStore {
             ...edge,
             properties: { ...edge.properties },
           });
+
+          // Also snapshot adjacency for connected nodes (source/target of edges)
+          // This is critical: when we delete node B that has edge from A,
+          // deleteNode(B) removes the edge from A's outgoing adjacency too.
+          // We need to restore A's adjacency on rollback, not just B's.
+          if (!outgoingSnapshot.has(edge.source)) {
+            const sourceOutgoing = this.outgoingEdges.get(edge.source);
+            if (sourceOutgoing) {
+              outgoingSnapshot.set(edge.source, new Set(sourceOutgoing));
+            }
+          }
+          if (!incomingSnapshot.has(edge.target)) {
+            const targetIncoming = this.incomingEdges.get(edge.target);
+            if (targetIncoming) {
+              incomingSnapshot.set(edge.target, new Set(targetIncoming));
+            }
+          }
         }
       }
 

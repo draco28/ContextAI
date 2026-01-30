@@ -4,7 +4,7 @@
  * Comprehensive tests for the in-memory graph store implementation.
  */
 
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import {
   InMemoryGraphStore,
   GraphStoreError,
@@ -511,6 +511,55 @@ describe('InMemoryGraphStore', () => {
           expect(result.failedCount).toBe(0);
           expect(await store.getNode('a')).toBeNull();
           expect(await store.getNode('c')).toBeNull();
+        });
+
+        it('should restore adjacency indexes for connected nodes on rollback', async () => {
+          // Regression test for bug: when rolling back bulk delete, adjacency
+          // indexes for nodes connected TO deleted nodes were not restored.
+          //
+          // Setup: A → B → C (A is NOT being deleted, B and C are)
+          // If deletion of C fails, we need to restore A's adjacency to B.
+          const freshStore = new InMemoryGraphStore();
+          const idA = await freshStore.addNode(createTestNode({ label: 'A' }));
+          const idB = await freshStore.addNode(createTestNode({ label: 'B' }));
+          const idC = await freshStore.addNode(createTestNode({ label: 'C' }));
+
+          // Create edges: A → B → C
+          await freshStore.addEdge(createTestEdge(idA, idB));
+          await freshStore.addEdge(createTestEdge(idB, idC));
+
+          // Verify initial state: A can reach B
+          const beforeNeighbors = await freshStore.getNeighbors(idA, { maxDepth: 1 });
+          expect(beforeNeighbors.some((n) => n.node.id === idB)).toBe(true);
+
+          // Spy on deleteNode to throw on the second call (when deleting C)
+          let callCount = 0;
+          const originalDeleteNode = freshStore.deleteNode;
+          vi.spyOn(freshStore, 'deleteNode').mockImplementation(async (id: string) => {
+            callCount++;
+            if (callCount === 2) {
+              throw new Error('Simulated failure on second deletion');
+            }
+            return originalDeleteNode.call(freshStore, id);
+          });
+
+          // Attempt atomic bulk delete [B, C] - should fail and rollback
+          await expect(
+            freshStore.bulkDeleteNodes([idB, idC])
+          ).rejects.toThrow('Transaction failed');
+
+          // Restore mock
+          vi.restoreAllMocks();
+
+          // Critical assertion: A's adjacency to B should be restored
+          // This was the bug - A's outgoing edges were not being restored on rollback
+          const afterNeighbors = await freshStore.getNeighbors(idA, { maxDepth: 1 });
+          expect(afterNeighbors.some((n) => n.node.id === idB)).toBe(true);
+
+          // Also verify B and the edge still exist
+          const nodeB = await freshStore.getNode(idB);
+          expect(nodeB).not.toBeNull();
+          expect(nodeB?.label).toBe('B');
         });
       });
 
