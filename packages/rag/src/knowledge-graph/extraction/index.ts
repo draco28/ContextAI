@@ -73,7 +73,5 @@ export {
 
 // Extractors
 export { LLMEntityExtractor, generateEntityNodeId } from './entity-extractor.js';
-
-// Relation and combined extractors will be added in Ticket #70
-// export { LLMRelationExtractor } from './relation-extractor.js';
-// export { LLMKnowledgeExtractor } from './knowledge-extractor.js';
+export { LLMRelationExtractor } from './relation-extractor.js';
+export { LLMKnowledgeExtractor } from './knowledge-extractor.js';
