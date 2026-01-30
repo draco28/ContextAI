@@ -25,6 +25,7 @@ import type {
   GraphQueryOptions,
   GraphQueryResult,
   BulkNodeUpdate,
+  BulkEdgeUpdate,
   BulkUpdateOptions,
   BulkDeleteOptions,
   BulkOperationResult,
@@ -36,7 +37,9 @@ import {
   GetNeighborsOptionsSchema,
   GraphQueryOptionsSchema,
   UpsertNodeInputSchema,
+  UpsertEdgeInputSchema,
   BulkNodeUpdateSchema,
+  BulkEdgeUpdateSchema,
   BulkUpdateOptionsSchema,
   BulkDeleteOptionsSchema,
 } from './schemas.js';
@@ -734,6 +737,297 @@ export class InMemoryGraphStore implements GraphStore {
 
     // Delete the edge
     this.edges.delete(id);
+  };
+
+  // ==========================================================================
+  // Bulk Edge Operations
+  // ==========================================================================
+
+  /**
+   * Check if an edge exists by ID.
+   */
+  hasEdge = async (id: string): Promise<boolean> => {
+    return this.edges.has(id);
+  };
+
+  /**
+   * Check if multiple edges exist by IDs.
+   * Returns a Map for O(1) lookup of existence status.
+   */
+  hasEdges = async (ids: string[]): Promise<Map<string, boolean>> => {
+    const result = new Map<string, boolean>();
+    for (const id of ids) {
+      result.set(id, this.edges.has(id));
+    }
+    return result;
+  };
+
+  /**
+   * Get multiple edges by their IDs.
+   * Returns edges in the same order as input IDs, with null for missing.
+   */
+  getEdges = async (ids: string[]): Promise<(GraphEdge | null)[]> => {
+    return ids.map((id) => this.edges.get(id) ?? null);
+  };
+
+  /**
+   * Create or update an edge based on ID.
+   *
+   * If the edge exists, updates type/weight/properties (source/target are immutable).
+   * If the edge doesn't exist, creates a new edge.
+   */
+  upsertEdge = async (
+    input: GraphEdgeInput & { id: string }
+  ): Promise<GraphEdge> => {
+    // Validate with schema that requires ID
+    const validated = UpsertEdgeInputSchema.parse(input);
+
+    const existing = this.edges.get(validated.id);
+    if (existing) {
+      // Update existing edge (source/target preserved from existing)
+      return this.updateEdge(validated.id, {
+        type: validated.type,
+        weight: validated.weight,
+        properties: validated.properties,
+      });
+    } else {
+      // Create new edge
+      await this.addEdge(validated);
+      return this.edges.get(validated.id)!;
+    }
+  };
+
+  /**
+   * Create or update multiple edges based on IDs.
+   */
+  upsertEdges = async (
+    inputs: (GraphEdgeInput & { id: string })[]
+  ): Promise<GraphEdge[]> => {
+    const results: GraphEdge[] = [];
+    for (const input of inputs) {
+      const edge = await this.upsertEdge(input);
+      results.push(edge);
+    }
+    return results;
+  };
+
+  /**
+   * Update multiple edges atomically.
+   *
+   * Default behavior (atomic): Either all updates succeed or all are rolled back.
+   * Edge source/target are immutable - only type, weight, properties can be updated.
+   */
+  bulkUpdateEdges = async (
+    updates: BulkEdgeUpdate[],
+    options?: BulkUpdateOptions
+  ): Promise<BulkOperationResult> => {
+    const opts = BulkUpdateOptionsSchema.parse(options ?? {});
+
+    if (updates.length === 0) {
+      return { successCount: 0, successIds: [], failedCount: 0, failedIds: [] };
+    }
+
+    // Validate all update entries with schema
+    for (const update of updates) {
+      BulkEdgeUpdateSchema.parse(update);
+    }
+
+    if (!opts.continueOnError) {
+      // ATOMIC MODE: Validate all exist, snapshot, update, rollback on error
+
+      // Step 1: Verify all edges exist
+      for (const update of updates) {
+        if (!this.edges.has(update.id)) {
+          throw GraphStoreError.transactionFailed(
+            this.name,
+            `Edge not found: ${update.id} - rolling back all changes`
+          );
+        }
+      }
+
+      // Step 2: Create snapshot for rollback
+      const snapshot = new Map<string, GraphEdge>();
+      for (const update of updates) {
+        const edge = this.edges.get(update.id)!;
+        snapshot.set(update.id, {
+          ...edge,
+          properties: { ...edge.properties },
+        });
+      }
+
+      // Step 3: Apply all updates
+      try {
+        const successIds: string[] = [];
+        for (const update of updates) {
+          await this.updateEdge(update.id, update.updates);
+          successIds.push(update.id);
+        }
+        return {
+          successCount: successIds.length,
+          successIds,
+          failedCount: 0,
+          failedIds: [],
+        };
+      } catch (error) {
+        // Step 4: Rollback on any failure
+        for (const [id, edge] of snapshot) {
+          this.edges.set(id, edge);
+        }
+        throw GraphStoreError.transactionFailed(
+          this.name,
+          error instanceof Error ? error.message : String(error),
+          error instanceof Error ? error : undefined
+        );
+      }
+    } else {
+      // NON-ATOMIC MODE: Continue on individual failures
+      const successIds: string[] = [];
+      const failedIds: string[] = [];
+
+      for (const update of updates) {
+        try {
+          await this.updateEdge(update.id, update.updates);
+          successIds.push(update.id);
+        } catch {
+          failedIds.push(update.id);
+        }
+      }
+
+      return {
+        successCount: successIds.length,
+        successIds,
+        failedCount: failedIds.length,
+        failedIds,
+      };
+    }
+  };
+
+  /**
+   * Delete multiple edges atomically.
+   *
+   * Default behavior (atomic): Either all deletes succeed or all are rolled back.
+   * Unlike node deletion, edge deletion doesn't cascade (no edges-of-edges).
+   */
+  bulkDeleteEdges = async (
+    ids: string[],
+    options?: BulkDeleteOptions
+  ): Promise<BulkOperationResult> => {
+    const opts = BulkDeleteOptionsSchema.parse(options ?? {});
+
+    if (ids.length === 0) {
+      return { successCount: 0, successIds: [], failedCount: 0, failedIds: [] };
+    }
+
+    if (!opts.continueOnError) {
+      // ATOMIC MODE: Validate, snapshot all state, delete, rollback on error
+
+      // Step 1: Verify all edges exist (unless skipMissing)
+      if (!opts.skipMissing) {
+        for (const id of ids) {
+          if (!this.edges.has(id)) {
+            throw GraphStoreError.transactionFailed(
+              this.name,
+              `Edge not found: ${id} - rolling back all changes`
+            );
+          }
+        }
+      }
+
+      // Step 2: Create full state snapshot for rollback
+      // We need to snapshot:
+      // - The edges being deleted
+      // - Adjacency indexes for connected nodes
+      const edgeSnapshot = new Map<string, GraphEdge>();
+      const outgoingSnapshot = new Map<string, Set<string>>();
+      const incomingSnapshot = new Map<string, Set<string>>();
+
+      for (const id of ids) {
+        const edge = this.edges.get(id);
+        if (edge) {
+          edgeSnapshot.set(id, {
+            ...edge,
+            properties: { ...edge.properties },
+          });
+
+          // Snapshot adjacency for source and target nodes
+          if (!outgoingSnapshot.has(edge.source)) {
+            const sourceOutgoing = this.outgoingEdges.get(edge.source);
+            if (sourceOutgoing) {
+              outgoingSnapshot.set(edge.source, new Set(sourceOutgoing));
+            }
+          }
+          if (!incomingSnapshot.has(edge.target)) {
+            const targetIncoming = this.incomingEdges.get(edge.target);
+            if (targetIncoming) {
+              incomingSnapshot.set(edge.target, new Set(targetIncoming));
+            }
+          }
+        }
+      }
+
+      // Step 3: Delete all edges
+      try {
+        const successIds: string[] = [];
+        for (const id of ids) {
+          if (this.edges.has(id)) {
+            await this.deleteEdge(id);
+            successIds.push(id);
+          }
+          // With skipMissing, we just silently skip - don't count as success
+        }
+        return {
+          successCount: successIds.length,
+          successIds,
+          failedCount: 0,
+          failedIds: [],
+        };
+      } catch (error) {
+        // Step 4: Rollback ALL state on failure
+        // Restore edges
+        for (const [id, edge] of edgeSnapshot) {
+          this.edges.set(id, edge);
+        }
+        // Restore adjacency indexes
+        for (const [id, set] of outgoingSnapshot) {
+          this.outgoingEdges.set(id, set);
+        }
+        for (const [id, set] of incomingSnapshot) {
+          this.incomingEdges.set(id, set);
+        }
+
+        throw GraphStoreError.transactionFailed(
+          this.name,
+          error instanceof Error ? error.message : String(error),
+          error instanceof Error ? error : undefined
+        );
+      }
+    } else {
+      // NON-ATOMIC MODE: Continue on individual failures
+      const successIds: string[] = [];
+      const failedIds: string[] = [];
+
+      for (const id of ids) {
+        try {
+          if (this.edges.has(id)) {
+            await this.deleteEdge(id);
+            successIds.push(id);
+          } else if (!opts.skipMissing) {
+            // Only count as failure if we're NOT skipping missing
+            failedIds.push(id);
+          }
+          // With skipMissing, silently skip - not success, not failure
+        } catch {
+          failedIds.push(id);
+        }
+      }
+
+      return {
+        successCount: successIds.length,
+        successIds,
+        failedCount: failedIds.length,
+        failedIds,
+      };
+    }
   };
 
   // ==========================================================================

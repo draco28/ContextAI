@@ -404,6 +404,181 @@ describe.skipIf(!RUN_INTEGRATION)('Neo4jGraphStore Integration Tests', () => {
       expect(counts.edges).toBe(0);
     });
   });
+
+  // ==========================================================================
+  // Bulk Edge Operations Tests
+  // ==========================================================================
+
+  describe('Bulk Edge Operations', () => {
+    beforeEach(async () => {
+      // Setup nodes to support edges
+      await store.addNode(createTestNodeInput({ id: 'n1', label: 'Node 1' }));
+      await store.addNode(createTestNodeInput({ id: 'n2', label: 'Node 2' }));
+      await store.addNode(createTestNodeInput({ id: 'n3', label: 'Node 3' }));
+    });
+
+    describe('hasEdge', () => {
+      it('should return true for existing edge', async () => {
+        await store.addEdge(createTestEdgeInput({ id: 'e1', source: 'n1', target: 'n2' }));
+        expect(await store.hasEdge('e1')).toBe(true);
+      });
+
+      it('should return false for non-existent edge', async () => {
+        expect(await store.hasEdge('nonexistent')).toBe(false);
+      });
+    });
+
+    describe('hasEdges', () => {
+      beforeEach(async () => {
+        await store.addEdge(createTestEdgeInput({ id: 'e1', source: 'n1', target: 'n2' }));
+        await store.addEdge(createTestEdgeInput({ id: 'e2', source: 'n2', target: 'n3' }));
+      });
+
+      it('should return Map with correct existence flags', async () => {
+        const result = await store.hasEdges(['e1', 'e2', 'missing']);
+
+        expect(result.get('e1')).toBe(true);
+        expect(result.get('e2')).toBe(true);
+        expect(result.get('missing')).toBe(false);
+      });
+    });
+
+    describe('getEdges', () => {
+      beforeEach(async () => {
+        await store.addEdge(createTestEdgeInput({ id: 'e1', source: 'n1', target: 'n2' }));
+        await store.addEdge(createTestEdgeInput({ id: 'e2', source: 'n2', target: 'n3' }));
+      });
+
+      it('should return edges in order with nulls for missing', async () => {
+        const result = await store.getEdges(['e1', 'missing', 'e2']);
+
+        expect(result).toHaveLength(3);
+        expect(result[0]?.id).toBe('e1');
+        expect(result[1]).toBeNull();
+        expect(result[2]?.id).toBe('e2');
+      });
+    });
+
+    describe('upsertEdge', () => {
+      it('should create edge if not exists', async () => {
+        const edge = await store.upsertEdge({
+          id: 'new-edge',
+          source: 'n1',
+          target: 'n2',
+          type: 'relatedTo',
+          weight: 0.5,
+        });
+
+        expect(edge.id).toBe('new-edge');
+        expect(edge.source).toBe('n1');
+        expect(edge.target).toBe('n2');
+      });
+
+      it('should update edge if exists', async () => {
+        await store.addEdge(createTestEdgeInput({
+          id: 'e1',
+          source: 'n1',
+          target: 'n2',
+          type: 'relatedTo',
+        }));
+
+        const updated = await store.upsertEdge({
+          id: 'e1',
+          source: 'n1',
+          target: 'n2',
+          type: 'references',
+          weight: 0.9,
+        });
+
+        expect(updated.type).toBe('references');
+        expect(updated.weight).toBe(0.9);
+      });
+    });
+
+    describe('bulkUpdateEdges', () => {
+      beforeEach(async () => {
+        await store.addEdge(createTestEdgeInput({ id: 'e1', source: 'n1', target: 'n2' }));
+        await store.addEdge(createTestEdgeInput({ id: 'e2', source: 'n2', target: 'n3' }));
+      });
+
+      it('should update all edges successfully (atomic)', async () => {
+        const result = await store.bulkUpdateEdges([
+          { id: 'e1', updates: { weight: 0.9 } },
+          { id: 'e2', updates: { type: 'references' } },
+        ]);
+
+        expect(result.successCount).toBe(2);
+        expect(result.successIds).toEqual(['e1', 'e2']);
+        expect((await store.getEdge('e1'))?.weight).toBe(0.9);
+        expect((await store.getEdge('e2'))?.type).toBe('references');
+      });
+
+      it('should rollback all on failure (atomic)', async () => {
+        await expect(
+          store.bulkUpdateEdges([
+            { id: 'e1', updates: { weight: 0.9 } },
+            { id: 'missing', updates: { weight: 0.5 } },
+          ])
+        ).rejects.toThrow('Transaction failed');
+      });
+
+      it('should continue on errors (non-atomic)', async () => {
+        const result = await store.bulkUpdateEdges(
+          [
+            { id: 'e1', updates: { weight: 0.8 } },
+            { id: 'missing', updates: { weight: 0.5 } },
+          ],
+          { continueOnError: true }
+        );
+
+        expect(result.successCount).toBe(1);
+        expect(result.failedCount).toBe(1);
+      });
+    });
+
+    describe('bulkDeleteEdges', () => {
+      beforeEach(async () => {
+        await store.addEdge(createTestEdgeInput({ id: 'e1', source: 'n1', target: 'n2' }));
+        await store.addEdge(createTestEdgeInput({ id: 'e2', source: 'n2', target: 'n3' }));
+      });
+
+      it('should delete all edges successfully (atomic)', async () => {
+        const result = await store.bulkDeleteEdges(['e1', 'e2']);
+
+        expect(result.successCount).toBe(2);
+        expect(await store.getEdge('e1')).toBeNull();
+        expect(await store.getEdge('e2')).toBeNull();
+      });
+
+      it('should rollback all on failure (atomic)', async () => {
+        await expect(
+          store.bulkDeleteEdges(['e1', 'missing'])
+        ).rejects.toThrow('Transaction failed');
+
+        // Edge should still exist after rollback
+        expect(await store.getEdge('e1')).not.toBeNull();
+      });
+
+      it('should skip missing with skipMissing option', async () => {
+        const result = await store.bulkDeleteEdges(['e1', 'missing'], {
+          skipMissing: true,
+        });
+
+        expect(result.successCount).toBe(1);
+        expect(result.failedCount).toBe(0);
+      });
+
+      it('should continue on errors (non-atomic)', async () => {
+        const result = await store.bulkDeleteEdges(
+          ['e1', 'missing'],
+          { continueOnError: true }
+        );
+
+        expect(result.successCount).toBe(1);
+        expect(result.failedCount).toBe(1);
+      });
+    });
+  });
 });
 
 // ============================================================================

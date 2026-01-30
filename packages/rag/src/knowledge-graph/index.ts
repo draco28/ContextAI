@@ -48,6 +48,7 @@ export type {
   // Bulk operation types
   BulkOperationResult,
   BulkNodeUpdate,
+  BulkEdgeUpdate,
   BulkUpdateOptions,
   BulkDeleteOptions,
   // Store types
@@ -78,7 +79,9 @@ export {
   GraphStoreConfigSchema,
   // Bulk operation schemas
   UpsertNodeInputSchema,
+  UpsertEdgeInputSchema,
   BulkNodeUpdateSchema,
+  BulkEdgeUpdateSchema,
   BulkUpdateOptionsSchema,
   BulkDeleteOptionsSchema,
   // Validated types (from z.infer)
@@ -89,6 +92,8 @@ export {
   type ValidatedGraphStoreConfig,
   type ValidatedUpsertNodeInput,
   type ValidatedBulkNodeUpdate,
+  type ValidatedBulkEdgeUpdate,
+  type ValidatedUpsertEdgeInput,
   type ValidatedBulkUpdateOptions,
   type ValidatedBulkDeleteOptions,
 } from './schemas.js';
